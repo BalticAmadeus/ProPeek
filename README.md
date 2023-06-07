@@ -1,66 +1,65 @@
-# ProBro
+# vsc-profiler README
 
-An extension for Progress DB browsing.
-
-## Current status
-This open source project is in active development. Our goal is to simplify the access to Progress DB wen using VS Code as a development environment.
-
-<img src="resources/images/multisorting.gif">
+This is the README for your extension "vsc-profiler". After writing up a brief description, we recommend including the following sections.
 
 ## Features
-- Connection to Progress DB:
-  - Connect to Progress DB via ABL Socket server
-  - Connect to multiple local Progress DBs
-  - Custom connection groups
-  - Deleting Connections
-  - Edit Connections
-  - Connection status indicator
-- Tables
-  - Hidden tables
-  - Launch query
-  - Launch query on double click
-- Indexes
-- Fields
-  - Filtering
-  - Show only selected fields
-- Query data
-  - Server-side multi-sorting
-  - Server-side multi-filtering
-  - Lazy loading
-  - JSON/OE formatting
-  - Custom queries
-  - View record on double-click
-- Export
-  - Formats
-    - .D file (*new*)
-    - JSON
-    - Excel
-    - CSV
-  - Scope
-    - All records
-    - Selected records
-    - Filtered records
-- CRUD operations
-  - Delete multiple
-  - Insert
-  - Update
-- Extension settings configuration (*new*)
-- Supported OS
-  - Windows
-  - Linux
-## Guide
-- [Install and setup guide](resources/markdown/setup.md)
-- [User manual](resources/markdown/manual.md)
-- [Development setup guide](resources/markdown/dev_env_setup.md)
 
-## Related work
-- [DataDigger](https://datadigger.wordpress.com/) developed by Patrick Tingen. A great source of features and examples when working on this project.
-- [vscode-abl](https://github.com/chriscamicas/vscode-abl) a VSCode plugin for ABL.
+Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-## Changelog
+For example if there is an image subfolder under your extension project workspace:
 
-Full changelog is available [here](CHANGELOG.md)
+\!\[feature X\]\(images/feature-x.png\)
 
-## Sponsored by [Baltic Amadeus](https://www.ba.lt/en).
+> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
-[![BA](resources/images/Balticmadeus_RGB-01.jpg)](https://www.ba.lt/en)<br>
+## Requirements
+
+If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+
+## Extension Settings
+
+Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+
+For example:
+
+This extension contributes the following settings:
+
+* `myExtension.enable`: Enable/disable this extension.
+* `myExtension.thing`: Set to `blah` to do something.
+
+## Known Issues
+
+Calling out known issues can help limit users opening duplicate issues against your extension.
+
+## Release Notes
+
+Users appreciate release notes as you update your extension.
+
+### 1.0.0
+
+Initial release of ...
+
+### 1.0.1
+
+Fixed issue #.
+
+### 1.1.0
+
+Added features X, Y, and Z.
+
+---
+
+## Working with Markdown
+
+You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+
+* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
+* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
+* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+
+## For more information
+
+* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
+* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+
+**Enjoy!**
