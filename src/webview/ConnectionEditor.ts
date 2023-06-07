@@ -1,13 +1,16 @@
 import path = require("path");
 import * as vscode from "vscode";
-import { IConfig } from "./model";
-import { Constants } from "./Constants";
+import { IConfig } from "../view/app/model";
+import { Constants } from "../common/Constants";
 
 export class ConnectionEditor {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly extensionPath: string;
+    // private disposables: vscode.Disposable[] = [];
+    // private isTestedSuccesfully: boolean = false;
     private readonly id?: string;
     private readonly configuration = vscode.workspace.getConfiguration("ProBro");
+    // private logger = new Logger(this.configuration.get("logging.node")!);
 
     constructor(private context: vscode.ExtensionContext, action: string, id?: string,) {
         this.extensionPath = context.asAbsolutePath('');
@@ -50,7 +53,7 @@ export class ConnectionEditor {
         const cspSource = this.panel?.webview.cspSource;
 
         let config: IConfig = {
-            name: "",
+            name: ""
         };
         if (this.id) {
             const connections = this.context.globalState.get<{ [id: string]: IConfig }>(`${Constants.globalExtensionKey}.dbconfig`);

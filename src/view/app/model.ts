@@ -1,3 +1,4 @@
+
 export interface IConfig {
     name: string;
 }
@@ -6,6 +7,13 @@ export enum ConnectionStatus {
     Connected,
     Connecting,
     NotConnected
+}
+
+export interface ICommand {
+    id: string;
+    action: CommandAction;
+    content?: IConfig;
+    columns?: string[];
 }
 
 export interface IQueryParams {
