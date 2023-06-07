@@ -1,14 +1,14 @@
 import path = require("path");
 import * as vscode from "vscode";
 
-export class ConnectionEditor {
+export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
 
     constructor(private context: vscode.ExtensionContext, action: string, id?: string,) {
 
         this.panel = vscode.window.createWebviewPanel(
-            'OEConnectionEditor', // Identifies the type of the webview. Used internally
+            'OEProfilerViewer', // Identifies the type of the webview. Used internally
             action, // Title of the panel displayed to the user
             vscode.ViewColumn.One, // Editor column to show the new webview panel in.
             {
@@ -34,7 +34,7 @@ export class ConnectionEditor {
     private getWebviewContent(): string {
         // Local path to main script run in the webview
         const reactAppPathOnDisk = vscode.Uri.file(
-            path.join(vscode.Uri.file(this.context.asAbsolutePath(path.join("out/view/app", "connection.js"))).fsPath)
+            path.join(vscode.Uri.file(this.context.asAbsolutePath(path.join("out/view/app", "profiler.js"))).fsPath)
         );
 
         const reactAppUri = this.panel?.webview.asWebviewUri(reactAppPathOnDisk);

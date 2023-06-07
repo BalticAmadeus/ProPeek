@@ -1,8 +1,8 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import "./connection.css";
-import ConnectionForm from "./connectionForm";
+import "./profiler.css";
+import ProfilerForm from "./profilerForm";
 import { IConfig } from "../model";
 import { ISettings } from "../../../common/IExtensionSettings";
 
@@ -18,7 +18,7 @@ const vscode = window.acquireVsCodeApi();
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-    <ConnectionForm
+    <ProfilerForm
         configuration={window.configuration}
         vscode={vscode}
     />

@@ -16,6 +16,10 @@
             {
                 "command": "vsc-profiler.helloWorld",
                 "title": "Hello World"
+            },
+            {
+                "command": "vsc-profiler.profiler",
+                "title": "Profiler"
             }
         ]
     },

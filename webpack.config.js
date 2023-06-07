@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
     entry: {
-        connection: "./src/view/app/Connection/"
+        profiler: "./src/view/app/profiler/"
     },
     output: {
         path: path.resolve(__dirname, "out/view/app"),
