@@ -1,5 +1,7 @@
 import path = require("path");
 import * as vscode from "vscode";
+import { ProfilerService } from "../services/profilerService";
+import { PresentationData } from "../common/PresentationData";
 
 export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
@@ -20,7 +22,7 @@ export class ProfilerViewer {
             }
         );
 
-        this.panel.webview.html = this.getWebviewContent();
+        this.panel.webview.html = this.getWebviewContent({ moduleDetails: [], callingModules: [], calledModules: [], lineSummary: [] });
 
         this.panel.onDidDispose(
             () => {
@@ -29,9 +31,17 @@ export class ProfilerViewer {
             null,
             context.subscriptions
         );
+
+        const profilerService = new ProfilerService();
+
+        var dataString = profilerService.parse('C:/WorkSpace/Profiler/ProfilingOE/profiler.prof');
+
+        this.panel?.webview.postMessage(dataString);
+
     }
 
-    private getWebviewContent(): string {
+
+    private getWebviewContent(data: PresentationData): string {
         // Local path to main script run in the webview
         const reactAppPathOnDisk = vscode.Uri.file(
             path.join(vscode.Uri.file(this.context.asAbsolutePath(path.join("out/view/app", "profiler.js"))).fsPath)
@@ -53,8 +63,7 @@ export class ProfilerViewer {
                       style-src ${cspSource} 'unsafe-inline';">
 
         <script>
-          window.acquireVsCodeApi = acquireVsCodeApi;
-          window.configuration = ${JSON.stringify(this.configuration)};
+          window.presentationData = ${JSON.stringify(data)};
         </script>
     </head>
     <body>

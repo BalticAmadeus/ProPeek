@@ -1,7 +1,9 @@
 "user strict";
 
 export class Constants {
-    public static extensionId = "pro-bro";
-    public static globalExtensionKey = "pro-bro";
+    public static extensionId = "ProfilerName";
+    public static globalExtensionKey = "ProfilerName";
     public static context: any;
 }
+
+

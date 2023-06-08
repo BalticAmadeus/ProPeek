@@ -1,0 +1,90 @@
+{
+    "detailsColumns": [
+        {
+            "key": "moduleName",
+            "name": "ModuleName",
+            "width": 150
+        },
+        {
+            "key": "pcntOfSession",
+            "name": "PcntOfSession",
+            "width": 150
+        },
+        {
+            "key": "timesCalled",
+            "name": "TimesCalled",
+            "width": 150
+        },
+        {
+            "key": "totalTime",
+            "name": "TotalTime",
+            "width": 150
+        },
+        {
+            "key": "avgTimePerCall",
+            "name": "AvgTimePerCall",
+            "width": 150
+        }
+    ],
+    "CallingColumns": [
+        {
+            "key": "callingModuleName",
+            "name": "CallingModuleName",
+            "width": 150
+        },
+        {
+            "key": "timesCalling",
+            "name": "TimesCalling",
+            "width": 150
+        },
+        {
+            "key": "pcntOfSession",
+            "name": "PcntOfSession",
+            "width": 150
+        }
+    ],
+    "CalledColumns": [
+        {
+            "key": "calledModuleName",
+            "name": "CalledModuleName",
+            "width": 150
+        },
+        {
+            "key": "timesCalled",
+            "name": "TimesCalled",
+            "width": 150
+        },
+        {
+            "key": "totalTimesCalled",
+            "name": "totalTimesCalled",
+            "width": 150
+        },
+        {
+            "key": "pcntOfSession",
+            "name": "pcntOfSession",
+            "width": 150
+        }
+    ],
+    "LineColumns": [
+        {
+            "key": "lineNumber",
+            "name": "lineNumber",
+            "width": 150
+        },
+        {
+            "key": "timesCalled",
+            "name": "timesCalled",
+            "width": 150
+        },
+        {
+            "key": "avgTime",
+            "name": "avgTime",
+            "width": 150
+        },
+        {
+            "key": "totalTime",
+            "name": "totalTime",
+            "width": 150
+        }
+    ]
+}

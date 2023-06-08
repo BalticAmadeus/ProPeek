@@ -148,3 +148,27 @@ Input[type="text"] {
     color: var(--vscode-input-foreground);
     border-color: var(--vscode-editorBracketMatch-border);
 }
+
+.details-columns {
+    position: relative;
+    width: fit-content;
+}
+
+.calling-columns {
+    position: relative;
+    width: fit-content;
+    float: left;
+    padding: 10px;
+}
+
+.called-columns {
+    position: relative;
+    width: fit-content;
+    float: left;
+    padding: 10px;
+}
+
+.line-columns {
+    position: relative;
+    width: fit-content;
+}

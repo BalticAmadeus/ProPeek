@@ -5,21 +5,17 @@ import "./profiler.css";
 import ProfilerForm from "./profilerForm";
 import { IConfig } from "../model";
 import { ISettings } from "../../../common/IExtensionSettings";
+import { PresentationData } from "../../../common/PresentationData";
 
 declare global {
     interface Window {
-        acquireVsCodeApi(): any;
-        initialData: IConfig;
-        configuration: ISettings;
+        presentationData: PresentationData
     }
 }
-
-const vscode = window.acquireVsCodeApi();
 
 const root = createRoot(document.getElementById("root"));
 root.render(
     <ProfilerForm
-        configuration={window.configuration}
-        vscode={vscode}
+        presentationData={window.presentationData}
     />
 );
