@@ -7,7 +7,7 @@ export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
 
-    constructor(private context: vscode.ExtensionContext, action: string, id?: string,) {
+    constructor(private context: vscode.ExtensionContext, action: string, filePath: string,) {
 
         this.panel = vscode.window.createWebviewPanel(
             'OEProfilerViewer', // Identifies the type of the webview. Used internally
@@ -34,7 +34,7 @@ export class ProfilerViewer {
 
         const profilerService = new ProfilerService();
 
-        var dataString = profilerService.parse('C:/WorkSpace/Profiler/ProfilingOE/profiler.prof');
+        var dataString = profilerService.parse(filePath);
 
         this.panel?.webview.postMessage(dataString);
 

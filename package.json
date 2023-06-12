@@ -14,14 +14,27 @@
     "contributes": {
         "commands": [
             {
-                "command": "vsc-profiler.helloWorld",
-                "title": "Hello World"
-            },
-            {
                 "command": "vsc-profiler.profiler",
-                "title": "Profiler"
+                "title": "show profiler",
+                "when": "resourceExtname == .prof",
+                "icon": "$(open-preview)"
             }
-        ]
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "vsc-profiler.profiler",
+                    "when": "resourceExtname == .prof"
+                }
+            ],
+            "editor/title": [
+                {
+                    "when": "resourceExtname == .prof",
+                    "command": "vsc-profiler.profiler",
+                    "group": "navigation"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run esbuild-base -- --minify",
