@@ -3,88 +3,88 @@
         {
             "key": "moduleName",
             "name": "ModuleName",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "pcntOfSession",
             "name": "PcntOfSession",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "timesCalled",
             "name": "TimesCalled",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "totalTime",
             "name": "TotalTime",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "avgTimePerCall",
             "name": "AvgTimePerCall",
-            "width": 150
+            "width": "auto"
         }
     ],
     "CallingColumns": [
         {
             "key": "callingModuleName",
             "name": "CallingModuleName",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "timesCalling",
             "name": "TimesCalling",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "pcntOfSession",
             "name": "PcntOfSession",
-            "width": 150
+            "width": "auto"
         }
     ],
     "CalledColumns": [
         {
             "key": "calledModuleName",
             "name": "CalledModuleName",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "timesCalled",
             "name": "TimesCalled",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "totalTimesCalled",
             "name": "totalTimesCalled",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "pcntOfSession",
             "name": "pcntOfSession",
-            "width": 150
+            "width": "auto"
         }
     ],
     "LineColumns": [
         {
             "key": "lineNumber",
             "name": "lineNumber",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "timesCalled",
             "name": "timesCalled",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "avgTime",
             "name": "avgTime",
-            "width": 150
+            "width": "auto"
         },
         {
             "key": "totalTime",
             "name": "totalTime",
-            "width": 150
+            "width": "auto"
         }
     ]
 }

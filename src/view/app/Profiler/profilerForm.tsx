@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { CallingModules, PresentationData } from "../../../common/PresentationData";
+import { PresentationData } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import * as columnName from "./column.json";
 
@@ -42,6 +42,9 @@ function ProfilerForm({ presentationData }: IConfigProps) {
     return (
         <React.Fragment>
             <div className="details-columns">
+                <div className="grid-name">
+                    Module Details
+                </div>
                 <DataGrid
                     columns={columnName.detailsColumns}
                     rows={moduleDetailsRows}
@@ -53,6 +56,9 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 />
             </div>
             <div className="calling-columns">
+                <div className="grid-name">
+                    Calling Modules
+                </div>
                 <DataGrid
                     columns={columnName.CallingColumns}
                     rows={selectedCallingModulesRows}
@@ -63,6 +69,9 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 />
             </div>
             <div className="called-columns">
+                <div className="grid-name">
+                    Called Modules
+                </div>
                 <DataGrid
                     columns={columnName.CalledColumns}
                     rows={selectedCalledModulesRows}
@@ -73,6 +82,9 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 />
             </div>
             <div className="line-columns">
+                <div className="grid-name">
+                    Line Summary
+                </div>
                 <DataGrid
                     columns={columnName.LineColumns}
                     rows={selectedLineSummaryRows}
