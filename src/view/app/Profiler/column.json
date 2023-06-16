@@ -1,5 +1,5 @@
 {
-    "detailsColumns": [
+    "moduleColumns": [
         {
             "key": "moduleName",
             "name": "ModuleName",

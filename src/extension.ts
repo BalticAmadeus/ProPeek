@@ -16,16 +16,11 @@ export function activate(context: vscode.ExtensionContext) {
         console.log(activeEditor.document.fileName);
         const filePath = activeEditor.document.fileName;
         const updatedPath = filePath.replace(/\\/g, '/');
-        console.log(updatedPath);
-        console.log("here");
         new ProfilerViewer(context, "Add New Profiler", updatedPath);
-        console.log("to");
-
     });
 
     context.subscriptions.push(disposable);
 }
-
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
