@@ -16,7 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
         console.log(activeEditor.document.fileName);
         const filePath = activeEditor.document.fileName;
         const updatedPath = filePath.replace(/\\/g, '/');
-        new ProfilerViewer(context, "ProfilerOE", updatedPath);
+        const fileName = vscode.workspace.asRelativePath(updatedPath);
+        new ProfilerViewer(context, fileName, updatedPath);
     });
 
     context.subscriptions.push(disposable);
