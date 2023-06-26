@@ -1,7 +1,8 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PresentationData, ModuleDetails } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
+import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
 
 interface IConfigProps {
@@ -18,8 +19,29 @@ function rowKeyGetter(row: ModuleDetails) {
     return row.moduleID;
 }
 
+type Comparator = (a: ModuleDetails, b: ModuleDetails) => number;
+function getComparator(sortColumn: string): Comparator {
+    switch (sortColumn) {
+        case "moduleID":
+        case "timesCalled":
+        case "avgTimePerCall":
+        case "totalTime":
+        case "pcntOfSession":
+            return (a, b) => {
+                return a[sortColumn] - b[sortColumn];
+            };
+        case "moduleName":
+            return (a, b) => {
+                return a[sortColumn].localeCompare(b[sortColumn]);
+            };
+        default:
+            throw new Error(`unsupported sortColumn: "${sortColumn}"`);
+    }
+}
+
 function ProfilerForm({ presentationData }: IConfigProps) {
     const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
+    const [sortModuleColumns, setsortModuleColumns] = useState<readonly SortColumn[]>([]);
     const [filteredModuleRows, setFilteredModuleRows] = useState(moduleRows);
 
     const [callingRows, setCallingRows] = useState(presentationData.callingModules);
@@ -40,10 +62,34 @@ function ProfilerForm({ presentationData }: IConfigProps) {
         _setFilters(data);
     };
 
+    const sortedRows = useMemo((): readonly ModuleDetails[] => {
+        if (sortModuleColumns.length === 0) {
+            return filteredModuleRows;
+        }
+
+        return [...filteredModuleRows].sort((a, b) => {
+            for (const sort of sortModuleColumns) {
+                const comparator = getComparator(sort.columnKey);
+                const compResult = comparator(a, b);
+                if (compResult !== 0) {
+                    return sort.direction === "ASC" ? compResult : -compResult;
+                }
+            }
+            return 0;
+        });
+    }, [filteredModuleRows, sortModuleColumns]);
+
     columnName.moduleColumns.forEach((column) => {
         if (column.key === "moduleName") {
             column["headerRenderer"] = function ({
+                onSort,
+                sortDirection,
+                priority,
             }) {
+
+                function handleClick(event) {
+                    onSort(event.ctrlKey || event.metaKey);
+                }
 
                 function handleInputKeyDown(event) {
                     var tempFilters = filters;
@@ -71,9 +117,39 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 return (
                     <React.Fragment>
                         <div className={filters.enabled ? "filter-cell" : undefined}>
-                            <span>
-                                <span>
+                            <span
+                                tabIndex={-1}
+                                style={{
+                                    cursor: "pointer",
+                                    display: "flex",
+                                }}
+                                className="rdg-header-sort-cell"
+                                onClick={handleClick}
+                            >
+                                <span
+                                    className="rdg-header-sort-name"
+                                    style={{
+                                        flexGrow: "1",
+                                        overflow: "clip",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                >
                                     {column.name}
+                                </span>
+                                <span>
+                                    <svg
+                                        viewBox="0 0 12 8"
+                                        width="12"
+                                        height="8"
+                                        className="rdg-sort-arrow"
+                                        style={{
+                                            fill: "currentcolor",
+                                        }}
+                                    >
+                                        {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
+                                        {sortDirection === "DESC" && <path d="M0 0 6 8 12 0"></path>}
+                                    </svg>
+                                    {priority}
                                 </span>
                             </span>
                         </div>
@@ -126,7 +202,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 {moduleRows.length > 0 ? (
                     <DataGrid
                         columns={columnName.moduleColumns}
-                        rows={filteredModuleRows}
+                        rows={sortedRows}
                         defaultColumnOptions={{
                             sortable: true,
                             resizable: true,
@@ -135,6 +211,8 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                         headerRowHeight={filters.enabled ? 70 : undefined}
                         rowKeyGetter={rowKeyGetter}
                         onRowsChange={setModuleRows}
+                        sortColumns={sortModuleColumns}
+                        onSortColumnsChange={setsortModuleColumns}
                     />
                 ) : null}
             </div>
