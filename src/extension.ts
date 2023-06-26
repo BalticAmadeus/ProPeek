@@ -13,7 +13,6 @@ export function activate(context: vscode.ExtensionContext) {
             console.error('Cannot get the active editor');
             return;
         };
-        console.log(activeEditor.document.fileName);
         const filePath = activeEditor.document.fileName;
         const updatedPath = filePath.replace(/\\/g, '/');
         const fileName = vscode.workspace.asRelativePath(updatedPath);

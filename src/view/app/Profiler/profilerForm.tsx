@@ -14,7 +14,7 @@ const filterCSS: React.CSSProperties = {
     fontSize: "14px",
 };
 
-function rowKeyGetter(row: ModuleDetails) {
+function moduleRowKeyGetter(row: ModuleDetails) {
     return row.moduleID;
 }
 
@@ -105,11 +105,31 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             });
 
 
+
+            combineRows(message.callingModules);
+            combineRows(message.calledModules);
+
             setCallingRows(message.callingModules);
             setCalledRows(message.calledModules);
             setLineRows(message.lineSummary);
         });
     });
+
+    function combineRows(list) {
+        list.forEach((rowOne, indexOne) => {
+            list.forEach((rowTwo, indexTwo) => {
+                if (indexOne !== indexTwo) {
+                    if (rowOne.moduleID === rowTwo.moduleID) {
+                        if (rowOne.callingModuleName === rowTwo.callingModuleName) {
+
+                            rowOne.timesCalling += rowTwo.timesCalling;
+                            list.splice(indexTwo, 1);
+                        }
+                    }
+                }
+            });
+        });
+    }
 
     const showSelected = (row) => {
         setSelectedCallingRows(callingRows.filter(element => element.moduleID === row.moduleID));
@@ -133,7 +153,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                         }}
                         onRowClick={showSelected}
                         headerRowHeight={filters.enabled ? 70 : undefined}
-                        rowKeyGetter={rowKeyGetter}
+                        rowKeyGetter={moduleRowKeyGetter}
                         onRowsChange={setModuleRows}
                     />
                 ) : null}
