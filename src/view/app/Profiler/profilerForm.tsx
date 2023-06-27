@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
-import { PresentationData, ModuleDetails } from "../../../common/PresentationData";
+import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSummary } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
@@ -19,18 +19,28 @@ function rowKeyGetter(row: ModuleDetails) {
     return row.moduleID;
 }
 
-type Comparator = (a: ModuleDetails, b: ModuleDetails) => number;
-function getComparator(sortColumn: string): Comparator {
+type ModuleComparator = (a: ModuleDetails, b: ModuleDetails) => number;
+type CallingComparator = (a: CallingModules, b: CallingModules) => number;
+type CalledComparator = (a: CalledModules, b: CalledModules) => number;
+type LineComparator = (a: LineSummary, b: LineSummary) => number;
+
+function getComparator(sortColumn: string) {
     switch (sortColumn) {
         case "moduleID":
         case "timesCalled":
+        case "timesCalling":
+        case "totalTimesCalled":
+        case "lineNumber":
         case "avgTimePerCall":
+        case "avgTime":
         case "totalTime":
         case "pcntOfSession":
             return (a, b) => {
                 return a[sortColumn] - b[sortColumn];
             };
         case "moduleName":
+        case "callingModuleName":
+        case "calledModuleName":
             return (a, b) => {
                 return a[sortColumn].localeCompare(b[sortColumn]);
             };
@@ -39,18 +49,38 @@ function getComparator(sortColumn: string): Comparator {
     }
 }
 
+function getModuleComparator(sortColumn: string): ModuleComparator {
+    return getComparator(sortColumn);
+}
+
+function getCallingComparator(sortColumn: string): CallingComparator {
+    return getComparator(sortColumn);
+}
+
+function getCalledComparator(sortColumn: string): CalledComparator {
+    return getComparator(sortColumn);
+}
+
+function getLineComparator(sortColumn: string): LineComparator {
+    return getComparator(sortColumn);
+}
+
 function ProfilerForm({ presentationData }: IConfigProps) {
     const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
-    const [sortModuleColumns, setsortModuleColumns] = useState<readonly SortColumn[]>([]);
+    const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([]);
     const [filteredModuleRows, setFilteredModuleRows] = useState(moduleRows);
 
     const [callingRows, setCallingRows] = useState(presentationData.callingModules);
-    const [calledRows, setCalledRows] = useState(presentationData.calledModules);
-    const [lineRows, setLineRows] = useState(presentationData.lineSummary);
-
     const [selectedCallingRows, setSelectedCallingRows] = useState(presentationData.callingModules);
+    const [sortCallingColumns, setSortCallingColumns] = useState<readonly SortColumn[]>([]);
+
+    const [calledRows, setCalledRows] = useState(presentationData.calledModules);
     const [selectedCalledRows, setSelectedCalledRows] = useState(presentationData.calledModules);
+    const [sortCalledColumns, setSortCalledColumns] = useState<readonly SortColumn[]>([]);
+
+    const [lineRows, setLineRows] = useState(presentationData.lineSummary);
     const [selectedLineRows, setSelectedLineRows] = useState(presentationData.lineSummary);
+    const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([]);
 
     const [filters, _setFilters] = React.useState({
         columns: {},
@@ -62,14 +92,14 @@ function ProfilerForm({ presentationData }: IConfigProps) {
         _setFilters(data);
     };
 
-    const sortedRows = useMemo((): readonly ModuleDetails[] => {
+    const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
         if (sortModuleColumns.length === 0) {
             return filteredModuleRows;
         }
 
         return [...filteredModuleRows].sort((a, b) => {
             for (const sort of sortModuleColumns) {
-                const comparator = getComparator(sort.columnKey);
+                const comparator = getModuleComparator(sort.columnKey);
                 const compResult = comparator(a, b);
                 if (compResult !== 0) {
                     return sort.direction === "ASC" ? compResult : -compResult;
@@ -78,6 +108,57 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             return 0;
         });
     }, [filteredModuleRows, sortModuleColumns]);
+
+    const sortedCallingRows = useMemo((): readonly CallingModules[] => {
+        if (sortCallingColumns.length === 0) {
+            return selectedCallingRows;
+        }
+
+        return [...selectedCallingRows].sort((a, b) => {
+            for (const sort of sortCallingColumns) {
+                const comparator = getCallingComparator(sort.columnKey);
+                const compResult = comparator(a, b);
+                if (compResult !== 0) {
+                    return sort.direction === "ASC" ? compResult : -compResult;
+                }
+            }
+            return 0;
+        });
+    }, [selectedCallingRows, sortCallingColumns]);
+
+    const sortedCalledRows = useMemo((): readonly CalledModules[] => {
+        if (sortCalledColumns.length === 0) {
+            return selectedCalledRows;
+        }
+
+        return [...selectedCalledRows].sort((a, b) => {
+            for (const sort of sortCalledColumns) {
+                const comparator = getCalledComparator(sort.columnKey);
+                const compResult = comparator(a, b);
+                if (compResult !== 0) {
+                    return sort.direction === "ASC" ? compResult : -compResult;
+                }
+            }
+            return 0;
+        });
+    }, [selectedCalledRows, sortCalledColumns]);
+
+    const sortedLineRows = useMemo((): readonly LineSummary[] => {
+        if (sortLineColumns.length === 0) {
+            return selectedLineRows;
+        }
+
+        return [...selectedLineRows].sort((a, b) => {
+            for (const sort of sortLineColumns) {
+                const comparator = getLineComparator(sort.columnKey);
+                const compResult = comparator(a, b);
+                if (compResult !== 0) {
+                    return sort.direction === "ASC" ? compResult : -compResult;
+                }
+            }
+            return 0;
+        });
+    }, [selectedLineRows, sortLineColumns]);
 
     columnName.moduleColumns.forEach((column) => {
         if (column.key === "moduleName") {
@@ -202,7 +283,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 {moduleRows.length > 0 ? (
                     <DataGrid
                         columns={columnName.moduleColumns}
-                        rows={sortedRows}
+                        rows={sortedModuleRows}
                         defaultColumnOptions={{
                             sortable: true,
                             resizable: true,
@@ -212,7 +293,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                         rowKeyGetter={rowKeyGetter}
                         onRowsChange={setModuleRows}
                         sortColumns={sortModuleColumns}
-                        onSortColumnsChange={setsortModuleColumns}
+                        onSortColumnsChange={setSortModuleColumns}
                     />
                 ) : null}
             </div>
@@ -223,11 +304,14 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 </div>
                 <DataGrid
                     columns={columnName.CallingColumns}
-                    rows={selectedCallingRows}
+                    rows={sortedCallingRows}
                     defaultColumnOptions={{
                         sortable: true,
                         resizable: true,
                     }}
+                    onRowsChange={setSelectedCallingRows}
+                    sortColumns={sortCallingColumns}
+                    onSortColumnsChange={setSortCallingColumns}
                 />
             </div>
 
@@ -237,11 +321,14 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 </div>
                 <DataGrid
                     columns={columnName.CalledColumns}
-                    rows={selectedCalledRows}
+                    rows={sortedCalledRows}
                     defaultColumnOptions={{
                         sortable: true,
                         resizable: true,
                     }}
+                    onRowsChange={setSelectedCalledRows}
+                    sortColumns={sortCalledColumns}
+                    onSortColumnsChange={setSortCalledColumns}
                 />
             </div>
 
@@ -251,11 +338,14 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 </div>
                 <DataGrid
                     columns={columnName.LineColumns}
-                    rows={selectedLineRows}
+                    rows={sortedLineRows}
                     defaultColumnOptions={{
                         sortable: true,
                         resizable: true,
                     }}
+                    onRowsChange={setSelectedLineRows}
+                    sortColumns={sortLineColumns}
+                    onSortColumnsChange={setSortLineColumns}
                 />
             </div>
         </React.Fragment >
