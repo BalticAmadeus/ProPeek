@@ -40,6 +40,18 @@ function ProfilerForm({ presentationData }: IConfigProps) {
         _setFilters(data);
     };
 
+    columnName.CalledColumns.forEach((column) => {
+        if (column.key === "pcntOfSession") {
+            addPercentage(column);
+        }
+    });
+
+    columnName.CallingColumns.forEach((column) => {
+        if (column.key === "pcntOfSession") {
+            addPercentage(column);
+        }
+    });
+
     columnName.moduleColumns.forEach((column) => {
         if (column.key === "moduleName") {
             column["headerRenderer"] = function ({
@@ -72,9 +84,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     <React.Fragment>
                         <div className={filters.enabled ? "filter-cell" : undefined}>
                             <span>
-                                <span>
-                                    {column.name}
-                                </span>
+                                <span>{column.name}</span>
                             </span>
                         </div>
                         {filters.enabled && (
@@ -91,7 +101,48 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                 );
             };
         }
+
+        if (column.key === "pcntOfSession") {
+            addPercentage(column);
+        }
     });
+
+    function addPercentage(column) {
+        column["headerRenderer"] = function ({ }) {
+            return <span>{column.name}</span>;
+        };
+
+        column["formatter"] = function ({ row }) {
+            const percentage = row[column.key];
+            const progressStyle: React.CSSProperties = {
+                width: `${percentage}%`,
+                height: "10px",
+                backgroundColor: "#007bff",
+            };
+
+            const borderStyle: React.CSSProperties = {
+                border: "1px solid #ccc",
+                boxSizing: "border-box",
+            };
+
+            return (
+                <div className="progress" style={{ height: "10px" }}>
+                    <div className="progress-border" style={borderStyle}>
+                        <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={progressStyle}
+                            aria-valuenow={percentage}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                        >
+                            {percentage}%
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+    }
 
     React.useLayoutEffect(() => {
         window.addEventListener("message", (event) => {
@@ -101,9 +152,8 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             setFilteredModuleRows(message.moduleDetails);
             setFilters({
                 columns: {},
-                enabled: true
+                enabled: true,
             });
-
 
             setCallingRows(message.callingModules);
             setCalledRows(message.calledModules);
@@ -120,9 +170,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
     return (
         <React.Fragment>
             <div className="details-columns">
-                <div className="grid-name">
-                    Module Details
-                </div>
+                <div className="grid-name">Module Details</div>
                 {moduleRows.length > 0 ? (
                     <DataGrid
                         columns={columnName.moduleColumns}
@@ -140,9 +188,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             </div>
 
             <div className="calling-columns">
-                <div className="grid-name">
-                    Calling Modules
-                </div>
+                <div className="grid-name">Calling Modules</div>
                 <DataGrid
                     columns={columnName.CallingColumns}
                     rows={selectedCallingRows}
@@ -154,9 +200,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             </div>
 
             <div className="called-columns">
-                <div className="grid-name">
-                    Called Modules
-                </div>
+                <div className="grid-name">Called Modules</div>
                 <DataGrid
                     columns={columnName.CalledColumns}
                     rows={selectedCalledRows}
@@ -168,9 +212,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             </div>
 
             <div className="line-columns">
-                <div className="grid-name">
-                    Line Summary
-                </div>
+                <div className="grid-name">Line Summary</div>
                 <DataGrid
                     columns={columnName.LineColumns}
                     rows={selectedLineRows}
@@ -180,7 +222,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     }}
                 />
             </div>
-        </React.Fragment >
+        </React.Fragment>
     );
 }
 
