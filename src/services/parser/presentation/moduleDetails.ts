@@ -1,6 +1,9 @@
 import { ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
 
+/**
+ * Transforms raw profiler data into presentable Module Details list
+ */
 export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number): ModuleDetails[] {
 
     let moduleDetailsList = [] as ModuleDetails[];
@@ -9,10 +12,10 @@ export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTim
 
     rawData.ModuleData.forEach(module => {
         let moduleDetails: ModuleDetails = {
-            moduleID: module.ModuleID,
-            moduleName: module.ModuleName,
-            timesCalled: 0,
-            totalTime: 0
+            moduleID     : module.ModuleID,
+            moduleName   : module.ModuleName,
+            timesCalled  : 0,
+            totalTime    : 0
         }
 
         rawData.CallGraphData.forEach(node => {
@@ -38,15 +41,19 @@ export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTim
     return moduleDetailsList;
 }
 
+/**
+ * Insert module 'Session' with ID 0. This is not included in profiler file's module data section,
+ * but is used in other sections like Call Graph and Line Summary.
+ */
 export function insertSessionModuleDetails(moduleDetailsList: ModuleDetails[]): ModuleDetails[] {
 
     moduleDetailsList.push({
-        moduleID: 0,
-        moduleName: "Session",
-        timesCalled: 1,
+        moduleID      : 0,
+        moduleName    : "Session",
+        timesCalled   : 1,
         avgTimePerCall: 0,
-        totalTime: 0,
-        pcntOfSession: 0
+        totalTime     : 0,
+        pcntOfSession : 0
     });
 
     return moduleDetailsList;

@@ -3,30 +3,26 @@ import { calculateModuleDetails } from "./presentation/moduleDetails"
 import { calculateCallingModules } from "./presentation/callingModules";
 import { calculateCalledModules } from "./presentation/calledModules";
 import { calculateLineSummary } from "./presentation/lineSummary";
+import { calculateCallTree } from "./presentation/callTree";
 import { ModuleDetails, PresentationData } from "../../common/PresentationData";
 
-
+/**
+ * Transform ProfilerRawData object into PresentationData object
+ */
 export function transformData(rawData: ProfilerRawData): PresentationData {
-    const totalSessionTime: number = getTotalSessionTime(rawData);
+
+    // Total session time is taken from CumulativeTime of Call Tree record with ModuleID = 0 (Session)
+    // Should be the same as adding ActualTime of all Line Summary records
+    const totalSessionTime: number = rawData.CallTreeData.find(({ ModuleID }) => ModuleID === 0)!.CumulativeTime;
     const moduleDetails: ModuleDetails[] = calculateModuleDetails(rawData, totalSessionTime);
 
     const presentationData: PresentationData = {
-        moduleDetails: moduleDetails,
+        moduleDetails : moduleDetails,
         callingModules: calculateCallingModules(rawData, moduleDetails),
-        calledModules: calculateCalledModules(rawData, moduleDetails),
-        lineSummary: calculateLineSummary(rawData)
+        calledModules : calculateCalledModules(rawData, moduleDetails),
+        lineSummary   : calculateLineSummary(rawData),
+        callTree      : calculateCallTree(rawData, moduleDetails, totalSessionTime)
     };
 
     return presentationData;
-}
-
-export function getTotalSessionTime(rawData: ProfilerRawData): number {
-
-    let totalSessionTime: number = 0;
-
-    rawData.LineSummaryData.forEach(line => {
-        totalSessionTime = totalSessionTime + line.ActualTime;
-    });
-
-    return Number(totalSessionTime.toFixed(6));
 }

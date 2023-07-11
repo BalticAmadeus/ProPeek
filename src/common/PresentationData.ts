@@ -30,9 +30,20 @@ export interface ModuleDetails {
     pcntOfSession?: number
 }
 
+export interface CallTree {
+    nodeID: number,
+    parentID: number,
+    moduleName: string,
+    lineNum: number,
+    numCalls: number,
+    cumulativeTime: number,
+    pcntOfSession: number
+}
+
 export interface PresentationData {
     moduleDetails: ModuleDetails[],
     callingModules: CallingModules[],
     calledModules: CalledModules[],
-    lineSummary: LineSummary[]
+    lineSummary: LineSummary[],
+    callTree: CallTree[]
 }

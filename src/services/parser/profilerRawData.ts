@@ -14,6 +14,9 @@ export interface ProfilerRawData {
   CallTreeData   : CallTreeData[]
 }
 
+/**
+ * Parse profiler file data into ProfilerRawData object
+ */
 export function parseProfilerData (fullContents : string) : ProfilerRawData {
 
   const separator : string = ".";
@@ -37,11 +40,15 @@ export function parseProfilerData (fullContents : string) : ProfilerRawData {
   return rawData;
 }
 
+/**
+ * Parse raw data line into one of the section objects, depending on separatorCounter
+ */
 export function parseRawDataLine ( separatorCounter : number, line : string, rawData : ProfilerRawData ) : ProfilerRawData {
 
   switch (separatorCounter) {
     case 0:
-      rawData.DescriptionData = parseDescriptionLine(line);
+      // currently description data is not used
+      // rawData.DescriptionData = parseDescriptionLine(line);
       break;
     case 1:
       rawData.ModuleData.push( parseModuleLine(line) );
@@ -53,7 +60,11 @@ export function parseRawDataLine ( separatorCounter : number, line : string, raw
       rawData.LineSummaryData.push( parseLineSummaryLine(line) );
       break;
     case 4:
-      rawData.TracingData.push( parseTracingLine(line) );
+      // currently tracing data is not used
+      // rawData.TracingData.push( parseTracingLine(line) );
+      break;
+    case 5:
+      // Coverage Data Section - not used
       break;
     case 6:
       rawData.CallTreeData.push( parseCallTreeLine(line) );
