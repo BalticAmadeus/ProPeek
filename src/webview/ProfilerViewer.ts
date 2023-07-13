@@ -22,7 +22,10 @@ export class ProfilerViewer {
             }
         );
 
-        this.panel.webview.html = this.getWebviewContent({ moduleDetails: [], callingModules: [], calledModules: [], lineSummary: [] });
+        this.panel.webview.html = this.getWebviewContent({
+            moduleDetails: [], callingModules: [], calledModules: [], lineSummary: [],
+            callTree: []
+        });
 
         this.panel.onDidDispose(
             () => {
