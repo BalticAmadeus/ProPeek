@@ -1,6 +1,9 @@
 import { CalledModules, ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
 
+/**
+ * Transforms raw profiler data into presentable Called Modules list
+ */
 export function calculateCalledModules(rawData: ProfilerRawData, moduleDetailList: ModuleDetails[]): CalledModules[] {
 
     const calledModulesList = [] as CalledModules[];
@@ -13,11 +16,11 @@ export function calculateCalledModules(rawData: ProfilerRawData, moduleDetailLis
                 let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CalleeID)!;
 
                 let calledModule: CalledModules = {
-                    moduleID: module.ModuleID,
+                    moduleID        : module.ModuleID,
                     calledModuleName: moduleDetails.moduleName,
-                    timesCalled: node.CallCount,
+                    timesCalled     : node.CallCount,
                     totalTimesCalled: moduleDetails.timesCalled,
-                    pcntOfSession: moduleDetails.pcntOfSession
+                    pcntOfSession   : moduleDetails.pcntOfSession
                 }
 
                 calledModulesList.push(calledModule);
