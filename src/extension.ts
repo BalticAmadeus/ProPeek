@@ -2,20 +2,10 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { ProfilerViewer } from './webview/ProfilerViewer';
-import { VersionChecker} from "./view/app/Welcome/VersionChecker";
-import { WelcomePageProvider } from "./webview/WelcomePageProvider";
-
-
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-    const versionChecker = new VersionChecker(context);
-  
-    if (versionChecker.forDebug()){ // change it to .isNewVersion
-      new WelcomePageProvider(context,versionChecker.versionFromPackage);
-    }
 
     let disposable = vscode.commands.registerCommand('vsc-profiler.profiler', () => {
         const activeEditor = vscode.window.activeTextEditor;
