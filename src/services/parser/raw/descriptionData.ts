@@ -4,7 +4,7 @@ export interface DescriptionData {
   Description : string,
   SystemTime  : string,
   UnusedString: string,
-  Information : string
+  Information?: string
 }
 
 /**
@@ -14,17 +14,19 @@ export interface DescriptionData {
 export function parseDescriptionLine ( line : string ) : DescriptionData {
 
   const valueList : string[] = line.split("\"");
+  const version : number = Number(line.substring(0,1));
 
   const descriptionData : DescriptionData = {
-    Version     : Number(valueList[0].trim().split(" ")[0]),
+    Version     : version,
     Date        : valueList[0].trim().split(" ")[1],
     Description : valueList[1],
     SystemTime  : valueList[2].trim(),
-    UnusedString: valueList[3],
-    Information : line.substring(line.indexOf("{")) //could be problematic if description field contains this symbol
+    UnusedString: valueList[3]
+  }
+
+  if (version >= 3) {
+    descriptionData.Information = line.substring(line.indexOf("{")) //could be problematic if description field contains this symbol
   }
 
   return descriptionData;
 }
-
-
