@@ -4,6 +4,8 @@ import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSum
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
+import TreeView from "../ProfilerTreeView/profilerTreeView";
+import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 
 interface IConfigProps {
     presentationData: PresentationData
@@ -81,6 +83,10 @@ function ProfilerForm({ presentationData }: IConfigProps) {
     const [lineRows, setLineRows] = useState(presentationData.lineSummary);
     const [selectedLineRows, setSelectedLineRows] = useState(presentationData.lineSummary);
     const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([]);
+    console.log(presentationData.calledModules);
+    console.log(presentationData.callingModules);
+    console.log('fsdfsdfasdfasdfasdfasdddd');
+    console.log(presentationData.callingModules);
 
     const [filters, _setFilters] = React.useState({
         columns: {},
@@ -411,6 +417,10 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     onSortColumnsChange={setSortLineColumns}
                 />
             </div>
+            <hr></hr>
+            <ProfilerTreeView
+        presentationData={window.presentationData}
+    />
         </React.Fragment>
     );
 }
