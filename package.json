@@ -2,13 +2,17 @@
     "name": "vsc-profiler",
     "displayName": "ProfilingOE",
     "description": "vsc-description-profiler",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "engines": {
         "vscode": "^1.78.0"
     },
     "categories": [
         "Other"
     ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/BalticAmadeus/ProPeek"
+    },
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
@@ -74,11 +78,16 @@
     },
     "dependencies": {
         "@emotion/react": "^11.10.0",
+        "@linaria/babel-preset": "^4.5.3",
+        "@linaria/core": "^4.5.3",
+        "@linaria/react": "^4.5.3",
         "@mui/icons-material": "^5.10.2",
         "@mui/material": "^5.10.2",
         "esbuild": "^0.17.5",
         "react": "^18.1.0",
         "react-data-grid": "7.0.0-beta.13",
-        "react-dom": "^18.1.0"
+        "react-dom": "^18.1.0",
+        "styled-components": "^5.3.11",
+        "webpack-dev-server": "^4.15.1"
     }
 }
