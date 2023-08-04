@@ -1,11 +1,13 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
-import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSummary } from "../../../common/PresentationData";
+import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSummary, CallTree } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
 import TreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
+import { FlameGraph } from 'react-flame-graph';
+import AutoSizer from 'react-virtualized-auto-sizer';
 
 interface IConfigProps {
     presentationData: PresentationData
@@ -83,10 +85,8 @@ function ProfilerForm({ presentationData }: IConfigProps) {
     const [lineRows, setLineRows] = useState(presentationData.lineSummary);
     const [selectedLineRows, setSelectedLineRows] = useState(presentationData.lineSummary);
     const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([]);
-    console.log(presentationData.calledModules);
-    console.log(presentationData.callingModules);
-    console.log('fsdfsdfasdfasdfasdfasdddd');
-    console.log(presentationData.callingModules);
+
+    const [callTree, setCallTree] = useState(presentationData.callTree);
 
     const [filters, _setFilters] = React.useState({
         columns: {},
@@ -313,6 +313,8 @@ function ProfilerForm({ presentationData }: IConfigProps) {
         window.addEventListener("message", (event) => {
             const message = event.data as PresentationData;
 
+            setCallTree(message.callTree);
+
             setModuleRows(message.moduleDetails);
             setFilteredModuleRows(message.moduleDetails);
             setFilters({
@@ -344,6 +346,37 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             });
         });
     }
+
+      function convertToNestedStructure(data: CallTree[]): any {
+        const root: any = {
+          name: 'root',
+          value: 100,
+          children: [],
+        };
+
+        const nodeMap: { [key: number]: any } = {};
+
+        for (const item of data) {
+          nodeMap[item.nodeID] = {
+            name: item.moduleName,
+            value: item.pcntOfSession,
+            children: [],
+          };
+
+          if (item.parentID === 0) {
+            root.children.push(nodeMap[item.nodeID]);
+          } else {
+            if (!nodeMap[item.parentID].children) {
+              nodeMap[item.parentID].children = [];
+            }
+            nodeMap[item.parentID].children.push(nodeMap[item.nodeID]);
+          }
+        }
+
+        return root;
+      }
+
+      const nestedStructure = convertToNestedStructure(callTree);
 
     const showSelected = (row) => {
         setSelectedCallingRows(callingRows.filter(element => element.moduleID === row.moduleID));
@@ -419,8 +452,20 @@ function ProfilerForm({ presentationData }: IConfigProps) {
             </div>
             <hr></hr>
             <ProfilerTreeView
-        presentationData={window.presentationData}
-    />
+                presentationData={window.presentationData}
+            />
+            <AutoSizer>
+                {({ height: autoSizerHeight, width }) => (
+                    <FlameGraph
+                        data={nestedStructure}
+                        height={autoSizerHeight}
+                        width={width}
+                        onChange={node => {
+                            console.log(`"${node.name}" focused`);
+                        }}
+                    />
+                 )}
+            </AutoSizer>
         </React.Fragment>
     );
 }
