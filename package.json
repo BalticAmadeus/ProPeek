@@ -42,7 +42,7 @@
         "esbuild": "npm run esbuild-base -- --sourcemap",
         "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
         "test-compile": "tsc -p ./",
-        "compile": "npm-run-all compile:*",
+        "compile": "npm-run-all compile:* --legacy-peer-deps",
         "watch": "npm-run-all -p watch:*",
         "compile:extension": "tsc -p ./",
         "compile:views": "webpack --mode development",
@@ -80,6 +80,8 @@
         "react": "^18.1.0",
         "react-data-grid": "7.0.0-beta.13",
         "react-dom": "^18.1.0",
-        "webpack-dev-server": "^4.15.1"
+        "webpack-dev-server": "^4.15.1",
+        "react-flame-graph": "1.4.0",
+        "react-virtualized-auto-sizer": "^1.0.20"
     }
 }
