@@ -1,5 +1,6 @@
 import { CallTree, ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
+import { CallTreeData } from "../raw/callTreeData";
 import { TracingData } from "../raw/tracingData";
 
 /**
@@ -9,6 +10,7 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
 
     const callTree = [] as CallTree[];
     const startNodeId : number = rawData.CallTreeData.find(({ModuleID}) => ModuleID === rawData.TracingData[0].ModuleID)!.NodeID;
+    const sortedTracingData : TracingData[] = rawData.TracingData.sort((a, b) => a.StartTime! - b.StartTime!);
 
     rawData.CallTreeData.forEach(node => {
 
@@ -23,6 +25,7 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
             lineNum       : node.LineNum,
             numCalls      : node.NumCalls,
             cumulativeTime: node.CumulativeTime,
+            startTime     : findStartTime(node, startNodeId, sortedTracingData),
             pcntOfSession : Number((node.CumulativeTime / totalSessionTime * 100).toFixed(4))
           }
 
@@ -31,6 +34,26 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
     });
 
     return callTree;
+}
+
+/**
+ * Finds start time of the node in Tracing Data section
+ */
+export function findStartTime(node : CallTreeData, startNodeId : number, sortedTracingData: TracingData[]): number {
+
+  let tracingLineIndex : number;
+
+  if (node.NodeID === startNodeId) {
+    tracingLineIndex = 0;
+  } else {
+    tracingLineIndex = sortedTracingData.findIndex(({ModuleID,LineNo}) => node.ModuleID === ModuleID && LineNo === 0)!;
+  }
+
+  const startTime : number = sortedTracingData[tracingLineIndex].StartTime;
+
+  sortedTracingData = sortedTracingData.splice(tracingLineIndex, 1);
+
+  return startTime;
 }
 
 /**
