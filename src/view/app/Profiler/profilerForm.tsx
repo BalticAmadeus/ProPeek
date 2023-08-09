@@ -372,6 +372,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     />
                 ) : null}
             </div>
+            <hr></hr>
 
             <div className="calling-columns">
                 <div className="grid-name">Calling Modules</div>
@@ -387,6 +388,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     onSortColumnsChange={setSortCallingColumns}
                 />
             </div>
+            <hr></hr>
 
             <div className="called-columns">
                 <div className="grid-name">Called Modules</div>
@@ -402,6 +404,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     onSortColumnsChange={setSortCalledColumns}
                 />
             </div>
+            <hr></hr>
 
             <div className="line-columns">
                 <div className="grid-name">Line Summary</div>
@@ -416,8 +419,8 @@ function ProfilerForm({ presentationData }: IConfigProps) {
                     sortColumns={sortLineColumns}
                     onSortColumnsChange={setSortLineColumns}
                 />
-            </div>
-            <hr></hr>
+            </div>        
+            <hr></hr>    
             <ProfilerTreeView
         presentationData={window.presentationData}
     />
