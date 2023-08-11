@@ -16,6 +16,11 @@ const filterCSS: React.CSSProperties = {
     fontSize: "14px",
 };
 
+const defaultModuleSort: SortColumn = {
+    columnKey: "totalTime", // Sort by the "totalTime" column by default
+    direction: "DESC", // Use descending order by default
+};
+
 function moduleRowKeyGetter(row: ModuleDetails) {
     return row.moduleID;
 }
@@ -68,7 +73,8 @@ function getLineComparator(sortColumn: string): LineComparator {
 
 function ProfilerModuleDetails({ presentationData }: IConfigProps) {
     const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
-    const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([]);
+    const [selectedModuleRow, setSelectedModuleRow] = useState<ModuleDetails | null>(null);
+    const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
     const [filteredModuleRows, setFilteredModuleRows] = useState(moduleRows);
 
     const [callingRows, setCallingRows] = useState(presentationData.callingModules);
@@ -110,7 +116,7 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
             return filteredModuleRows;
         }
 
-        return [...filteredModuleRows].sort((a, b) => {
+        const sortedRows = [...filteredModuleRows].sort((a, b) => {
             for (const sort of sortModuleColumns) {
                 const comparator = getModuleComparator(sort.columnKey);
                 const compResult = comparator(a, b);
@@ -120,6 +126,15 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
             }
             return 0;
         });
+
+        // If no selection is already set, select the first row by default
+        if (sortedRows.length > 0 && selectedModuleRow === null) {
+            setSelectedModuleRow(sortedRows[0]);
+            console.log("sortedRows[0]", sortedRows[0]);
+            filterTables(sortedRows[0]);
+        }
+
+        return sortedRows;
     }, [filteredModuleRows, sortModuleColumns]);
 
     const sortedCallingRows = useMemo((): readonly CallingModules[] => {
@@ -341,10 +356,14 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
     }
 
     const showSelected = (row) => {
+        filterTables(row);
+    };
+
+    function filterTables(row) {
         setSelectedCallingRows(callingRows.filter(element => element.moduleID === row.moduleID));
         setSelectedCalledRows(calledRows.filter(element => element.moduleID === row.moduleID));
         setSelectedLineRows(lineRows.filter(element => element.moduleID === row.moduleID));
-    };
+    }
 
     return (
         <React.Fragment>
