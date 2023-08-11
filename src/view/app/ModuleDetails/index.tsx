@@ -2,7 +2,7 @@ import * as React from "react";
 import { createRoot } from "react-dom/client";
 
 import { PresentationData } from "../../../common/PresentationData";
-import ProfilerModuleDetails from "./ProfilerModuleDetails";
+import ProfilerModuleDetails from "./profilerModuleDetails";
 
 declare global {
     interface Window {

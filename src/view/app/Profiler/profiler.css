@@ -23,6 +23,16 @@ body.vscode-dark .rdg-row-even {
     --rdg-background-color: rgba(0, 0, 0, 0.4);
 }
 
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: var(--vscode-editorWidget-background);
+}
+
+.tab.active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+  }
+
 .details-columns {
     position: relative;
     width: calc(100% - 30px);
