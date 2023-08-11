@@ -11,7 +11,7 @@ interface IConfigProps {
 }
 
 function ProfilerForm({ presentationData }: IConfigProps) {
-    const [activeTab, setActiveTab] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState<number>(0);;
     const [presentationData2, setPresentationData] = useState(presentationData);
 
     React.useLayoutEffect(() => {
