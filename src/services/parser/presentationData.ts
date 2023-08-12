@@ -4,7 +4,7 @@ import { calculateCallingModules } from "./presentation/callingModules";
 import { calculateCalledModules } from "./presentation/calledModules";
 import { calculateLineSummary } from "./presentation/lineSummary";
 import { calculateCallTree, calculateCallTreeByTracingData } from "./presentation/callTree";
-import { ModuleDetails, PresentationData } from "../../common/PresentationData";
+import { CallTree, ModuleDetails, PresentationData } from "../../common/PresentationData";
 
 /**
  * Transform ProfilerRawData object into PresentationData object
@@ -19,7 +19,7 @@ export function transformData(rawData: ProfilerRawData): PresentationData {
         callingModules: calculateCallingModules(rawData, moduleDetails),
         calledModules : calculateCalledModules(rawData, moduleDetails),
         lineSummary   : calculateLineSummary(rawData),
-        callTree      : calculateCallTreeByTracingData(rawData, moduleDetails)
+        callTree      : getCallTree(rawData, moduleDetails, totalSessionTime)
     };
 
     return presentationData;
@@ -52,4 +52,18 @@ export function getTotalSessionTimeByLineSummary(rawData: ProfilerRawData): numb
   });
 
   return Number(totalSessionTime.toFixed(6));
+}
+
+/**
+ * Returns call tree based on profiler version
+ */
+export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number): CallTree[] {
+
+    switch (rawData.DescriptionData.Version) {
+      case 1:
+      case 2:
+        return calculateCallTreeByTracingData(rawData, moduleDetails);
+      default:
+        return calculateCallTree(rawData, moduleDetails, totalSessionTime);
+    }
 }
