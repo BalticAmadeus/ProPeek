@@ -1,0 +1,10 @@
+.grid-name {
+    font-size: 18px;
+    padding-bottom: 5px;
+    font-weight: bold;
+}
+
+.treeview {
+    position: relative;
+    padding-bottom: 40px;
+}

@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 
 import "./profiler.css";
 import ProfilerForm from "./profilerForm";
+import { IConfig } from "../model";
+import { ISettings } from "../../../common/IExtensionSettings";
 import { PresentationData } from "../../../common/PresentationData";
 
 declare global {
