@@ -40,6 +40,8 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
         }
     });
 
+    if (callTree[0].moduleID === 0) callTree.splice(0, 1);
+
     return callTree;
 }
 
