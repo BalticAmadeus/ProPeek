@@ -1,7 +1,6 @@
 import * as React from "react";
-import DataGrid, { FormatterProps } from 'react-data-grid';
+import DataGrid, { DataGridProps, FormatterProps } from 'react-data-grid';
 import { CallTree, PresentationData } from "../../../common/PresentationData";
-import './profilerTreeView.css';
 
 interface IConfigProps {
   presentationData: PresentationData
@@ -20,37 +19,6 @@ interface TreeNode {
 
 interface TreeRow extends TreeNode {
   level: number;
-}
-
-function buildTreeView(data: CallTree[]): TreeNode[] {
-  const map: { [id: number]: TreeNode } = {};
-
-  data.forEach(({ nodeID, moduleName, lineNum, numCalls, cumulativeTime, pcntOfSession }) => {
-    map[nodeID] = {
-      id: nodeID,
-      moduleName,
-      lineNum,
-      numCalls,
-      cumulativeTime,
-      pcntOfSession,
-      children: [],
-    };
-  });
-
-  const treeView: TreeNode[] = [];
-
-  data.forEach(({ nodeID, parentID }) => {
-    const node = map[nodeID];
-    const parentNode = map[parentID];
-
-    if (parentNode) {
-      parentNode.children.push(node);
-    } else {
-      treeView.push(node);
-    }
-  });
-
-  return treeView;
 }
 
 function ProfilerTreeView({ presentationData }: IConfigProps) {
@@ -77,37 +45,6 @@ function ProfilerTreeView({ presentationData }: IConfigProps) {
     setCallTree([...callTree]);
   };
 
-  const treeData: TreeNode[] = buildTreeView(callTree);
-
-  const getFlattenedRows = (): TreeRow[] => {
-    const rows: TreeRow[] = [];
-
-    const flattenTree = (node: TreeNode, level: number) => {
-      const { children, ...rest } = node;
-      const isExpanded = expandedNodes.includes(node.id);
-
-      rows.push({ ...rest, level, expanded: isExpanded });
-
-      if (isExpanded && children) {
-        children.forEach(child => flattenTree(child, level + 1));
-      }
-    };
-
-    treeData.forEach(node => flattenTree(node, 0));
-
-    return rows;
-  };
-  const rows = getFlattenedRows();
-
-  return (
-    <React.Fragment>
-      <TreeView rows={rows} toggleExpansion={toggleExpansion} />
-    </React.Fragment>
-  );
-}
-
-const TreeView: React.FC<{ rows: TreeRow[]; toggleExpansion: (node: TreeNode) => void }> = React.memo(({ rows, toggleExpansion }) => {
-
   const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
     const marginLeft = row.level * 20;
     return (
@@ -118,44 +55,88 @@ const TreeView: React.FC<{ rows: TreeRow[]; toggleExpansion: (node: TreeNode) =>
     );
   };
 
+
+  function buildTreeView(data: CallTree[]): TreeNode[] {
+    const map: { [id: number]: TreeNode } = {};
+
+    data.forEach(({ nodeID, moduleName, lineNum, numCalls, cumulativeTime, pcntOfSession }) => {
+      map[nodeID] = {
+        id: nodeID,
+        moduleName,
+        lineNum,
+        numCalls,
+        cumulativeTime,
+        pcntOfSession,
+        children: [],
+      };
+    });
+
+    const treeView: TreeNode[] = [];
+
+    data.forEach(({ nodeID, parentID }) => {
+      const node = map[nodeID];
+      const parentNode = map[parentID];
+
+      if (parentNode) {
+        parentNode.children.push(node);
+      } else {
+        treeView.push(node);
+      }
+    });
+
+    return treeView;
+  }
+
+  const treeData: TreeNode[] = buildTreeView(callTree);
+
+
   const columns = [
     { key: 'moduleName', name: 'Module Name', formatter: nameFormatter, minWidth: 700 },
     { key: 'lineNum', name: 'Line Number' },
     { key: 'numCalls', name: 'Number of Calls' },
     { key: 'cumulativeTime', name: 'Cumulative Time' },
-    {
-      key: 'pcntOfSession',
-      name: '% of Session',
-      formatter: ({ row }: FormatterProps<TreeRow>) => {
-        const progress = row.pcntOfSession;
-        return (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              <progress value={progress} max={100} style={{ width: '100%' }} />
-            </div>
-            <div style={{ marginLeft: 5 }}>{`${progress.toFixed(2)}%`}</div>
-          </div>
-        );
-      },
-    },
+    { key: 'pcntOfSession', name: '% of Session' },
   ];
 
-  
+  const TreeView: React.FC<{ expandedNodes: number[] }> = ({ expandedNodes }) => {
+    const getFlattenedRows = (): TreeRow[] => {
+      const rows: TreeRow[] = [];
+
+      const flattenTree = (node: TreeNode, level: number) => {
+        const { children, ...rest } = node;
+        const isExpanded = expandedNodes.includes(node.id);
+
+        rows.push({ ...rest, level, expanded: isExpanded });
+
+        if (isExpanded && children) {
+          children.forEach(child => flattenTree(child, level + 1));
+        }
+      };
+
+      treeData.forEach(node => flattenTree(node, 0));
+
+      return rows;
+    };
+
+    const rows = getFlattenedRows();
+
+    return (
+      <DataGrid
+        defaultColumnOptions={{
+          resizable: true,
+        }}
+        columns={columns}
+        rows={rows}
+        
+      />
+    );
+  };
+
   return (
     <React.Fragment>
-      <div className="treeview">
-        <div className="grid-name">TreeView</div>
-        <DataGrid
-          defaultColumnOptions={{
-            resizable: true,
-          }}
-          columns={columns}
-          rows={rows}
-        />
-      </div>
+      <TreeView expandedNodes={expandedNodes} />
     </React.Fragment>
-
   );
-});
+}
 
 export default ProfilerTreeView;
