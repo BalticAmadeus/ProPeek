@@ -33,9 +33,11 @@ export interface ModuleDetails {
 export interface CallTree {
     nodeID: number,
     parentID: number,
+    moduleID : number,
     moduleName: string,
-    lineNum: number,
-    numCalls: number,
+    lineNum?: number,
+    numCalls?: number,
+    startTime?: number,
     cumulativeTime: number,
     pcntOfSession: number
 }

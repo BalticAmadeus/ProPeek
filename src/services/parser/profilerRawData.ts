@@ -47,11 +47,10 @@ export function parseRawDataLine ( separatorCounter : number, line : string, raw
 
   switch (separatorCounter) {
     case 0:
-      // currently description data is not used
-      // rawData.DescriptionData = parseDescriptionLine(line);
+      rawData.DescriptionData = parseDescriptionLine(line);
       break;
     case 1:
-      rawData.ModuleData.push( parseModuleLine(line) );
+      rawData.ModuleData.push( parseModuleLine(line, rawData.DescriptionData.Version) );
       break;
     case 2:
       rawData.CallGraphData.push( parseCallGraphLine(line) );
@@ -60,8 +59,7 @@ export function parseRawDataLine ( separatorCounter : number, line : string, raw
       rawData.LineSummaryData.push( parseLineSummaryLine(line) );
       break;
     case 4:
-      // currently tracing data is not used
-      // rawData.TracingData.push( parseTracingLine(line) );
+       rawData.TracingData.push( parseTracingLine(line) );
       break;
     case 5:
       // Coverage Data Section - not used

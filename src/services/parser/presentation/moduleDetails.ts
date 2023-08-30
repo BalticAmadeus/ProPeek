@@ -30,6 +30,7 @@ export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTim
             }
         });
 
+        moduleDetails.totalTime = Number((moduleDetails.totalTime).toFixed(6));
         moduleDetails.avgTimePerCall = Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6));
         moduleDetailsList.push(moduleDetails)
     });

@@ -1,9 +1,8 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import "./profiler.css";
-import ProfilerForm from "./profilerForm";
 import { PresentationData } from "../../../common/PresentationData";
+import FlameGraph from "./profilerFlameGraph";
 
 declare global {
     interface Window {
@@ -13,7 +12,7 @@ declare global {
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-    <ProfilerForm
+    <FlameGraph
         presentationData={window.presentationData}
     />
 );
