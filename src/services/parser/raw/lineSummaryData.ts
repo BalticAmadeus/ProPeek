@@ -20,7 +20,7 @@ export function parseLineSummaryLine (line : string) : LineSummaryData {
     ExecCount     : Number(valueList[2]),
     ActualTime    : Number(valueList[3]),
     CumulativeTime: Number(valueList[4])
-  }
+  };
 
   return lineSummaryData;
 }

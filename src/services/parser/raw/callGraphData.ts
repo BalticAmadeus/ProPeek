@@ -18,7 +18,7 @@ export function parseCallGraphLine (line : string) : CallGraphData {
     CallerLineNo: Number(valueList[1]),
     CalleeID    : Number(valueList[2]),
     CallCount   : Number(valueList[3])
-  }
+  };
 
   return callGraphData;
 }
