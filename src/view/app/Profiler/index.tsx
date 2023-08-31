@@ -7,13 +7,15 @@ import { PresentationData } from "../../../common/PresentationData";
 
 declare global {
     interface Window {
-        presentationData: PresentationData
+        acquireVsCodeApi(): any;
+        presentationData: PresentationData;
     }
 }
+
+const vscode = window.acquireVsCodeApi();
 
 const root = createRoot(document.getElementById("root"));
 root.render(
     <ProfilerForm
-        presentationData={window.presentationData}
-    />
+        presentationData={window.presentationData} vscode={vscode}    />
 );

@@ -41,8 +41,21 @@ export class ProfilerViewer {
 
         this.panel?.webview.postMessage(dataString);
 
-    }
+        this.panel.webview.onDidReceiveMessage(
+            (fileName) => {
+                console.log("fileName", fileName);
 
+                vscode.workspace.findFiles("**/test.prof").then(async (list) => {
+                    list.forEach(async (uri) =>{
+                        const doc = await vscode.workspace.openTextDocument(uri);
+                        await vscode.window.showTextDocument(doc);
+                      });
+
+                    console.log("done");
+                });
+            }
+        )
+    }
 
     private getWebviewContent(data: PresentationData): string {
         // Local path to main script run in the webview
