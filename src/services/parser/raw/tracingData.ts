@@ -18,7 +18,7 @@ export function parseTracingLine (line : string) : TracingData {
     LineNo    : Number(valueList[1]),
     ActualTime: Number(valueList[2]),
     StartTime : Number(valueList[3])
-  }
+  };
 
   return tracingData;
 }
