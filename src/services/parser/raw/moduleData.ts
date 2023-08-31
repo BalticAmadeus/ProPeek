@@ -20,11 +20,19 @@ export function parseModuleLine (line : string, version: number) : ModuleData {
     ModuleName : valueList[1],
     ListingFile: valueList[3],
     CRCVal     : Number(valueList[4].trim().split(" ")[0])
-  }
+  };
 
   if (version >= 3) {
     moduleData.LineNum = Number(valueList[4].trim().split(" ")[1]);
     moduleData.Signature = valueList[5];
+  }
+
+  const moduleNameEntries : string[] = moduleData.ModuleName.split(" ");
+
+  if (moduleNameEntries.length === 3 &&
+      moduleNameEntries[1] === moduleNameEntries[2]){
+    moduleNameEntries.splice(2,1);
+    moduleData.ModuleName = moduleNameEntries.join(" ");
   }
 
   return moduleData;

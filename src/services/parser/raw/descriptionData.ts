@@ -22,7 +22,7 @@ export function parseDescriptionLine ( line : string ) : DescriptionData {
     Description : valueList[1],
     SystemTime  : valueList[2].trim(),
     UnusedString: valueList[3]
-  }
+  };
 
   if (version >= 3) {
     descriptionData.Information = line.substring(line.indexOf("{")) //could be problematic if description field contains this symbol

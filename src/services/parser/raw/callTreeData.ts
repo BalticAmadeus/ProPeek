@@ -24,7 +24,7 @@ export function parseCallTreeLine (line : string) : CallTreeData {
     NumCalls       : Number(valueList[4]),
     CumulativeTime : Number(valueList[5]),
     ChildrenNodeIDs: valueList.slice(6).map(Number)
-  }
+  };
 
   return callTreeData;
 }

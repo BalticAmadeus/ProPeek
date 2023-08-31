@@ -22,6 +22,11 @@ const defaultModuleSort: SortColumn = {
     direction: "DESC", // Use descending order by default
 };
 
+const defaultLineSort: SortColumn = {
+    columnKey: "lineNumber", // Sort by the "lineNumber" column by default
+    direction: "ASC", // Use ascending order by default
+};
+
 function moduleRowKeyGetter(row: ModuleDetails) {
     return row.moduleID;
 }
@@ -88,7 +93,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
 
     const [lineRows, setLineRows] = useState(presentationData.lineSummary);
     const [selectedLineRows, setSelectedLineRows] = useState(presentationData.lineSummary);
-    const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([]);
+    const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([defaultLineSort]);
 
     const [filters, _setFilters] = React.useState({
         columns: {},
@@ -176,7 +181,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         if (sortLineColumns.length === 0) {
             return selectedLineRows;
         }
-
+    
         return [...selectedLineRows].sort((a, b) => {
             for (const sort of sortLineColumns) {
                 const comparator = getLineComparator(sort.columnKey);
