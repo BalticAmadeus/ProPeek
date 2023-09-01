@@ -42,12 +42,10 @@ export class ProfilerViewer {
         this.panel?.webview.postMessage(dataString);
 
         function convertToFilePath(fileName: string) {
-
-            var filePath: string;
+            let filePath: string;
             const fileNames : string[] = fileName.split(" ");
 
             if(fileNames.length >= 2 ) {
-
                 filePath = fileNames[1];
             }
             else {
@@ -59,20 +57,24 @@ export class ProfilerViewer {
             }
 
             filePath = filePath.replace(/\./g, "/");
-
             filePath = filePath + ".cls";
             return filePath;
-
         }
 
         this.panel.webview.onDidReceiveMessage(
             (fileName) => {
 
-                vscode.workspace.findFiles(convertToFilePath(fileName.columns)).then(async (list) => {
-                    list.forEach(async (uri) =>{
-                        const doc = await vscode.workspace.openTextDocument(uri);
-                        await vscode.window.showTextDocument(doc);
-                      });
+                vscode.workspace
+                .findFiles(convertToFilePath(fileName.columns))
+                .then(async (list) => {
+                  if (list.length === 0) {
+                    vscode.window.showErrorMessage(
+                      "File not found: " + convertToFilePath(fileName.columns)
+                    );
+                    return;
+                  }
+                  const doc = await vscode.workspace.openTextDocument(list[0]);
+                    vscode.window.showTextDocument(doc);
                 });
             }
         );
