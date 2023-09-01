@@ -2,89 +2,89 @@
     "moduleColumns": [
         {
             "key": "moduleName",
-            "name": "ModuleName",
+            "name": "Module Name",
             "width": "auto",
             "cellClass": "link-cell"
         },
         {
             "key": "pcntOfSession",
-            "name": "PcntOfSession",
+            "name": "% Of Session",
             "width": "auto"
         },
         {
             "key": "timesCalled",
-            "name": "TimesCalled",
+            "name": "Times Called",
             "width": "auto"
         },
         {
             "key": "totalTime",
-            "name": "TotalTime",
+            "name": "Total Time",
             "width": "auto"
         },
         {
             "key": "avgTimePerCall",
-            "name": "AvgTimePerCall",
+            "name": "Avg Time Per Call",
             "width": "auto"
         }
     ],
     "CallingColumns": [
         {
             "key": "callingModuleName",
-            "name": "CallingModuleName",
+            "name": "Calling Module Name",
             "width": "auto"
         },
         {
             "key": "timesCalling",
-            "name": "TimesCalling",
+            "name": "Times Calling",
             "width": "auto"
         },
         {
             "key": "pcntOfSession",
-            "name": "PcntOfSession",
+            "name": "% Of Session",
             "width": "auto"
         }
     ],
     "CalledColumns": [
         {
             "key": "calledModuleName",
-            "name": "CalledModuleName",
+            "name": "Called Module Name",
             "width": "auto"
         },
         {
             "key": "timesCalled",
-            "name": "TimesCalled",
+            "name": "Times Called",
             "width": "auto"
         },
         {
             "key": "totalTimesCalled",
-            "name": "totalTimesCalled",
+            "name": "Total Times Called",
             "width": "auto"
         },
         {
             "key": "pcntOfSession",
-            "name": "pcntOfSession",
+            "name": "% Of Session",
             "width": "auto"
         }
     ],
     "LineColumns": [
         {
             "key": "lineNumber",
-            "name": "lineNumber",
+            "name": "Line Number",
             "width": "auto"
         },
         {
             "key": "timesCalled",
-            "name": "timesCalled",
+            "name": "Times Called",
             "width": "auto"
         },
         {
             "key": "avgTime",
-            "name": "avgTime",
+            "name": "Avg Time",
             "width": "auto"
         },
         {
             "key": "totalTime",
-            "name": "totalTime",
+            "name": "Total Time",
             "width": "auto"
         }
     ]
