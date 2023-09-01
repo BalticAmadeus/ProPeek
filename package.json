@@ -33,7 +33,7 @@
         "commands": [
             {
                 "command": "vsc-profiler.profiler",
-                "title": "show profiler",
+                "title": "Show Profiler",
                 "when": "resourceExtname == .prof",
                 "icon": "$(open-preview)"
             }
@@ -50,6 +50,13 @@
                     "when": "resourceExtname == .prof",
                     "command": "vsc-profiler.profiler",
                     "group": "navigation"
+                }
+            ],
+            "explorer/context": [
+                {
+                  "command": "vsc-profiler.profiler",
+                  "group": "navigation",
+                  "when": "resourceExtname == .prof"
                 }
             ]
         }
