@@ -6,27 +6,28 @@ import { ProfilerRawData } from "../profilerRawData";
  */
 export function calculateCalledModules(rawData: ProfilerRawData, moduleDetailList: ModuleDetails[]): CalledModules[] {
 
-    const calledModulesList = [] as CalledModules[];
+  const calledModulesList = [] as CalledModules[];
 
-    rawData.ModuleData.forEach(module => {
+  for(let module of rawData.ModuleData) {
 
-        rawData.CallGraphData.forEach(node => {
-            if (node.CallerID === module.ModuleID) {
+    for(let node of rawData.CallGraphData) {
 
-                let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CalleeID)!;
+      if (node.CallerID === module.ModuleID) {
 
-                let calledModule: CalledModules = {
-                    moduleID        : module.ModuleID,
-                    calledModuleName: moduleDetails.moduleName,
-                    timesCalled     : node.CallCount,
-                    totalTimesCalled: moduleDetails.timesCalled,
-                    pcntOfSession   : moduleDetails.pcntOfSession
-                }
+        let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CalleeID)!;
 
-                calledModulesList.push(calledModule);
-            }
-        });
-    });
+        let calledModule: CalledModules = {
+          moduleID        : module.ModuleID,
+          calledModuleName: moduleDetails.moduleName,
+          timesCalled     : node.CallCount,
+          totalTimesCalled: moduleDetails.timesCalled,
+          pcntOfSession   : moduleDetails.pcntOfSession
+        }
 
-    return calledModulesList;
+        calledModulesList.push(calledModule);
+      }
+    }
+  }
+
+  return calledModulesList;
 }
