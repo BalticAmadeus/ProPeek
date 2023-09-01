@@ -6,9 +6,11 @@ import { PresentationData } from "../common/PresentationData";
 export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
+    private readonly extensionPath: string;
 
     constructor(private context: vscode.ExtensionContext, action: string, filePath: string,) {
 
+        this.extensionPath = context.asAbsolutePath("");
         this.panel = vscode.window.createWebviewPanel(
             'OEProfilerViewer', // Identifies the type of the webview. Used internally
             action, // Title of the panel displayed to the user
@@ -21,6 +23,25 @@ export class ProfilerViewer {
                 ]
             }
         );
+
+        this.panel.iconPath = {
+            dark: vscode.Uri.file(
+              path.join(
+                this.extensionPath,
+                "resources",
+                "icon",
+                "query-icon-dark.svg"
+              )
+            ),
+            light: vscode.Uri.file(
+              path.join(
+                this.extensionPath,
+                "resources",
+                "icon",
+                "query-icon-light.svg"
+              )
+            ),
+          };
 
         this.panel.webview.html = this.getWebviewContent({
             moduleDetails: [], callingModules: [], calledModules: [], lineSummary: [],
