@@ -7,11 +7,29 @@
         "vscode": "^1.78.0"
     },
     "categories": [
+        "Snippets",
         "Other"
     ],
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
+        "languages": [
+			{
+				"id": "abl",
+				"extensions": [
+					".w",
+                    ".p",
+                    ".i",
+                    ".cls"
+				]
+			}
+		],
+		"snippets": [
+			{
+				"language": "abl",
+				"path": "oe.json"
+			}
+		],
         "commands": [
             {
                 "command": "vsc-profiler.profiler",
