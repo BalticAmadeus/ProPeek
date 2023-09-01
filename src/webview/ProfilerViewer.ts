@@ -62,8 +62,44 @@ export class ProfilerViewer {
 
         this.panel?.webview.postMessage(dataString);
 
-    }
+        function convertToFilePath(fileName: string) {
+            let filePath: string;
+            const fileNames : string[] = fileName.split(" ");
 
+            if(fileNames.length >= 2 ) {
+                filePath = fileNames[1];
+            }
+            else {
+                filePath = fileNames[0];
+            }
+
+            if (filePath.length >= 2 && filePath[1] !== ":") {
+                filePath = "**/" + filePath;
+            }
+
+            filePath = filePath.replace(/\./g, "/");
+            filePath = filePath + ".cls";
+            return filePath;
+        }
+
+        this.panel.webview.onDidReceiveMessage(
+            (fileName) => {
+
+                vscode.workspace
+                .findFiles(convertToFilePath(fileName.columns))
+                .then(async (list) => {
+                  if (list.length === 0) {
+                    vscode.window.showErrorMessage(
+                      "File not found: " + convertToFilePath(fileName.columns)
+                    );
+                    return;
+                  }
+                  const doc = await vscode.workspace.openTextDocument(list[0]);
+                    vscode.window.showTextDocument(doc);
+                });
+            }
+        );
+    }
 
     private getWebviewContent(data: PresentationData): string {
         // Local path to main script run in the webview
