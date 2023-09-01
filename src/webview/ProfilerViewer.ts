@@ -41,20 +41,41 @@ export class ProfilerViewer {
 
         this.panel?.webview.postMessage(dataString);
 
+        function convertToFilePath(fileName: string) {
+
+            var filePath: string;
+            const fileNames : string[] = fileName.split(" ");
+
+            if(fileNames.length >= 2 ) {
+
+                filePath = fileNames[1];
+            }
+            else {
+                filePath = fileNames[0];
+            }
+
+            if (filePath.length >= 2 && filePath[1] !== ":") {
+                filePath = "**/" + filePath;
+            }
+
+            filePath = filePath.replace(/\./g, "/");
+
+            filePath = filePath + ".cls";
+            return filePath;
+
+        }
+
         this.panel.webview.onDidReceiveMessage(
             (fileName) => {
-                console.log("fileName", fileName);
 
-                vscode.workspace.findFiles("**/test.prof").then(async (list) => {
+                vscode.workspace.findFiles(convertToFilePath(fileName.columns)).then(async (list) => {
                     list.forEach(async (uri) =>{
                         const doc = await vscode.workspace.openTextDocument(uri);
                         await vscode.window.showTextDocument(doc);
                       });
-
-                    console.log("done");
                 });
             }
-        )
+        );
     }
 
     private getWebviewContent(data: PresentationData): string {

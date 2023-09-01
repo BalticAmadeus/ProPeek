@@ -136,7 +136,6 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         // If no selection is already set, select the first row by default
         if (sortedRows.length > 0 && selectedModuleRow === null) {
             setSelectedModuleRow(sortedRows[0]);
-            console.log("sortedRows[0]", sortedRows[0]);
             filterTables(sortedRows[0]);
         }
 
@@ -181,7 +180,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         if (sortLineColumns.length === 0) {
             return selectedLineRows;
         }
-    
+
         return [...selectedLineRows].sort((a, b) => {
             for (const sort of sortLineColumns) {
                 const comparator = getLineComparator(sort.columnKey);
@@ -375,9 +374,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         const obj = {
             columns: row.moduleName
         };
-        console.log(vscode);
         vscode.postMessage(obj);
-
     };
 
     return (

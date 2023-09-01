@@ -3,7 +3,8 @@
         {
             "key": "moduleName",
             "name": "ModuleName",
-            "width": "auto"
+            "width": "auto",
+            "cellClass": "link-cell"
         },
         {
             "key": "pcntOfSession",

@@ -18,11 +18,7 @@
                 "title": "show profiler",
                 "when": "resourceExtname == .prof",
                 "icon": "$(open-preview)"
-            },
-            {
-                "command": "vsc-profiler.helloWorld",
-                "title": "Hello World"
-              }
+            }
         ],
         "menus": {
             "editor/context": [
