@@ -120,7 +120,6 @@ const TreeView: React.FC<{ rows: TreeRow[]; toggleExpansion: (node: TreeNode) =>
 
   const columns = [
     { key: 'moduleName', name: 'Module Name', formatter: nameFormatter, minWidth: 700 },
-    { key: 'lineNum', name: 'Line Number' },
     { key: 'numCalls', name: 'Number of Calls' },
     { key: 'cumulativeTime', name: 'Cumulative Time' },
     {
