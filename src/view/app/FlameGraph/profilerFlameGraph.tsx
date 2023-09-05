@@ -32,6 +32,9 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
       }, []);
 
     function convertToNestedStructure(data: CallTree[]): any {
+        let color = "#ff110f";
+        let check = false;
+
         const root: any = {
           name: 'root',
           value: 100,
@@ -41,10 +44,21 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
         const nodeMap: { [key: number]: any } = {};
 
         for (const item of data) {
+            if (check === false) {
+                color = "#ff110f";
+                check = true;
+            }
+            else {
+                color = "#ff8511";
+                check = false;
+            }
+
+            console.log(color);
           nodeMap[item.nodeID] = {
             name: item.moduleName,
             value: item.pcntOfSession,
             children: [],
+            backgroundColor: color,
           };
 
           if (item.parentID === 0) {
