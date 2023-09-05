@@ -2,16 +2,19 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
+import { ProPeekButton } from "../assets/button";
 
 interface IConfigProps {
   presentationData: PresentationData;
 }
 
 function ProfilerFlameGraph({ presentationData }: IConfigProps) {
-  const [callTree, setCallTree] = React.useState(presentationData.callTree);
-  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
-  const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-  const [nestedStructure, setNestedStructure] = React.useState<any>(convertToNestedStructure(callTree, Mode.Search));
+    const [searchPhrase, setSearchPhrase] = React.useState<string>("");
+
+    const [callTree, setCallTree] = React.useState(presentationData.callTree);
+    const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+    const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
+    const [nestedStructure, setNestedStructure] = React.useState<any>(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -33,18 +36,58 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
     });
   }, []);
 
+    var inputQuery: HTMLButtonElement = undefined;
+    React.useEffect(() => {
+        if (inputQuery) {
+            inputQuery.click();
+        }
+    }, []);
+
+      const onQueryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        console.log("searchPhrase" ,searchPhrase);
+        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));;
+    };
+
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
+        }
+    };
+
   return (
     <React.Fragment>
-      <div>
-        <FlameGraph
-          data={nestedStructure}
-          height={windowHeight}
-          width={windowWidth - 140}
-          onChange={(node) => {
-            console.log(`"${node.name}" focused`);
-          }}
-        />
-      </div>
+        <div className="input-box">
+            <input
+                id="input"
+                className="textInputQuery"
+                type="text"
+                value={searchPhrase}
+                onChange={(event) => {
+                    setSearchPhrase(event.target.value);
+                }}
+                onKeyDown={handleKeyDown}
+            />
+                <ProPeekButton
+                    ref={(input) => (inputQuery = input)}
+                    // startIcon={<PlayArrowTwoToneIcon />}
+                    onClick={onQueryClick}
+                >
+                    Query
+                </ProPeekButton>
+
+        </div>
+        <div>
+            <FlameGraph
+                data={nestedStructure}
+                height={windowHeight}
+                width={windowWidth - 140}
+                onChange={(node) => {
+                console.log(`"${node.name}" focused`);
+                }}
+            />
+        </div>
     </React.Fragment>
   );
 }
@@ -52,7 +95,7 @@ export default ProfilerFlameGraph;
 
 
 
-function convertToNestedStructure(data: CallTree[], mode: Mode): any {
+function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
   const root: any = {
     backgroundColor: "#ffffff",
     name: "root",
@@ -66,7 +109,7 @@ function convertToNestedStructure(data: CallTree[], mode: Mode): any {
     nodeMap[item.nodeID] = {
       name: item.moduleName,
       value: item.pcntOfSession,
-      backgroundColor: giveColor(mode, item),
+      backgroundColor: giveColor(mode, item, searchPhrase),
       children: [],
     };
 
@@ -95,14 +138,14 @@ enum ConstructorDestructorType {
   None,
 }
 
-function giveColor(mode: Mode, item: CallTree): string {
+function giveColor(mode: Mode, item: CallTree, searchPhrase: string): string {
   switch (mode) {
     case Mode.Lenght:
       return undefined;
     case Mode.ConstructorDestructor:
       return giveColorConstructorOrDestructor(item);
     case Mode.Search:
-      return giveColorSearch(item);
+      return giveColorSearch(item, searchPhrase);
     default:
       return "#ffffff";
   }
@@ -119,8 +162,8 @@ function giveColorConstructorOrDestructor(item: CallTree): string {
   }
 }
 
-function giveColorSearch(item: CallTree): string {
-  return item.moduleName.includes("Osc") ? "#00ff00" : "#ffffff";
+function giveColorSearch(item: CallTree, searchPhrase: string): string {
+  return item.moduleName.includes(searchPhrase) ? "#00ff00" : "#ffffff";
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
