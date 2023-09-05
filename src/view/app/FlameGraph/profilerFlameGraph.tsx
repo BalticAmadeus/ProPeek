@@ -2,19 +2,25 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
-import { ProPeekButton } from "../assets/button";
 
 interface IConfigProps {
   presentationData: PresentationData;
 }
 
+export enum SearchTypes {
+    Length,
+    ConstructorOrDestructor,
+    Search,
+  }
+
 function ProfilerFlameGraph({ presentationData }: IConfigProps) {
     const [searchPhrase, setSearchPhrase] = React.useState<string>("");
+    const [selectedSearchType, setSelectedSearchType] = React.useState("");
 
     const [callTree, setCallTree] = React.useState(presentationData.callTree);
     const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
     const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-    const [nestedStructure, setNestedStructure] = React.useState<any>(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
+    const [nestedStructure, setNestedStructure] = React.useState<any>(convertToNestedStructure(callTree, Mode.Length, searchPhrase));
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -43,41 +49,59 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
         }
     }, []);
 
-      const onQueryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        console.log("searchPhrase" ,searchPhrase);
-        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));;
-    };
-
-    const handleKeyDown = (event) => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
+    const handleChange = ({ currentTarget }: React.ChangeEvent<HTMLInputElement>) => {
+        switch (currentTarget.value) {
+            case SearchTypes[SearchTypes.Length]:
+                setNestedStructure(convertToNestedStructure(callTree, Mode.Length, searchPhrase));
+            break;
+            case SearchTypes[SearchTypes.ConstructorOrDestructor]:
+                setNestedStructure(convertToNestedStructure(callTree, Mode.ConstructorDestructor, searchPhrase));
+            break;
+            case SearchTypes[SearchTypes.Search]:
+                setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
+            break;
         }
     };
 
   return (
     <React.Fragment>
-        <div className="input-box">
-            <input
-                id="input"
-                className="textInputQuery"
-                type="text"
-                value={searchPhrase}
-                onChange={(event) => {
-                    setSearchPhrase(event.target.value);
+        <div className="checkbox">
+            <label><b>
+            Search Type:
+            </b></label>
+            <br />
+            <br />
+            {Object.keys(SearchTypes).filter(key => Number.isNaN(+key)).map((key) => (
+            <label className="radioBtn" key={key}>
+                <input type="radio"
+                name="exportdata"
+                onChange={(e) => {
+                    handleChange(e);
+                    setSelectedSearchType(key);
                 }}
-                onKeyDown={handleKeyDown}
-            />
-                <ProPeekButton
-                    ref={(input) => (inputQuery = input)}
-                    // startIcon={<PlayArrowTwoToneIcon />}
-                    onClick={onQueryClick}
-                >
-                    Query
-                </ProPeekButton>
-
+                value={key}
+                defaultChecked={SearchTypes[key] === SearchTypes.Length}
+                />
+                {key}
+            </label>
+            ))}
         </div>
+
+        {selectedSearchType === "Search" && (
+            <div className="input-box">
+                <input
+                    id="input"
+                    className="textInputQuery"
+                    type="text"
+                    value={searchPhrase}
+                    onChange={(event) => {
+                        setSearchPhrase(event.target.value);
+                        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
+                    }}
+                />
+            </div>
+        )}
+
         <div>
             <FlameGraph
                 data={nestedStructure}
@@ -93,13 +117,8 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
 }
 export default ProfilerFlameGraph;
 
-
-
 function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
-    let color = "#ff110f";
-    let check = false;
   const root: any = {
-    backgroundColor: "#ffffff",
     name: "root",
     value: 100,
     children: [],
@@ -108,15 +127,6 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
   const nodeMap: { [key: number]: any } = {};
 
   for (const item of data) {
-    if (check === false) {
-        color = "#ff110f";
-        check = true;
-    }
-    else {
-        color = "#ff8511";
-        check = false;
-    }
-
     nodeMap[item.nodeID] = {
       name: item.moduleName,
       value: item.pcntOfSession,
@@ -138,7 +148,7 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
 }
 
 enum Mode {
-  Lenght,
+  Length,
   ConstructorDestructor,
   Search,
 }
@@ -151,30 +161,30 @@ enum ConstructorDestructorType {
 
 function giveColor(mode: Mode, item: CallTree, searchPhrase: string): string {
   switch (mode) {
-    case Mode.Lenght:
+    case Mode.Length:
       return undefined;
     case Mode.ConstructorDestructor:
       return giveColorConstructorOrDestructor(item);
     case Mode.Search:
       return giveColorSearch(item, searchPhrase);
     default:
-      return "#ffffff";
+      return "#bcb8b8";
   }
 }
 
 function giveColorConstructorOrDestructor(item: CallTree): string {
   switch (isConstructorOrDestructor(item)) {
     case ConstructorDestructorType.Constructor:
-      return "#00ff00";
+      return "#00c030";
     case ConstructorDestructorType.Destructor:
       return "#ff0000";
     default:
-      return "#ffffff";
+      return "#bcb8b8";
   }
 }
 
 function giveColorSearch(item: CallTree, searchPhrase: string): string {
-  return item.moduleName.includes(searchPhrase) ? "#00ff00" : "#ffffff";
+  return item.moduleName.includes(searchPhrase) ? "#00c030" : "#bcb8b8";
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
