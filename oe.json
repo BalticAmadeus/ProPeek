@@ -1,0 +1,24 @@
+{
+  "PROFILER start": {
+      "prefix": "_prof_start",
+      "body": [
+          "PROFILER:ENABLED = TRUE.",
+          "PROFILER:DIRECTORY = \"${1}\".",
+          "PROFILER:FILE-NAME = \"${1}/profiler.out\".",
+          "PROFILER:LISTINGS = \"${2}\".",
+          "PROFILER:DESCRIPTION = \"PROFILER\".",
+          "PROFILER:PROFILING = TRUE.",
+          "PROFILER:TRACE-FILTER = \"${3}\"."
+      ],
+      "description": "Start OE Profiler"
+  },
+
+  "PROFILER end": {
+    "prefix": "_prof_end",
+    "body": [
+        "PROFILER:PROFILING = FALSE.",
+        "PROFILER:ENABLED = FALSE."
+    ],
+    "description": "End OE Profiler"
+}
+}

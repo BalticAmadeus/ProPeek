@@ -7,10 +7,11 @@ import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
 import { ProPeekButton } from "../assets/button";
 
 interface IConfigProps {
+    vscode: any;
     presentationData: PresentationData
 }
 
-function ProfilerForm({ presentationData }: IConfigProps) {
+function ProfilerForm({ presentationData, vscode }: IConfigProps) {
     const [activeTab, setActiveTab] = useState<number>(0);;
     const [presentationData2, setPresentationData] = useState(presentationData);
 
@@ -27,6 +28,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
         <div>
             <ProfilerModuleDetails
                 presentationData={presentationData2}
+                vscode={vscode}
             />
         </div>
         );

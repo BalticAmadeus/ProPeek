@@ -7,6 +7,7 @@ import * as columnName from "./column.json";
 
 
 interface IConfigProps {
+    vscode: any;
     presentationData: PresentationData
 }
 
@@ -76,7 +77,7 @@ function getLineComparator(sortColumn: string): LineComparator {
     return getComparator(sortColumn);
 }
 
-function ProfilerModuleDetails({ presentationData }: IConfigProps) {
+function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
     const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
     const [selectedModuleRow, setSelectedModuleRow] = useState<ModuleDetails | null>(null);
     const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
@@ -135,7 +136,6 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
         // If no selection is already set, select the first row by default
         if (sortedRows.length > 0 && selectedModuleRow === null) {
             setSelectedModuleRow(sortedRows[0]);
-            console.log("sortedRows[0]", sortedRows[0]);
             filterTables(sortedRows[0]);
         }
 
@@ -180,7 +180,7 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
         if (sortLineColumns.length === 0) {
             return selectedLineRows;
         }
-    
+
         return [...selectedLineRows].sort((a, b) => {
             for (const sort of sortLineColumns) {
                 const comparator = getLineComparator(sort.columnKey);
@@ -370,6 +370,13 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
         setSelectedLineRows(lineRows.filter(element => element.moduleID === row.moduleID));
     }
 
+    const openFile = async (row) => {
+        const obj = {
+            columns: row.moduleName
+        };
+        vscode.postMessage(obj);
+    };
+
     return (
         <React.Fragment>
                    <div>
@@ -389,6 +396,7 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
                             onRowsChange={setModuleRows}
                             sortColumns={sortModuleColumns}
                             onSortColumnsChange={setSortModuleColumns}
+                            onRowDoubleClick={openFile}
                         />
                     ) : null}
             </div>

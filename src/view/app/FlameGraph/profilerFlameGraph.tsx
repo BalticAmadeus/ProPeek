@@ -96,6 +96,8 @@ export default ProfilerFlameGraph;
 
 
 function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
+    let color = "#ff110f";
+    let check = false;
   const root: any = {
     backgroundColor: "#ffffff",
     name: "root",
@@ -106,6 +108,15 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
   const nodeMap: { [key: number]: any } = {};
 
   for (const item of data) {
+    if (check === false) {
+        color = "#ff110f";
+        check = true;
+    }
+    else {
+        color = "#ff8511";
+        check = false;
+    }
+
     nodeMap[item.nodeID] = {
       name: item.moduleName,
       value: item.pcntOfSession,
