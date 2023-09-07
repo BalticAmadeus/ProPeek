@@ -1,0 +1,34 @@
+import { IConfig } from "../view/app/model";
+
+export function readFile(fileName: string): string {
+  while (fileName.charAt(0) === "/") {
+    fileName = fileName.substring(1);
+  }
+  const fs = require("fs");
+  const allFileContents = fs.readFileSync(fileName, "utf-8");
+
+  return allFileContents;
+}
+
+export function parseOEFile(fileContent: string) {
+  const data = JSON.parse(fileContent);
+  const {buildPath} = data;
+  let configList: IConfig[] = [];
+
+  let num = 0;
+
+  buildPath.forEach((connection: { type: any; path: any }) => {
+    const { type, path } = connection;
+    num++;
+
+    const config: IConfig = {
+      id: "local" + num,
+      name: type,
+      path: path,
+    };
+
+    configList.push(config);
+  });
+
+  return configList;
+}
