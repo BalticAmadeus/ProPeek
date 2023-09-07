@@ -65,6 +65,7 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
     return (
         <React.Fragment>
         <div>
+          <div className="grid-name">Flame Graph</div>
           <FlameGraph
               data={nestedStructure}
               height={windowHeight}

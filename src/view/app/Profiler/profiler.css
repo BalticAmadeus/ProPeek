@@ -33,11 +33,39 @@ body.vscode-dark .rdg-row-even {
     background-color: var(--vscode-list-activeSelectionBackground);
   }
 
+
+.buttonProfilerForm {
+    appearance: none;
+      -webkit-appearance: none;
+    font-family: sans-serif;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 100px;
+    margin-right: 5px;
+    margin-top: 3px;
+    margin-bottom: 10px;
+    border: 0px;
+      -webkit-transition: background-color 100ms linear;
+      -ms-transition: background-color 100ms linear;
+       transition: background-color 100ms linear;
+  }
+
+  .button-primary {
+    background: var(--vscode-list-inactiveSelectionBackground);
+    color: var(--rdg-checkbox-focus-color);
+    border-radius: 8px;
+  }
+  
+  .button-primary:hover {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--rdg-checkbox-focus-color);
+  }
+
+
 .details-columns {
     position: relative;
     width: calc(100% - 30px);
     padding-bottom: 40px;
-    padding-top: 40px;
 }
 
 .calling-columns {

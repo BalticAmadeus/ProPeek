@@ -4,7 +4,7 @@ import { PresentationData} from "../../../common/PresentationData";
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
-import { ProPeekButton } from "../assets/button";
+import { Button } from "@mui/material";
 
 interface IConfigProps {
     presentationData: PresentationData
@@ -35,7 +35,6 @@ function ProfilerForm({ presentationData }: IConfigProps) {
       const TreeViewTab: React.FC = () => {
         return (
           <div>
-            <hr></hr>
             <ProfilerTreeView
                 presentationData={presentationData2}
             />
@@ -72,25 +71,27 @@ function ProfilerForm({ presentationData }: IConfigProps) {
         <React.Fragment>
             <div>
                 <div className="tabs">
-                    <ProPeekButton
-                        className={`tab ${activeTab === 0 ? 'active' : ''}`}
+                    <Button
+                        className={`tab ${activeTab === 0 ? 'active' : ''} buttonProfilerForm button-primary`}
                         onClick={() => handleTabClick(0)}
+                        variant="contained"
                     >
                     Module Details
-                    </ProPeekButton>
-                    <ProPeekButton
-                        className={`tab ${activeTab === 1 ? 'active' : ''}`}
+                    </Button>
+                    <Button
+                        className={`tab ${activeTab === 1 ? 'active' : ''} buttonProfilerForm button-primary`}
                         onClick={() => handleTabClick(1)}
                     >
                     Tree View
-                    </ProPeekButton>
-                    <ProPeekButton
-                        className={`tab ${activeTab === 2 ? 'active' : ''}`}
+                    </Button>
+                    <Button
+                        className={`tab ${activeTab === 2 ? 'active' : ''} buttonProfilerForm button-primary`}
                         onClick={() => handleTabClick(2)}
                     >
                     Flame Graph
-                    </ProPeekButton>
+                    </Button>
                 </div>
+                <hr></hr>
                 <div>
                     {content}
                 </div>
