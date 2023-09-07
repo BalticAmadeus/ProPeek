@@ -96,7 +96,7 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
                     value={searchPhrase}
                     onChange={(event) => {
                         setSearchPhrase(event.target.value);
-                        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
+                        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, event.target.value));
                     }}
                 />
             </div>
