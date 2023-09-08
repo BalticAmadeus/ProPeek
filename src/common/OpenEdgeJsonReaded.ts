@@ -17,6 +17,14 @@ export function parseOEFile(fileContent: string) {
 
   let num = 0;
 
+  const config: IConfig = {
+    id: "local" + num,
+    name: "blank",
+    path: "**",
+  };
+
+  configList.push(config);
+
   buildPath.forEach((connection: { type: any; path: any }) => {
     const { type, path } = connection;
     num++;

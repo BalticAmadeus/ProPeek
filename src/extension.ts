@@ -11,20 +11,6 @@ import { Constants } from './common/Constants';
 export function activate(context: vscode.ExtensionContext) {
     Constants.context = context;
 
-    let disposable = vscode.commands.registerCommand('vsc-profiler.profiler', () => {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
-            console.error('Cannot get the active editor');
-            return;
-        };
-        const filePath = activeEditor.document.fileName;
-        const updatedPath = filePath.replace(/\\/g, '/');
-        const fileName = vscode.workspace.asRelativePath(updatedPath);
-        new ProfilerViewer(context, fileName, updatedPath);
-    });
-
-    context.subscriptions.push(disposable);
-
     vscode.workspace.findFiles("**/openedge-project.json").then((list) => {
         list.forEach((uri) => createJsonDatabases(uri));
       });
@@ -39,25 +25,35 @@ export function activate(context: vscode.ExtensionContext) {
             const buildPaths = parseOEFile(allFileContent);
 
             let paths = context.workspaceState.get<{ [id: string]: IConfig }>(
-                `${Constants.globalExtensionKey}.dbconfig`
+                `${Constants.globalExtensionKey}.propaths`
               );
               paths = {};
 
-              buildPaths.forEach((path) => {
+              buildPaths.forEach((buildPath) => {
                 if (!paths) {
                   paths = {};
                 }
-                paths[path.id] = path;
+                paths[buildPath.id] = buildPath;
                 context.workspaceState.update(
-                  `${Constants.globalExtensionKey}.dbconfig`,
+                  `${Constants.globalExtensionKey}.propaths`,
                   paths
-                );
-                vscode.window.showInformationMessage("Connection saved succesfully.");
-                vscode.commands.executeCommand(
-                  `${Constants.globalExtensionKey}.refreshList`
                 );
               });
           }
+
+    let disposable = vscode.commands.registerCommand('vsc-profiler.profiler', () => {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+            console.error('Cannot get the active editor');
+            return;
+        };
+        const filePath = activeEditor.document.fileName;
+        const updatedPath = filePath.replace(/\\/g, '/');
+        const fileName = vscode.workspace.asRelativePath(updatedPath);
+        new ProfilerViewer(context, fileName, updatedPath);
+    });
+
+    context.subscriptions.push(disposable);
 }
 
 // This method is called when your extension is deactivated
