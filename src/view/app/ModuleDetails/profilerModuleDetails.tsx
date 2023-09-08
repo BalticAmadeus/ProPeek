@@ -4,6 +4,7 @@ import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSum
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
+import './profilerModuleDetails.css';
 
 
 interface IConfigProps {
@@ -400,10 +401,10 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                         />
                     ) : null}
             </div>
-
+            <div className="columns">
             <div className="calling-columns">
                 <div className="grid-name">Calling Modules</div>
-                <DataGrid
+                <DataGrid className="columns"
                     columns={columnName.CallingColumns}
                     rows={sortedCallingRows}
                     defaultColumnOptions={{
@@ -418,7 +419,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
 
             <div className="called-columns">
                 <div className="grid-name">Called Modules</div>
-                <DataGrid
+                <DataGrid className="columns"
                     columns={columnName.CalledColumns}
                     rows={sortedCalledRows}
                     defaultColumnOptions={{
@@ -429,6 +430,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                     sortColumns={sortCalledColumns}
                     onSortColumnsChange={setSortCalledColumns}
                 />
+            </div>
             </div>
 
             <div className="line-columns">
