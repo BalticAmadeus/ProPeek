@@ -53,7 +53,6 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
                 check = false;
             }
 
-            console.log(color);
           nodeMap[item.nodeID] = {
             name: item.moduleName,
             value: item.pcntOfSession,

@@ -94,7 +94,6 @@ export class ProfilerViewer {
                     [key: string]: IConfig;
                   }>(`${Constants.globalExtensionKey}.propaths`);
 
-                  console.log("workspaceConnections", workspaceConnections);
                   let fileFound = false;
                   let num = 0;
                   let listNum = 0;
