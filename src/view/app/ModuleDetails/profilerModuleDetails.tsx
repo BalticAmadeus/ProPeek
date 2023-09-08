@@ -4,9 +4,11 @@ import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSum
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
+import './profilerModuleDetails.css';
 
 
 interface IConfigProps {
+    vscode: any;
     presentationData: PresentationData
 }
 
@@ -76,7 +78,7 @@ function getLineComparator(sortColumn: string): LineComparator {
     return getComparator(sortColumn);
 }
 
-function ProfilerModuleDetails({ presentationData }: IConfigProps) {
+function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
     const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
     const [selectedModuleRow, setSelectedModuleRow] = useState<ModuleDetails | null>(null);
     const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
@@ -135,7 +137,6 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
         // If no selection is already set, select the first row by default
         if (sortedRows.length > 0 && selectedModuleRow === null) {
             setSelectedModuleRow(sortedRows[0]);
-            console.log("sortedRows[0]", sortedRows[0]);
             filterTables(sortedRows[0]);
         }
 
@@ -180,7 +181,7 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
         if (sortLineColumns.length === 0) {
             return selectedLineRows;
         }
-    
+
         return [...selectedLineRows].sort((a, b) => {
             for (const sort of sortLineColumns) {
                 const comparator = getLineComparator(sort.columnKey);
@@ -370,6 +371,13 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
         setSelectedLineRows(lineRows.filter(element => element.moduleID === row.moduleID));
     }
 
+    const openFile = async (row) => {
+        const obj = {
+            columns: row.moduleName
+        };
+        vscode.postMessage(obj);
+    };
+
     return (
         <React.Fragment>
                    <div>
@@ -389,13 +397,14 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
                             onRowsChange={setModuleRows}
                             sortColumns={sortModuleColumns}
                             onSortColumnsChange={setSortModuleColumns}
+                            onRowDoubleClick={openFile}
                         />
                     ) : null}
             </div>
-
+            <div className="columns">
             <div className="calling-columns">
                 <div className="grid-name">Calling Modules</div>
-                <DataGrid
+                <DataGrid className="columns"
                     columns={columnName.CallingColumns}
                     rows={sortedCallingRows}
                     defaultColumnOptions={{
@@ -410,7 +419,7 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
 
             <div className="called-columns">
                 <div className="grid-name">Called Modules</div>
-                <DataGrid
+                <DataGrid className="columns"
                     columns={columnName.CalledColumns}
                     rows={sortedCalledRows}
                     defaultColumnOptions={{
@@ -421,6 +430,7 @@ function ProfilerModuleDetails({ presentationData }: IConfigProps) {
                     sortColumns={sortCalledColumns}
                     onSortColumnsChange={setSortCalledColumns}
                 />
+            </div>
             </div>
 
             <div className="line-columns">

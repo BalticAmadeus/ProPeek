@@ -6,25 +6,26 @@ import { ProfilerRawData } from "../profilerRawData";
  */
 export function calculateLineSummary(rawData: ProfilerRawData): LineSummary[] {
 
-    const lineSummaryList = [] as LineSummary[];
+  const lineSummaryList = [] as LineSummary[];
 
-    rawData.ModuleData.forEach(module => {
+  for(let module of rawData.ModuleData) {
 
-        rawData.LineSummaryData.forEach(line => {
-            if (line.ModuleID === module.ModuleID) {
+    for(let line of rawData.LineSummaryData) {
 
-                let lineSummary: LineSummary = {
-                    moduleID   : line.ModuleID,
-                    lineNumber : line.LineNo,
-                    timesCalled: line.ExecCount,
-                    avgTime    : Number((line.ActualTime / line.ExecCount).toFixed(6)),
-                    totalTime  : line.ActualTime
-                }
+      if (line.ModuleID === module.ModuleID) {
 
-                lineSummaryList.push(lineSummary);
-            }
-        });
-    });
+        let lineSummary: LineSummary = {
+          moduleID   : line.ModuleID,
+          lineNumber : line.LineNo,
+          timesCalled: line.ExecCount,
+          avgTime    : Number((line.ActualTime / line.ExecCount).toFixed(6)),
+          totalTime  : line.ActualTime
+        }
 
-    return lineSummaryList;
+        lineSummaryList.push(lineSummary);
+      }
+    }
+  }
+
+  return lineSummaryList;
 }

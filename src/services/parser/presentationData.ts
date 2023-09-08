@@ -11,18 +11,18 @@ import { CallTree, ModuleDetails, PresentationData } from "../../common/Presenta
  */
 export function transformData(rawData: ProfilerRawData): PresentationData {
 
-    const totalSessionTime: number = getTotalSessionTime(rawData);
-    const moduleDetails: ModuleDetails[] = calculateModuleDetails(rawData, totalSessionTime);
+  const totalSessionTime: number = getTotalSessionTime(rawData);
+  const moduleDetails: ModuleDetails[] = calculateModuleDetails(rawData, totalSessionTime);
 
-    const presentationData: PresentationData = {
-        moduleDetails : moduleDetails,
-        callingModules: calculateCallingModules(rawData, moduleDetails),
-        calledModules : calculateCalledModules(rawData, moduleDetails),
-        lineSummary   : calculateLineSummary(rawData),
-        callTree      : getCallTree(rawData, moduleDetails, totalSessionTime)
-    };
+  const presentationData: PresentationData = {
+    moduleDetails : moduleDetails,
+    callingModules: calculateCallingModules(rawData,moduleDetails),
+    calledModules : calculateCalledModules(rawData,moduleDetails),
+    lineSummary   : calculateLineSummary(rawData),
+    callTree      : getCallTree(rawData, moduleDetails, totalSessionTime)
+  };
 
-    return presentationData;
+  return presentationData;
 }
 
 /**
@@ -31,13 +31,13 @@ export function transformData(rawData: ProfilerRawData): PresentationData {
  */
 export function getTotalSessionTime(rawData: ProfilerRawData): number {
 
-    switch (rawData.DescriptionData.Version) {
-      case 1:
-      case 2:
-        return getTotalSessionTimeByLineSummary(rawData);
-      default:
-        return rawData.CallTreeData.find(({ ModuleID }) => ModuleID === 0)!.CumulativeTime;
-    }
+  switch (rawData.DescriptionData.Version) {
+    case 1:
+    case 2:
+      return getTotalSessionTimeByLineSummary(rawData);
+    default:
+      return rawData.CallTreeData.find(({ ModuleID }) => ModuleID === 0)!.CumulativeTime;
+  }
 }
 
 /**
@@ -59,11 +59,11 @@ export function getTotalSessionTimeByLineSummary(rawData: ProfilerRawData): numb
  */
 export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number): CallTree[] {
 
-    switch (rawData.DescriptionData.Version) {
-      case 1:
-      case 2:
-        return calculateCallTreeByTracingData(rawData, moduleDetails);
-      default:
-        return calculateCallTree(rawData, moduleDetails, totalSessionTime);
-    }
+  switch (rawData.DescriptionData.Version) {
+    case 1:
+    case 2:
+      return calculateCallTreeByTracingData(rawData, moduleDetails);
+    default:
+      return calculateCallTree(rawData, moduleDetails, totalSessionTime);
+  }
 }

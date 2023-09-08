@@ -21,23 +21,23 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
 
     rawData.CallTreeData.forEach(node => {
 
-        if (node.NodeID >= startNodeId) {
-          let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.ModuleID)!;
+      if (node.NodeID >= startNodeId) {
+        let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.ModuleID)!;
 
-          let callTreeNode : CallTree = {
-            nodeID        : node.NodeID,
-            parentID      : node.ParentID,
-            moduleID      : node.ModuleID,
-            moduleName    : moduleDetails.moduleName,
-            lineNum       : node.LineNum,
-            numCalls      : node.NumCalls,
-            cumulativeTime: node.CumulativeTime,
-            startTime     : (hasTracingData? findStartTime(node, startNodeId, sortedTracingData) : undefined),
-            pcntOfSession : Number((node.CumulativeTime / totalSessionTime * 100).toFixed(4))
-          }
-
-          callTree.push(callTreeNode);
+        let callTreeNode : CallTree = {
+          nodeID        : node.NodeID,
+          parentID      : node.ParentID,
+          moduleID      : node.ModuleID,
+          moduleName    : moduleDetails.moduleName,
+          lineNum       : node.LineNum,
+          numCalls      : node.NumCalls,
+          cumulativeTime: node.CumulativeTime,
+          startTime     : (hasTracingData? findStartTime(node, startNodeId, sortedTracingData) : undefined),
+          pcntOfSession : Number((node.CumulativeTime / totalSessionTime * 100).toFixed(4))
         }
+
+        callTree.push(callTreeNode);
+      }
     });
 
     if (callTree[0].moduleID === 0) callTree.splice(0, 1);
@@ -71,46 +71,28 @@ export function findStartTime(node : CallTreeData, startNodeId : number, sortedT
  */
 export function calculateCallTreeByTracingData(rawData: ProfilerRawData, moduleDetailList: ModuleDetails[]): CallTree[] {
 
-    let callTree = [] as CallTree[];
+  let callTree = [] as CallTree[];
+  let tracingData = rawData.TracingData;
 
-    //tracing data section is optional, so no call tree in case it's empty
-    if (rawData.TracingData.length === 0) return callTree;
+  //tracing data section is optional, so no call tree in case it's empty
+  if (tracingData.length === 0) return callTree;
 
-    let tracingData = removeEmptyConstructorNodes(rawData.TracingData);
+  callTree = startTree(tracingData, moduleDetailList);
 
-    callTree = startTree(tracingData, moduleDetailList);
+  const totalSessionTime = callTree[0].cumulativeTime;
 
-    const totalSessionTime = callTree[0].cumulativeTime;
+  tracingData = tracingData.slice().reverse();
 
-    tracingData = tracingData.slice().reverse();
+  for(let index = 0; index < tracingData.length; index++){
+    //every node always starts with line 0
+    if (tracingData[index].LineNo === 0 && tracingData[index + 1].LineNo !== 0) {
+      pushNode(callTree, tracingData, index, moduleDetailList, totalSessionTime);
+    }
+  }
 
-    tracingData.forEach((line, index) => {
-      //every node always starts with line 0
-      if (line.LineNo === 0 && tracingData[index + 1].LineNo !== 0) {
-        pushNode(callTree, tracingData, index, moduleDetailList, totalSessionTime);
-      }
-    });
+  callTree.sort((a, b) => a.startTime! - b.startTime!);
 
-    callTree.sort((a, b) => a.startTime! - b.startTime!);
-
-    return callTree;
-}
-
-/**
- * Removes nodes which only have line 0, as they are empty (not defined) constructors
- */
-export function removeEmptyConstructorNodes(tracingData : TracingData[]): TracingData[] {
-
-    const tracingModifiedData = [] as TracingData[];
-
-    tracingData.forEach(line => {
-      if (line.LineNo !== 0 ||
-          tracingData.find(({ModuleID, LineNo}) => ModuleID === line.ModuleID && LineNo !== 0)) {
-        tracingModifiedData.push(line);
-      }
-    });
-
-    return tracingModifiedData;
+  return callTree;
 }
 
 /**
@@ -152,15 +134,13 @@ export function pushNode(callTree : CallTree[], tracingData : TracingData[], ind
   let cumulativeTime : number = tracingData[index].ActualTime;
 
   // adjusting cumulative time as it initially doesn't include time of child nodes
-  tracingData.forEach((line, childIndex) => {
-    if(childIndex > index) {
-      const cumulativeTimeFromChild = line.StartTime + line.ActualTime - currStartTime;
+  for(let childIndex = index + 1; childIndex < tracingData.length; childIndex++){
+    const cumulativeTimeFromChild = tracingData[childIndex].StartTime + tracingData[childIndex].ActualTime - currStartTime;
 
-      if(cumulativeTimeFromChild > cumulativeTime) {
-        cumulativeTime = Number(cumulativeTimeFromChild.toFixed(6));
-      }
+    if(cumulativeTimeFromChild > cumulativeTime) {
+      cumulativeTime = Number(cumulativeTimeFromChild.toFixed(6));
     }
-  });
+  }
 
   const node : CallTree = {
     nodeID: callTree.length + 1,

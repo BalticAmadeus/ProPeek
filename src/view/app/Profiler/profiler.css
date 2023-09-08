@@ -102,3 +102,8 @@ body.vscode-dark .rdg-row-even {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
 }
+
+.link-cell {
+    text-decoration: underline;
+    cursor: pointer;
+}
