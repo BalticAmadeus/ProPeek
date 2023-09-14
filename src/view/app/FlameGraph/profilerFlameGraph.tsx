@@ -125,6 +125,7 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
   };
 
   const nodeMap: { [key: number]: any } = {};
+  const startNode : number = data[0].parentID;
 
   for (const item of data) {
     nodeMap[item.nodeID] = {
@@ -134,7 +135,7 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
       children: [],
     };
 
-    if (item.parentID === 0) {
+    if (item.parentID === startNode) {
       root.children.push(nodeMap[item.nodeID]);
     } else {
       if (!nodeMap[item.parentID].children) {
