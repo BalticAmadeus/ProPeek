@@ -2,3 +2,8 @@
     height: auto;
     max-height: 300px;
 }
+
+.link-cell {
+    text-decoration: underline;
+    cursor: pointer;
+}

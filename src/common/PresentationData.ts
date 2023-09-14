@@ -27,7 +27,8 @@ export interface ModuleDetails {
     timesCalled: number,
     avgTimePerCall?: number,
     totalTime: number,
-    pcntOfSession?: number
+    pcntOfSession?: number,
+    hasLink?: boolean
 }
 
 export interface CallTree {

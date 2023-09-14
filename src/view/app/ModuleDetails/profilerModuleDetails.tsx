@@ -196,12 +196,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
 
     columnName.moduleColumns.forEach((column) => {
         if (column.key === "moduleName") {
-            column["headerRenderer"] = function ({
-                onSort,
-                sortDirection,
-                priority,
-            }) {
-
+            column["headerRenderer"] = function ({ onSort, sortDirection, priority }) {
                 function handleClick(event) {
                     onSort(event.ctrlKey || event.metaKey);
                 }
@@ -380,7 +375,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
 
     return (
         <React.Fragment>
-                   <div>
+        <div>
             <div className="details-columns">
                 <div className="grid-name">Module Details</div>
                     {moduleRows.length > 0 ? (

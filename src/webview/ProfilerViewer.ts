@@ -60,7 +60,20 @@ export class ProfilerViewer {
 
         var dataString = profilerService.parse(filePath);
 
-        this.panel?.webview.postMessage(dataString);
+        const checkForLinks = async (dataString: PresentationData) => {
+            for (const module of dataString.moduleDetails) {
+                const list = await vscode.workspace.findFiles(convertToFilePath(module.moduleName));
+
+                if (list.length === 0) {
+                    module.hasLink = false;
+                } else {
+                    module.hasLink = true;
+                }
+            }
+            this.panel?.webview.postMessage(dataString);
+        };
+
+        checkForLinks(dataString);
 
         function convertToFilePath(fileName: string) {
             let filePath: string;
