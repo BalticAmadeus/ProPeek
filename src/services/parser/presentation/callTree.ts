@@ -9,7 +9,7 @@ import { TracingData } from "../raw/tracingData";
 export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: ModuleDetails[], totalSessionTime: number): CallTree[] {
 
     const callTree = [] as CallTree[];
-    const hasTracingData : boolean = rawData.TracingData.length > 0;
+    const hasTracingData : boolean = false; //rawData.TracingData.length > 0;
 
     let startNodeId : number = 0;
     let sortedTracingData : TracingData[];
@@ -32,8 +32,9 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
           lineNum       : node.LineNum,
           numCalls      : node.NumCalls,
           cumulativeTime: node.CumulativeTime,
-          startTime     : (hasTracingData? findStartTime(node, startNodeId, sortedTracingData) : undefined),
-          pcntOfSession : Number((node.CumulativeTime / totalSessionTime * 100).toFixed(4))
+          pcntOfSession : Number((node.CumulativeTime / totalSessionTime * 100).toFixed(4)),
+          // start time is currently not supported in flame graph
+          startTime     : (hasTracingData? findStartTime(node, startNodeId, sortedTracingData) : undefined)
         }
 
         callTree.push(callTreeNode);
