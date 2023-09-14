@@ -188,7 +188,13 @@ function giveColorSearch(item: CallTree, searchPhrase: string): string {
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
+
+    if(item.moduleName.split(" ").length === 1) {
+        return ConstructorDestructorType.None;
+    }
+
   const method = (item.moduleName.split(".")[0]).split(" ")[0]; //first element
+
   const className = item.moduleName.split(".").slice(-1)[0]; //last element
 
   if (method === className) {
