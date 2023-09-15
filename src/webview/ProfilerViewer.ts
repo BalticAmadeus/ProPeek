@@ -2,6 +2,8 @@ import path = require("path");
 import * as vscode from "vscode";
 import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
+import { IConfig } from "../view/app/model";
+import { Constants } from "../common/Constants";
 
 export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
@@ -62,7 +64,8 @@ export class ProfilerViewer {
 
         this.panel?.webview.postMessage(dataString);
 
-        function convertToFilePath(fileName: string) {
+        function convertToFilePath(fileName: string, path: string) {
+
             let filePath: string;
             const fileNames : string[] = fileName.split(" ");
 
@@ -74,29 +77,50 @@ export class ProfilerViewer {
             }
 
             if (filePath.length >= 2 && filePath[1] !== ":") {
-                filePath = "**/" + filePath;
-            }
+                filePath =path + "/" + filePath;
 
-            filePath = filePath.replace(/\./g, "/");
-            filePath = filePath + ".cls";
-            return filePath;
+                if (filePath.substring(0, 3) !== "**/") {
+                    filePath = "**/" + filePath;
+                }
+            }
+                filePath = filePath.replace(/\./g, "/");
+                filePath = filePath + ".cls";
+                return filePath;
         }
 
         this.panel.webview.onDidReceiveMessage(
             (fileName) => {
+                const workspaceConnections = this.context.workspaceState.get<{
+                    [key: string]: IConfig;
+                  }>(`${Constants.globalExtensionKey}.propaths`);
 
-                vscode.workspace
-                .findFiles(convertToFilePath(fileName.columns))
-                .then(async (list) => {
-                  if (list.length === 0) {
-                    vscode.window.showErrorMessage(
-                      "File not found: " + convertToFilePath(fileName.columns)
-                    );
-                    return;
+                  let fileFound = false;
+                  let num = 0;
+                  let listNum = 0;
+                  if (workspaceConnections) {
+                    for (const id of Object.keys(workspaceConnections)) {
+                        let proPath = workspaceConnections[id].path;
+                        num ++;
+                        vscode.workspace.findFiles(convertToFilePath(fileName.columns, proPath))
+                        .then(async (list) => {
+                            listNum ++;
+                            if(list.length === 0) {
+                            }
+                            else {
+                                fileFound = true;
+                                const doc = await vscode.workspace.openTextDocument(list[0]);
+                                vscode.window.showTextDocument(doc);
+                                return;
+                            }
+                            if (!fileFound && num === listNum) {
+                                vscode.window.showErrorMessage(
+                                    "File not found: " + fileName.columns
+                                  );
+                                  return;
+                            }
+                        });
+                    }
                   }
-                  const doc = await vscode.workspace.openTextDocument(list[0]);
-                    vscode.window.showTextDocument(doc);
-                });
             }
         );
     }
