@@ -13,6 +13,5 @@ declare global {
 const root = createRoot(document.getElementById("root"));
 root.render(
     <ProfilerModuleDetails
-        presentationData={window.presentationData}
-    />
+        presentationData={window.presentationData} vscode={undefined}    />
 );
