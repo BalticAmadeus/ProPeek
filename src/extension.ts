@@ -41,14 +41,9 @@ export function activate(context: vscode.ExtensionContext) {
               });
           }
 
-    let disposable = vscode.commands.registerCommand('vsc-profiler.profiler', () => {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
-            console.error('Cannot get the active editor');
-            return;
-        };
-        const filePath = activeEditor.document.fileName;
-        const updatedPath = filePath.replace(/\\/g, '/');
+    let disposable = vscode.commands.registerCommand('vsc-profiler.profiler', async (uri: vscode.Uri) => {
+        const filePath = uri.path;
+        const updatedPath = filePath.replace(/\\/g, '/').slice(1);
         const fileName = vscode.workspace.asRelativePath(updatedPath);
         new ProfilerViewer(context, fileName, updatedPath);
     });
