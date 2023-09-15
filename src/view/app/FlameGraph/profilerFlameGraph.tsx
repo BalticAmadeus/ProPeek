@@ -103,6 +103,7 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
         )}
 
         <div>
+        <div className="grid-name">Flame Graph</div>
             <FlameGraph
                 data={nestedStructure}
                 height={windowHeight}
