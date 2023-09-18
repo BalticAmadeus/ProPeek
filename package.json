@@ -1,8 +1,9 @@
 {
-    "name": "vsc-profiler",
+    "name": "pro-peek",
     "displayName": "ProPeek",
     "description": "Profiler app for OpenEdge ABL",
     "version": "1.0.0",
+    "publisher": "BalticAmadeus",
     "engines": {
         "vscode": "^1.78.0"
     },
