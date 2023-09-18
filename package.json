@@ -1,14 +1,15 @@
 {
     "name": "vsc-profiler",
-    "displayName": "ProfilingOE",
-    "description": "vsc-description-profiler",
-    "version": "0.0.1",
+    "displayName": "ProPeek",
+    "description": "Profiler app for OpenEdge ABL",
+    "version": "1.0.0",
     "engines": {
         "vscode": "^1.78.0"
     },
     "categories": [
         "Snippets",
-        "Other"
+        "Other",
+        "Visualization"
     ],
     "activationEvents": [],
     "main": "./out/extension.js",
