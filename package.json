@@ -1,15 +1,17 @@
 {
     "name": "vsc-profiler",
-    "displayName": "ProfilingOE",
-    "description": "vsc-description-profiler",
-    "version": "0.0.1",
+    "displayName": "ProPeek",
+    "description": "Profiler app for OpenEdge ABL",
+    "version": "1.0.0",
     "engines": {
         "vscode": "^1.78.0"
     },
     "categories": [
         "Snippets",
-        "Other"
+        "Other",
+        "Visualization"
     ],
+    "icon": "resources/PP_col.png",
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
@@ -67,7 +69,7 @@
         "esbuild": "npm run esbuild-base -- --sourcemap",
         "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
         "test-compile": "tsc -p ./",
-        "compile": "npm-run-all compile:* --legacy-peer-deps",
+        "compile": "npm-run-all compile:*",
         "watch": "npm-run-all -p watch:*",
         "compile:extension": "tsc -p ./",
         "compile:views": "webpack --mode development",
