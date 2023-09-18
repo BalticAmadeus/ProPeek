@@ -13,6 +13,10 @@
         "Visualization"
     ],
     "icon": "resources/PP_col.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/BalticAmadeus/ProPeek"
+    },
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
