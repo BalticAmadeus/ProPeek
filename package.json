@@ -10,6 +10,7 @@
         "Snippets",
         "Other"
     ],
+    "icon": "resources/PP_col.png",
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
@@ -67,7 +68,7 @@
         "esbuild": "npm run esbuild-base -- --sourcemap",
         "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
         "test-compile": "tsc -p ./",
-        "compile": "npm-run-all compile:* --legacy-peer-deps",
+        "compile": "npm-run-all compile:*",
         "watch": "npm-run-all -p watch:*",
         "compile:extension": "tsc -p ./",
         "compile:views": "webpack --mode development",
