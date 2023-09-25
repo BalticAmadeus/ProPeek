@@ -41,7 +41,7 @@
             {
                 "command": "vsc-profiler.profiler",
                 "title": "Show Profiler",
-                "when": "resourceExtname == .prof",
+                "when": "resourceExtname == .prof || resourceExtname == .out",
                 "icon": "$(open-preview)"
             }
         ],
@@ -49,12 +49,12 @@
             "editor/context": [
                 {
                     "command": "vsc-profiler.profiler",
-                    "when": "resourceExtname == .prof"
+                    "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ],
             "editor/title": [
                 {
-                    "when": "resourceExtname == .prof",
+                    "when": "resourceExtname == .prof || resourceExtname == .out",
                     "command": "vsc-profiler.profiler",
                     "group": "navigation"
                 }
@@ -63,7 +63,7 @@
                 {
                   "command": "vsc-profiler.profiler",
                   "group": "navigation",
-                  "when": "resourceExtname == .prof"
+                  "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]
         }
