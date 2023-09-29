@@ -1,0 +1,109 @@
+.r104f42s700-beta13 {
+    --rdg-background-color: initial;
+    --rdg-header-background-color: var(--vscode-editorWidget-background);
+    --rdg-row-hover-background-color: rgba(0, 0, 0, 0.2);
+    --rdg-row-selected-background-color: var(--vscode-list-inactiveSelectionBackground);
+    --rdg-checkbox-color: inherit;
+    --rdg-checkbox-focus-color: inherit;
+    --rdg-font-size: inherit;
+    color: inherit;
+    --rdg-selection-color: var(--vscode-focusBorder);
+    --rdg-border-color: none;
+}
+
+.c1wupbe700-beta13 {
+    padding-inline: 4px;
+}
+
+.rdg-row-even {
+    --rdg-background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.vscode-dark .rdg-row-even {
+    --rdg-background-color: rgba(0, 0, 0, 0.4);
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: var(--vscode-editorWidget-background);
+}
+
+.tab.active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+  }
+
+
+.buttonProfilerForm {
+    appearance: none;
+      -webkit-appearance: none;
+    font-family: sans-serif;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 100px;
+    margin-right: 5px;
+    margin-top: 3px;
+    margin-bottom: 10px;
+    border: 0px;
+      -webkit-transition: background-color 100ms linear;
+      -ms-transition: background-color 100ms linear;
+       transition: background-color 100ms linear;
+  }
+
+  .button-primary {
+    background: var(--vscode-list-inactiveSelectionBackground);
+    color: var(--rdg-checkbox-focus-color);
+    border-radius: 8px;
+  }
+  
+  .button-primary:hover {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--rdg-checkbox-focus-color);
+  }
+
+
+.details-columns {
+    position: relative;
+    width: calc(100% - 30px);
+    padding-bottom: 40px;
+}
+
+.calling-columns {
+    position: relative;
+    width: 50%;
+    display: inline-block;
+}
+
+.called-columns {
+    position: relative;
+    width: calc(50% - 30px);
+    display: inline-block;
+}
+
+.line-columns {
+    position: relative;
+    width: calc(100% - 30px);
+    padding-top: 40px;
+    clear: both;
+}
+
+.grid-name {
+    font-size: 18px;
+    padding-bottom: 5px;
+    font-weight: bold;
+}
+
+.filter-cell {
+    line-height: 35px;
+    padding: 0;
+}
+
+.textInput {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+}
+
+.link-cell {
+    text-decoration: underline;
+    cursor: pointer;
+}
