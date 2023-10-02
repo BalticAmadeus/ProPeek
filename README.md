@@ -14,7 +14,7 @@ there is 3 option how to open view:
 - Right click in open profiler file and select "Show Profiler"
 - In open profiler file click this icon ![image](https://github.com/BalticAmadeus/ProPeek/assets/78811378/85a47e21-5e96-4c15-b5e9-6f2c59eb3afe) on the top right corner
 
-![proPeek Demo](resources/images/propeekOpen.mp4)
+![proPeek Demo](resources\images\propeek-open.webp)
 
 ## Features
 
