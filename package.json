@@ -2,7 +2,7 @@
     "name": "pro-peek",
     "displayName": "ProPeek",
     "description": "Profiler app for OpenEdge ABL",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "BalticAmadeus",
     "engines": {
         "vscode": "^1.78.0"
@@ -11,6 +11,13 @@
         "Snippets",
         "Other",
         "Visualization"
+    ],
+    "keywords": [
+        "OpenEdge",
+        "Progress",
+        "Profiler",
+        "Performance",
+        "ABL"
     ],
     "icon": "resources/PP_col.png",
     "repository": {
@@ -41,7 +48,7 @@
             {
                 "command": "vsc-profiler.profiler",
                 "title": "Show Profiler",
-                "when": "resourceExtname == .prof",
+                "when": "resourceExtname == .prof || resourceExtname == .out",
                 "icon": "$(open-preview)"
             }
         ],
@@ -49,12 +56,12 @@
             "editor/context": [
                 {
                     "command": "vsc-profiler.profiler",
-                    "when": "resourceExtname == .prof"
+                    "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ],
             "editor/title": [
                 {
-                    "when": "resourceExtname == .prof",
+                    "when": "resourceExtname == .prof || resourceExtname == .out",
                     "command": "vsc-profiler.profiler",
                     "group": "navigation"
                 }
@@ -63,7 +70,7 @@
                 {
                   "command": "vsc-profiler.profiler",
                   "group": "navigation",
-                  "when": "resourceExtname == .prof"
+                  "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]
         }

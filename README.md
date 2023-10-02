@@ -6,9 +6,19 @@ An extension for Progress Openedge Profiler.
 
 This open source project is in active development. Our goal is to simplify the access to Progress Openedge Profiler when using VS Code as a development environment.
 
+## Opening instructions
+
+There are 3 option how to open view:
+
+- In file explorer right click profiler file and select "Show Profiler"
+- In open profiler file right click and select "Show Profiler"
+- In open profiler file click this icon ![image](https://github.com/BalticAmadeus/ProPeek/assets/78811378/85a47e21-5e96-4c15-b5e9-6f2c59eb3afe) on the top right corner
+
+![proPeek Demo](resources/images/propeek-open.webp)
+
 ## Features
 
-- Load and view .prof profiler file
+- Load and view _.prof_ and _.out_ profiler file
   - View Module details.
   - View Calling module details.
   - View Called module details.
