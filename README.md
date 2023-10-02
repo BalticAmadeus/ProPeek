@@ -18,7 +18,7 @@ There are 3 option how to open view:
 
 ## Features
 
-- Load and view .prof profiler file
+- Load and view .prof and .out profiler file
   - View Module details.
   - View Calling module details.
   - View Called module details.
