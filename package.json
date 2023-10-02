@@ -12,6 +12,13 @@
         "Other",
         "Visualization"
     ],
+    "keywords": [
+        "OpenEdge",
+        "Progress",
+        "Profiler",
+        "Performance",
+        "ABL"
+    ],
     "icon": "resources/PP_col.png",
     "repository": {
         "type": "git",
