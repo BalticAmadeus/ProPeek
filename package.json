@@ -2,7 +2,7 @@
     "name": "pro-peek",
     "displayName": "ProPeek",
     "description": "Profiler app for OpenEdge ABL",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "BalticAmadeus",
     "engines": {
         "vscode": "^1.78.0"
@@ -11,6 +11,13 @@
         "Snippets",
         "Other",
         "Visualization"
+    ],
+    "keywords": [
+        "OpenEdge",
+        "Progress",
+        "Profiler",
+        "Performance",
+        "ABL"
     ],
     "icon": "resources/PP_col.png",
     "repository": {
