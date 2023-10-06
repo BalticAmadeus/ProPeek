@@ -107,7 +107,7 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
             <FlameGraph
                 data={nestedStructure}
                 height={windowHeight}
-                width={windowWidth - 140}
+                width={windowWidth - 40}
                 onChange={(node) => {
                 console.log(`"${node.name}" focused`);
                 }}
