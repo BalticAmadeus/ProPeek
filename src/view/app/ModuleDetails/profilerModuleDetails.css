@@ -2,3 +2,7 @@
     height: auto;
     max-height: 300px;
 }
+.total-time{
+    margin-top: 5px;
+    font-weight: bold;
+}

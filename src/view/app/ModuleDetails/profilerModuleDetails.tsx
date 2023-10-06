@@ -96,6 +96,8 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
     const [selectedLineRows, setSelectedLineRows] = useState(presentationData.lineSummary);
     const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([defaultLineSort]);
 
+    const sumTotalTime = presentationData.moduleDetails.reduce((acc, module) => acc + module.totalTime, 0);
+
     const [filters, _setFilters] = React.useState({
         columns: {},
         enabled: true,
@@ -378,6 +380,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         vscode.postMessage(obj);
     };
 
+
     return (
         <React.Fragment>
                    <div>
@@ -400,6 +403,9 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                             onRowDoubleClick={openFile}
                         />
                     ) : null}
+                <div className="total-time">
+                Total Time: {sumTotalTime}
+                </div>
             </div>
             <div className="columns">
             <div className="calling-columns">
