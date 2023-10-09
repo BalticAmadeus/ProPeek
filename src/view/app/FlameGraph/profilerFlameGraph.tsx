@@ -26,7 +26,6 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
     setWindowWidth(window.innerWidth);
     setWindowHeight(window.innerHeight);
   };
-
   React.useEffect(() => {
     window.addEventListener("resize", windowResize);
 
@@ -133,6 +132,7 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
       name: item.moduleName,
       value: item.pcntOfSession,
       backgroundColor: giveColor(mode, item, searchPhrase),
+      tooltip: 'Name: ' + item.moduleName + ' Percentage of Session: ' + item.pcntOfSession.toFixed(2) + "% " + 'Cumulative Time: ' + item.cumulativeTime,
       children: [],
     };
 
