@@ -404,7 +404,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                         />
                     ) : null}
                 <div className="total-time">
-                Total Time: {sumTotalTime}
+                Total Time: {sumTotalTime.toFixed(6)}s
                 </div>
             </div>
             <div className="columns">
