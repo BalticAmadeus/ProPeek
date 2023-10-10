@@ -61,20 +61,20 @@ function ProfilerTreeView({ presentationData }: IConfigProps) {
     window.addEventListener("message", (event) => {
       const message = event.data as PresentationData;
       setCallTree(message.callTree);
-      console.log(message.callTree);
     });
   }, []);
 
-  const toggleExpansion = (node: TreeNode) => {
-    node.expanded = !node.expanded;
-    setExpandedNodes(prevExpanded => {
-      if (node.expanded) {
-        return [...prevExpanded, node.id];
-      } else {
-        return prevExpanded.filter(id => id !== node.id);
-      }
-    });
-    setCallTree([...callTree]);
+  const toggleExpansion = (node: TreeNode | null = null) => {
+    if (node) {
+      // Toggle expansion of a specific node
+      node.expanded = !node.expanded;
+      setExpandedNodes((prevExpanded) =>
+        node.expanded ? [...prevExpanded, node.id] : prevExpanded.filter((id) => id !== node.id)
+      );
+    } else {
+      // Collapse all nodes
+      setExpandedNodes([]);
+    }
   };
 
   const treeData: TreeNode[] = buildTreeView(callTree);
@@ -89,11 +89,11 @@ function ProfilerTreeView({ presentationData }: IConfigProps) {
       rows.push({ ...rest, level, expanded: isExpanded });
 
       if (isExpanded && children) {
-        children.forEach(child => flattenTree(child, level + 1));
+        children.forEach((child) => flattenTree(child, level + 1));
       }
     };
 
-    treeData.forEach(node => flattenTree(node, 0));
+    treeData.forEach((node) => flattenTree(node, 0));
 
     return rows;
   };
@@ -101,6 +101,9 @@ function ProfilerTreeView({ presentationData }: IConfigProps) {
 
   return (
     <React.Fragment>
+      <div className="collapse-button">
+        <button className="profilerFormButton button-primary" onClick={() => toggleExpansion(null)}>Collapse All</button>
+      </div>
       <TreeView rows={rows} toggleExpansion={toggleExpansion} />
     </React.Fragment>
   );
