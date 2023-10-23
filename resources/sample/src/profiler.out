@@ -1,0 +1,64 @@
+3 10/13/2023 "PROFILER" 12:08:30 "" {"StmtCnt":33,"DataPts":73,"NumWrites":0,"TotTime":0.005101,"BufferSize":61440,"Directory":"C:/WorkSpace/Profiler/ProfilingOE/resources/sample/src\","Propath":"src,.,C:\Progress\OpenEdge\tty,C:\Progress\OpenEdge\tty\ablunit.pl,C:\Progress\OpenEdge\tty\adecomm.pl,C:\Progress\OpenEdge\tty\adecomp.pl,C:\Progress\OpenEdge\tty\adeedit.pl,C:\Progress\OpenEdge\tty\adeshar.pl,C:\Progress\OpenEdge\tty\dataadmin.pl,C:\Progress\OpenEdge\tty\OpenEdge.BusinessLogic.pl,C:\Progress\OpenEdge\tty\OpenEdge.Core.pl,C:\Progress\OpenEdge\tty\OpenEdge.ServerAdmin.pl,C:\Progress\OpenEdge\tty\prodict.pl,C:\Progress\OpenEdge,C:\Progress\OpenEdge\bin"}
+.
+3 "test.p" "" 45209 0 ""
+1 "c:\Users\meiningis\.vscode\extensions\riversidesoftware.openedge-abl-lsp-1.4.21\resources\abl-src\dynrun.p" "" 36029 0 ""
+9 "GET_SAME_CHAR test.p" "" 0 32 ""
+2 "c:\WorkSpace\Profiler\ProfilingOE\resources\sample\src\profile.p" "" 27189 0 ""
+6 "test1 test1 test1" "" 0 5 ""
+7 "test2 under.test2" "" 0 0 ""
+5 "test1" "" 4422 0 ""
+10 "get_same_char2 test.p" "" 0 5 ""
+8 "get1 under.test2 test1" "" 0 2 ""
+4 "under.test2" "" 4745 0 ""
+.
+6 0 7 1
+0 0 2 1
+3 15 8 1
+3 14 5 1
+3 14 4 1
+2 8 3 1
+3 14 6 1
+3 40 10 1
+3 38 9 1
+.
+0 0 1 0.000000 0.005111
+10 8 1 0.000001 0.000001
+3 0 1 0.000060 0.004231
+4 0 1 0.000015 0.000015
+2 6 1 0.000309 0.000309
+5 0 1 0.000007 0.000007
+6 0 1 0.000189 0.000189
+7 0 1 0.000000 0.000000
+8 0 1 0.000003 0.000164
+3 11 1 0.000540 0.000540
+9 0 1 0.000006 0.000009
+2 8 1 0.000552 0.004783
+10 0 1 0.000012 0.000031
+8 3 1 0.000160 0.000160
+10 6 1 0.000017 0.000017
+3 15 1 0.000040 0.000204
+8 4 1 0.000001 0.000001
+10 7 1 0.000001 0.000001
+3 14 1 0.001276 0.001487
+3 38 1 0.001670 0.001679
+9 33 1 0.000002 0.000002
+9 35 1 0.000001 0.000001
+3 40 2 0.000230 0.000261
+9 34 1 0.000000 0.000000
+2 -2 1 0.000009 0.000009
+.
+.
+.
+0 0 0 0 1 0.005101 1
+1 0 1 0 1 0.005101 2
+2 1 2 0 1 0.005101 3
+3 2 3 8 1 0.004231 4 5 6 8 9 10
+4 3 4 14 1 0.000015
+5 3 5 14 1 0.000007
+6 3 6 14 1 0.000189 7
+7 6 7 0 1 0.000000
+8 3 8 15 1 0.000164
+9 3 9 38 1 0.000009
+10 3 10 40 1 0.000031
+.
+.
