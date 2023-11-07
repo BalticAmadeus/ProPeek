@@ -20,7 +20,8 @@ const webExtensionConfig = {
     entry: {
         'extension': './src/web/extension.ts',
         'test/suite/index': './src/web/test/suite/index.ts',
-        profiler: "./src/view/app/profiler/"
+        profiler: "./src/view/app/profiler/",
+        welcome: "./src/view/app/Welcome"
     },
     output: {
         path: path.resolve(__dirname, "out/view/app"),
@@ -59,7 +60,14 @@ const webExtensionConfig = {
                     }
                 ]
             },
-
+            {
+                test: /\.md$/,
+                use: [
+                  {
+                    loader: 'raw-loader',
+                  },
+                ],
+              },
         ]
     },
     plugins: [

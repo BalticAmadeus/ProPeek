@@ -5,11 +5,20 @@ import { ProfilerViewer } from './webview/ProfilerViewer';
 import { parseOEFile, readFile} from "./common/OpenEdgeJsonReaded";
 import { IConfig } from "../src/view/app/model";
 import { Constants } from './common/Constants';
+import { VersionChecker } from "./view/app/Welcome/VersionChecker";
+import { WelcomePageProvider } from './webview/WelcomePageProvider';
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     Constants.context = context;
+
+    const versionChecker = new VersionChecker(context);
+
+    if (versionChecker.forDebug()) {
+      new WelcomePageProvider(context, versionChecker.versionFromPackage);
+    }
 
     vscode.workspace.findFiles("**/openedge-project.json").then((list) => {
         list.forEach((uri) => createJsonDatabases(uri));

@@ -152,6 +152,7 @@ export class ProfilerViewer {
     </head>
     <body>
         <div id="root"></div>
+        <h1>fasdfsdfsdfasdffas</h1>
         <script src="${reactAppUri}"></script>
     </body>
     </html>`;
