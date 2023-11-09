@@ -1,3 +1,14 @@
+## 1.1.0 (2023-11-10)
+
+### Changed
+
+- Fixed various small bugs
+
+### Added
+
+- Jump to code line
+- Show % and total time on hover in flame graph
+
 ## 1.0.1 (2023-10-02)
 
 ### Added
