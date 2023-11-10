@@ -5,7 +5,7 @@ import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
 import { Button } from "@mui/material";
-import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
+import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 
 interface IConfigProps {
     vscode: any;
