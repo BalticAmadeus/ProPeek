@@ -10,3 +10,15 @@ export enum ConnectionStatus {
     Connecting,
     NotConnected
 }
+
+export interface XRefInfo {
+    fileName: string;
+    endLine: number;
+    type: string;
+    procedureName: string;
+}
+
+export interface ProcedureNames {
+    procedureName: string;
+    fileName: string;
+}

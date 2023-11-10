@@ -1,0 +1,22 @@
+{
+    "name": "sample",
+    "version": "1.0",
+    "oeversion": "12.6",
+    "graphicalMode": false,
+    "charset": "utf-8",
+    "extraParameters": "",
+    "buildPath": [
+      {
+        "type": "source",
+        "path": "src"
+      },
+      {
+        "type": "propath",
+        "path": "src"
+      }
+    ],
+    "dbConnections": [],
+    "numThreads": 1,
+    "procedures": [],
+    "profiles": []
+  }

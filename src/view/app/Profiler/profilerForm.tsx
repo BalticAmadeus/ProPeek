@@ -5,6 +5,7 @@ import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
 import { Button } from "@mui/material";
+import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 
 interface IConfigProps {
     vscode: any;
@@ -14,12 +15,15 @@ interface IConfigProps {
 function ProfilerForm({ presentationData, vscode }: IConfigProps) {
     const [activeTab, setActiveTab] = useState<number>(0);;
     const [presentationData2, setPresentationData] = useState(presentationData);
+    const [isLoading, setLoading] = useState(true);
+
 
     React.useLayoutEffect(() => {
         window.addEventListener("message", (event) => {
             const message = event.data as PresentationData;
 
             setPresentationData(message);
+            setLoading(false);
         });
     });
 
@@ -71,6 +75,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
 
     return (
         <React.Fragment>
+          {isLoading && <LoadingOverlay/>}
             <div>
                 <div className="tabs">
                     <Button
