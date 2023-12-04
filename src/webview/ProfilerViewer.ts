@@ -60,7 +60,9 @@ export class ProfilerViewer {
 
         const profilerService = new ProfilerService();
 
-        var dataString = profilerService.parse(filePath);
+        let dataString = profilerService.parse(filePath);
+
+        handleErrors(profilerService.getErrors());
 
         this.panel?.webview.postMessage(dataString);
 
@@ -130,6 +132,14 @@ function getProcedureNames(moduleName: string) {
     xRefInfo.fileName = replaceDots(xRefInfo.fileName);
 
     return xRefInfo;
+}
+
+function handleErrors(errors: string[]) {
+    if (errors.length > 0) {
+        errors.forEach((error) => {
+            vscode.window.showErrorMessage(error);
+        });
+    }
 }
 
 function replaceDots(input: string): string {
