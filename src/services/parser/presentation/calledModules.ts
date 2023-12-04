@@ -1,4 +1,5 @@
 import { CalledModules, ModuleDetails } from "../../../common/PresentationData";
+import { ParserLogger } from "../ParserLogger";
 import { ProfilerRawData } from "../profilerRawData";
 
 /**
@@ -21,13 +22,13 @@ export function calculateCalledModules(rawData: ProfilerRawData, moduleDetailLis
                 } else {
                     let callerModuleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CallerID)!;
                     if (!callerModuleDetails) {
-                        console.error(`Module with ID ${node.CallerID} not found`);
+                        ParserLogger.logError(`Module with ID ${node.CallerID} not found`);
                         break;
                     }
 
                     let calleeModuleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CalleeID)!;
                     if (!calleeModuleDetails) {
-                        console.error(`Module with ID ${node.CalleeID} not found`);
+                        ParserLogger.logError(`Module with ID ${node.CalleeID} not found`);
                         break;
                     }
 

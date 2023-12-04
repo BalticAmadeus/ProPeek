@@ -1,4 +1,5 @@
 import { CallTree, ModuleDetails } from "../../../common/PresentationData";
+import { ParserLogger } from "../ParserLogger";
 import { ProfilerRawData } from "../profilerRawData";
 import { CallTreeData } from "../raw/callTreeData";
 import { TracingData } from "../raw/tracingData";
@@ -24,7 +25,8 @@ export function calculateCallTree(rawData: ProfilerRawData, moduleDetailList: Mo
             let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.ModuleID)!;
 
             if (!moduleDetails) {
-                console.error(`Module with ID ${node.ModuleID} not found`);
+                ParserLogger.logError(`Module with ID ${node.ModuleID} not found`);
+                
                 break;
             }
 
