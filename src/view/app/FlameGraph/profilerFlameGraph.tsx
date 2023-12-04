@@ -8,19 +8,21 @@ interface IConfigProps {
 }
 
 export enum SearchTypes {
-    Length,
-    ConstructorOrDestructor,
-    Search,
-  }
+  Length,
+  ConstructorOrDestructor,
+  Search,
+}
 
 function ProfilerFlameGraph({ presentationData }: IConfigProps) {
-    const [searchPhrase, setSearchPhrase] = React.useState<string>("");
-    const [selectedSearchType, setSelectedSearchType] = React.useState("");
+  const [searchPhrase, setSearchPhrase] = React.useState<string>("");
+  const [selectedSearchType, setSelectedSearchType] = React.useState("");
 
-    const [callTree, setCallTree] = React.useState(presentationData.callTree);
-    const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
-    const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-    const [nestedStructure, setNestedStructure] = React.useState<any>(convertToNestedStructure(callTree, Mode.Length, searchPhrase));
+  const [callTree, setCallTree] = React.useState(presentationData.callTree);
+  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
+  const [nestedStructure, setNestedStructure] = React.useState<any>(
+    convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+  );
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -41,83 +43,108 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
     });
   }, []);
 
-    var inputQuery: HTMLButtonElement = undefined;
-    React.useEffect(() => {
-        if (inputQuery) {
-            inputQuery.click();
-        }
-    }, []);
+  var inputQuery: HTMLButtonElement = undefined;
+  React.useEffect(() => {
+    if (inputQuery) {
+      inputQuery.click();
+    }
+  }, []);
 
-    const handleChange = ({ currentTarget }: React.ChangeEvent<HTMLInputElement>) => {
-        switch (currentTarget.value) {
-            case SearchTypes[SearchTypes.Length]:
-                setNestedStructure(convertToNestedStructure(callTree, Mode.Length, searchPhrase));
-            break;
-            case SearchTypes[SearchTypes.ConstructorOrDestructor]:
-                setNestedStructure(convertToNestedStructure(callTree, Mode.ConstructorDestructor, searchPhrase));
-            break;
-            case SearchTypes[SearchTypes.Search]:
-                setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
-            break;
-        }
-    };
+  const handleChange = ({
+    currentTarget,
+  }: React.ChangeEvent<HTMLInputElement>) => {
+    switch (currentTarget.value) {
+      case SearchTypes[SearchTypes.Length]:
+        setNestedStructure(
+          convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+        );
+        break;
+      case SearchTypes[SearchTypes.ConstructorOrDestructor]:
+        setNestedStructure(
+          convertToNestedStructure(
+            callTree,
+            Mode.ConstructorDestructor,
+            searchPhrase
+          )
+        );
+        break;
+      case SearchTypes[SearchTypes.Search]:
+        setNestedStructure(
+          convertToNestedStructure(callTree, Mode.Search, searchPhrase)
+        );
+        break;
+    }
+  };
 
   return (
     <React.Fragment>
-        <div className="checkbox">
-            <label><b>
-            Search Type:
-            </b></label>
-            <br />
-            <br />
-            {Object.keys(SearchTypes).filter(key => Number.isNaN(+key)).map((key) => (
+      <div className="checkbox">
+        <label>
+          <b>Search Type:</b>
+        </label>
+        <br />
+        <br />
+        {Object.keys(SearchTypes)
+          .filter((key) => Number.isNaN(+key))
+          .map((key) => (
             <label className="radioBtn" key={key}>
-                <input type="radio"
+              <input
+                type="radio"
                 name="exportdata"
                 onChange={(e) => {
-                    handleChange(e);
-                    setSelectedSearchType(key);
+                  handleChange(e);
+                  setSelectedSearchType(key);
                 }}
                 value={key}
                 defaultChecked={SearchTypes[key] === SearchTypes.Length}
-                />
-                {key}
+              />
+              {key}
             </label>
-            ))}
+          ))}
+      </div>
+
+      {selectedSearchType === "Search" && (
+        <div className="input-box">
+          <input
+            id="input"
+            className="textInputQuery"
+            type="text"
+            value={searchPhrase}
+            onChange={(event) => {
+              setSearchPhrase(event.target.value);
+              setNestedStructure(
+                convertToNestedStructure(
+                  callTree,
+                  Mode.Search,
+                  event.target.value
+                )
+              );
+            }}
+          />
         </div>
+      )}
 
-        {selectedSearchType === "Search" && (
-            <div className="input-box">
-                <input
-                    id="input"
-                    className="textInputQuery"
-                    type="text"
-                    value={searchPhrase}
-                    onChange={(event) => {
-                        setSearchPhrase(event.target.value);
-                        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, event.target.value));
-                    }}
-                />
-            </div>
-        )}
-
-        <div>
+      <div>
         <div className="grid-name">Flame Graph</div>
-            <FlameGraph
-                data={nestedStructure}
-                height={windowHeight}
-                width={windowWidth - 40}
-                onChange={(node) => {
-                console.log(`"${node.name}" focused`);
-                }}
-            />
-        </div>
+        <FlameGraph
+          data={nestedStructure}
+          height={windowHeight}
+          width={windowWidth - 40}
+          onChange={(node) => {
+            console.log(`"${node.name}" focused`);
+          }}
+        />
+      </div>
     </React.Fragment>
   );
 }
 export default ProfilerFlameGraph;
 
-function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
+function convertToNestedStructure(
+  data: CallTree[],
+  mode: Mode,
+  searchPhrase: string
+): any {
   const root: any = {
     name: "root",
     value: 100,
@@ -125,14 +152,27 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
   };
 
   const nodeMap: { [key: number]: any } = {};
-  const startNode : number = data[0].parentID;
+
+  //if there is no tracing data, return only root
+  if (data[0] === undefined) {
+    return root;
+  }
+
+  const startNode: number = data[0].parentID;
 
   for (const item of data) {
     nodeMap[item.nodeID] = {
       name: item.moduleName,
       value: item.pcntOfSession,
       backgroundColor: giveColor(mode, item, searchPhrase),
-      tooltip: 'Name: ' + item.moduleName + ' Percentage of Session: ' + item.pcntOfSession.toFixed(2) + "% " + 'Cumulative Time: ' + item.cumulativeTime,
+      tooltip:
+        "Name: " +
+        item.moduleName +
+        " Percentage of Session: " +
+        item.pcntOfSession.toFixed(2) +
+        "% " +
+        "Cumulative Time: " +
+        item.cumulativeTime,
       children: [],
     };
 
@@ -190,12 +230,11 @@ function giveColorSearch(item: CallTree, searchPhrase: string): string {
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
+  if (item.moduleName.split(" ").length === 1) {
+    return ConstructorDestructorType.None;
+  }
 
-    if(item.moduleName.split(" ").length === 1) {
-        return ConstructorDestructorType.None;
-    }
-
-  const method = (item.moduleName.split(".")[0]).split(" ")[0]; //first element
+  const method = item.moduleName.split(".")[0].split(" ")[0]; //first element
 
   const className = item.moduleName.split(".").slice(-1)[0]; //last element
 
