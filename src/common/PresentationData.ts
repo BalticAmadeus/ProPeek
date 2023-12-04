@@ -1,16 +1,12 @@
 export interface CalledModules {
-    moduleID: number,
-    calledModuleName?: string,
+    callerID: number,
+    calleeID: number,
+    callerModuleName: string,
+    calleeModuleName: string,
     timesCalled: number,
-    totalTimesCalled: number,
-    pcntOfSession?: number
-}
-
-export interface CallingModules {
-    moduleID: number,
-    callingModuleName?: string,
-    timesCalling: number,
-    pcntOfSession?: number
+    calleeTotalTimesCalled: number,
+    callerPcntOfSession: number,
+    calleePcntOfSession: number
 }
 
 export interface LineSummary {
@@ -33,7 +29,7 @@ export interface ModuleDetails {
 export interface CallTree {
     nodeID: number,
     parentID: number,
-    moduleID : number,
+    moduleID: number,
     moduleName: string,
     lineNum?: number,
     numCalls?: number,
@@ -44,7 +40,6 @@ export interface CallTree {
 
 export interface PresentationData {
     moduleDetails: ModuleDetails[],
-    callingModules: CallingModules[],
     calledModules: CalledModules[],
     lineSummary: LineSummary[],
     callTree: CallTree[]
