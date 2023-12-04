@@ -29,24 +29,24 @@
     ],
     "CallingColumns": [
         {
-            "key": "callingModuleName",
+            "key": "callerModuleName",
             "name": "Calling Module Name",
             "width": "auto"
         },
         {
-            "key": "timesCalling",
+            "key": "timesCalled",
             "name": "Times Calling",
             "width": "auto"
         },
         {
-            "key": "pcntOfSession",
+            "key": "callerPcntOfSession",
             "name": "% Of Session",
             "width": "auto"
         }
     ],
     "CalledColumns": [
         {
-            "key": "calledModuleName",
+            "key": "calleeModuleName",
             "name": "Called Module Name",
             "width": "auto"
         },
@@ -56,12 +56,12 @@
             "width": "auto"
         },
         {
-            "key": "totalTimesCalled",
+            "key": "calleeTotalTimesCalled",
             "name": "Total Times Called",
             "width": "auto"
         },
         {
-            "key": "pcntOfSession",
+            "key": "calleePcntOfSession",
             "name": "% Of Session",
             "width": "auto"
         }
