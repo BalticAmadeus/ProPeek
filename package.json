@@ -28,22 +28,22 @@
     "main": "./out/extension.js",
     "contributes": {
         "languages": [
-			{
-				"id": "abl",
-				"extensions": [
-					".w",
+            {
+                "id": "abl",
+                "extensions": [
+                    ".w",
                     ".p",
                     ".i",
                     ".cls"
-				]
-			}
-		],
-		"snippets": [
-			{
-				"language": "abl",
-				"path": "oe.json"
-			}
-		],
+                ]
+            }
+        ],
+        "snippets": [
+            {
+                "language": "abl",
+                "path": "oe.json"
+            }
+        ],
         "commands": [
             {
                 "command": "vsc-profiler.profiler",
@@ -68,16 +68,16 @@
             ],
             "explorer/context": [
                 {
-                  "command": "vsc-profiler.profiler",
-                  "group": "navigation",
-                  "when": "resourceExtname == .prof || resourceExtname == .out"
+                    "command": "vsc-profiler.profiler",
+                    "group": "navigation",
+                    "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]
         }
     },
     "scripts": {
         "vscode:prepublish": "npm run esbuild-base -- --minify",
-        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
         "esbuild": "npm run esbuild-base -- --sourcemap",
         "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
         "test-compile": "tsc -p ./",
@@ -111,7 +111,8 @@
         "ts-loader": "^9.3.0",
         "typescript": "^4.6.4",
         "webpack": "^5.88.2",
-        "webpack-cli": "^4.10.0"
+        "webpack-cli": "^4.10.0",
+        "@vscode/vsce": "2.22.0"
     },
     "dependencies": {
         "@emotion/react": "^11.10.0",
