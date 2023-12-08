@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSummary, CallTree } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
-import * as columnName from "./column.json";
+import * as columnName from "../ModuleDetails/column.json";
 import './profilerModuleDetails.css';
 
 
@@ -48,13 +48,13 @@ function getComparator(sortColumn: string) {
         case "avgTime":
         case "totalTime":
         case "pcntOfSession":
-            return (a, b) => {
+            return (a: any, b: any) => {
                 return a[sortColumn] - b[sortColumn];
             };
         case "moduleName":
         case "callingModuleName":
         case "calledModuleName":
-            return (a, b) => {
+            return (a: any, b: any) => {
                 return a[sortColumn].localeCompare(b[sortColumn]);
             };
         default:
@@ -103,18 +103,18 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         enabled: true,
     });
     const filtersRef = React.useRef(filters);
-    const setFilters = (data) => {
+    const setFilters = (data: any) => {
         filtersRef.current = data;
         _setFilters(data);
     };
 
-    columnName.CalledColumns.forEach((column) => {
+    columnName.CalledColumns.forEach((column: any) => {
         if (column.key === "pcntOfSession") {
             addPercentage(column);
         }
     });
 
-    columnName.CallingColumns.forEach((column) => {
+    columnName.CallingColumns.forEach((column: any) => {
         if (column.key === "pcntOfSession") {
             addPercentage(column);
         }
@@ -196,7 +196,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         });
     }, [selectedLineRows, sortLineColumns]);
 
-    columnName.moduleColumns.forEach((column) => {
+    columnName.moduleColumns.forEach((column: any) => {
         if (column.key === "moduleName") {
             column["headerRenderer"] = function ({
                 onSort,
@@ -204,16 +204,16 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                 priority,
             }) {
 
-                function handleClick(event) {
+                function handleClick(event: any) {
                     onSort(event.ctrlKey || event.metaKey);
                 }
 
-                function handleInputKeyDown(event) {
+                function handleInputKeyDown(event: any) {
                     var tempFilters = filters;
                     if (event.target.value === "") {
-                        delete tempFilters.columns[column.key];
+                        delete tempFilters.columns[column.key as any];
                     } else {
-                        tempFilters.columns[column.key] = event.target.value;
+                        tempFilters.columns[column.key as any] = event.target.value;
                     }
                     setFilters(tempFilters);
 
@@ -275,7 +275,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                                 <input
                                     className="textInput"
                                     style={filterCSS}
-                                    defaultValue={filters.columns[column.key]}
+                                    defaultValue={filters.columns[column.key] as any}
                                     onChange={handleInputKeyDown}
                                 />
                             </div>
@@ -290,7 +290,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         }
     });
 
-    function addPercentage(column) {
+    function addPercentage(column: any) {
         column["headerRenderer"] = function ({ }) {
             return <span>{column.name}</span>;
         };
@@ -347,9 +347,9 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         });
     });
 
-    function combineRows(list) {
-        list.forEach((rowOne, indexOne) => {
-            list.forEach((rowTwo, indexTwo) => {
+    function combineRows(list: any) {
+        list.forEach((rowOne: any, indexOne: any) => {
+            list.forEach((rowTwo: any, indexTwo: any) => {
                 if (indexOne !== indexTwo) {
                     if (rowOne.moduleID === rowTwo.moduleID) {
                         if (rowOne.callingModuleName === rowTwo.callingModuleName) {
@@ -363,17 +363,17 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         });
     }
 
-    const showSelected = (row) => {
+    const showSelected = (row: any) => {
         filterTables(row);
     };
 
-    function filterTables(row) {
+    function filterTables(row: any) {
         setSelectedCallingRows(callingRows.filter(element => element.moduleID === row.moduleID));
         setSelectedCalledRows(calledRows.filter(element => element.moduleID === row.moduleID));
         setSelectedLineRows(lineRows.filter(element => element.moduleID === row.moduleID));
     }
 
-    const openFile = async (row) => {
+    const openFile = async (row: any) => {
         const obj = {
             columns: row.moduleName
         };
