@@ -67,12 +67,12 @@ export class ProfilerViewer {
         this.panel?.webview.postMessage(dataString);
 
         this.panel.webview.onDidReceiveMessage(
-            (moduleName) => {
+            (obj) => {
                 const workspaceConnections = this.context.workspaceState.get<{
                     [key: string]: IConfig;
                 }>(`${Constants.globalExtensionKey}.propaths`);
 
-                open(workspaceConnections, moduleName.columns, profilerService);
+                open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
 
             }
         );
@@ -134,6 +134,10 @@ function getProcedureNames(moduleName: string) {
     return xRefInfo;
 }
 
+function findSpecificLine() {
+
+}
+
 function handleErrors(errors: string[]) {
     if (errors.length > 0) {
         errors.forEach((error) => {
@@ -170,11 +174,15 @@ function convertToFilePath(filePath: string, path: string) {
     return filePath;
 }
 
-function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, profilerService: ProfilerService) {
+function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let xRefInfo = getProcedureNames(moduleName);
 
-    if (xRefInfo.procedureName === "") {
-        openFile(workspaceConnections, xRefInfo, profilerService);
+    if (lineNumber !== 1) {
+        xRefInfo.procedureName = "";
+    }
+
+    if (xRefInfo.procedureName === "" && lineNumber === 1) {
+        openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
         return;
     }
 
@@ -185,22 +193,21 @@ function open(workspaceConnections: { [key: string]: IConfig; } | undefined, mod
                 "xRef file not found: " + xRefFile
             );
             xRefInfo.procedureName = "";
-            openFile(workspaceConnections, xRefInfo, profilerService);
+            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
             return;
         }
         else {
             const xRefPath = list[0].path.slice(1);
             xRefInfo = profilerService.parseXRef(xRefPath, xRefInfo.procedureName);
-            openFile(workspaceConnections, xRefInfo, profilerService);
+            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
         }
     });
 }
 
-function openFile(workspaceConnections: { [key: string]: IConfig; } | undefined, xRefInfo: XRefInfo, profilerService: ProfilerService) {
+function openFile(workspaceConnections: { [key: string]: IConfig; } | undefined, xRefInfo: XRefInfo, lineNumber: number, profilerService: ProfilerService) {
     let fileFound = false;
     let num = 0;
     let listNum = 0;
-    let lineNumber = 1;
 
     if (workspaceConnections) {
         for (const id of Object.keys(workspaceConnections)) {
