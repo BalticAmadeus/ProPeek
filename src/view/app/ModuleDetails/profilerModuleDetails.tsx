@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
-import { PresentationData, ModuleDetails, CallingModules, CalledModules, LineSummary, CallTree } from "../../../common/PresentationData";
+import { PresentationData, ModuleDetails, CalledModules, LineSummary } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
@@ -33,27 +33,31 @@ function moduleRowKeyGetter(row: ModuleDetails) {
 }
 
 type ModuleComparator = (a: ModuleDetails, b: ModuleDetails) => number;
-type CallingComparator = (a: CallingModules, b: CallingModules) => number;
+type CallingComparator = (a: CalledModules, b: CalledModules) => number;
 type CalledComparator = (a: CalledModules, b: CalledModules) => number;
 type LineComparator = (a: LineSummary, b: LineSummary) => number;
 
 function getComparator(sortColumn: string) {
     switch (sortColumn) {
         case "moduleID":
+        case "callerID":
+        case "calleeID":
         case "timesCalled":
-        case "timesCalling":
-        case "totalTimesCalled":
+        case "calleeTotalTimesCalled":
+        case "callerTotalTimesCalled":
         case "lineNumber":
         case "avgTimePerCall":
         case "avgTime":
         case "totalTime":
         case "pcntOfSession":
+        case "callerPcntOfSession":
+        case "calleePcntOfSession":
             return (a, b) => {
                 return a[sortColumn] - b[sortColumn];
             };
         case "moduleName":
-        case "callingModuleName":
-        case "calledModuleName":
+        case "callerModuleName":
+        case "calleeModuleName":
             return (a, b) => {
                 return a[sortColumn].localeCompare(b[sortColumn]);
             };
@@ -84,8 +88,8 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
     const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
     const [filteredModuleRows, setFilteredModuleRows] = useState(moduleRows);
 
-    const [callingRows, setCallingRows] = useState(presentationData.callingModules);
-    const [selectedCallingRows, setSelectedCallingRows] = useState(presentationData.callingModules);
+    const [callingRows, setCallingRows] = useState(presentationData.calledModules);
+    const [selectedCallingRows, setSelectedCallingRows] = useState(presentationData.calledModules);
     const [sortCallingColumns, setSortCallingColumns] = useState<readonly SortColumn[]>([]);
 
     const [calledRows, setCalledRows] = useState(presentationData.calledModules);
@@ -109,13 +113,13 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
     };
 
     columnName.CalledColumns.forEach((column) => {
-        if (column.key === "pcntOfSession") {
+        if (column.key === "calleePcntOfSession") {
             addPercentage(column);
         }
     });
 
     columnName.CallingColumns.forEach((column) => {
-        if (column.key === "pcntOfSession") {
+        if (column.key === "callerPcntOfSession") {
             addPercentage(column);
         }
     });
@@ -145,7 +149,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         return sortedRows;
     }, [filteredModuleRows, sortModuleColumns]);
 
-    const sortedCallingRows = useMemo((): readonly CallingModules[] => {
+    const sortedCallingRows = useMemo((): readonly CalledModules[] => {
         if (sortCallingColumns.length === 0) {
             return selectedCallingRows;
         }
@@ -338,38 +342,19 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                 enabled: true,
             });
 
-            combineRows(message.callingModules);
-            combineRows(message.calledModules);
-
-            setCallingRows(message.callingModules);
+            setCallingRows(message.calledModules);
             setCalledRows(message.calledModules);
             setLineRows(message.lineSummary);
         });
     });
-
-    function combineRows(list) {
-        list.forEach((rowOne, indexOne) => {
-            list.forEach((rowTwo, indexTwo) => {
-                if (indexOne !== indexTwo) {
-                    if (rowOne.moduleID === rowTwo.moduleID) {
-                        if (rowOne.callingModuleName === rowTwo.callingModuleName) {
-
-                            rowOne.timesCalling += rowTwo.timesCalling;
-                            list.splice(indexTwo, 1);
-                        }
-                    }
-                }
-            });
-        });
-    }
 
     const showSelected = (row) => {
         filterTables(row);
     };
 
     function filterTables(row) {
-        setSelectedCallingRows(callingRows.filter(element => element.moduleID === row.moduleID));
-        setSelectedCalledRows(calledRows.filter(element => element.moduleID === row.moduleID));
+        setSelectedCallingRows(callingRows.filter(element => element.calleeID === row.moduleID));
+        setSelectedCalledRows(calledRows.filter(element => element.callerID === row.moduleID));
         setSelectedLineRows(lineRows.filter(element => element.moduleID === row.moduleID));
     }
 

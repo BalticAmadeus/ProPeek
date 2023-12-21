@@ -4,13 +4,20 @@ import { transformData } from './parser/presentationData';
 import { PresentationData } from '../common/PresentationData';
 import { collectData } from  './finder/xRefParser';
 import {findLinesWithFunction } from './finder/lineFinder';
+import { ParserLogger } from './parser/ParserLogger';
 
 export class ProfilerService {
     public parse(fileName: string): PresentationData {
+        ParserLogger.resetErrors();
+
         const readData = readFile(fileName);
         const rawData = parseProfilerData(readData);
         const transformedData = transformData(rawData);
         return transformedData;
+    }
+
+    public getErrors(): string[] {
+        return ParserLogger.getErrors();
     }
 
     public parseXRef(fileName: string, procedureName: string) {
