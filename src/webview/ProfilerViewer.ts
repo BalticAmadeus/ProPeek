@@ -197,64 +197,32 @@ function findSpecificLine(workspaceConnections: { [key: string]: IConfig; } | un
             const xRefPath = list[0].path.slice(1);
             const includesInfo = profilerService.parseXrefIncludes(xRefPath);
 
-            if(lineNumber < includesInfo[0].includeLine) {
-                openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
-            }
-            else {
-                let fileFound = false;
-                let num = 0;
-                let listNum = 0;
+            for (const include of includesInfo) {
+                if (lineNumber < include.includeLine) {
+                    openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+                    return;
+                } else {
+                    let includeFilePath = await findFilePath(workspaceConnections, include.includeName);
+                    let includeLineCount = countLinesInFile(includeFilePath);
 
-                if (workspaceConnections) {
-                    for (const id of Object.keys(workspaceConnections)) {
-                        let proPath = workspaceConnections[id].path;
-                        num++;
-                        vscode.workspace.findFiles(convertToFilePath(includesInfo[0].includeName, proPath))
-                            .then(async (list) => {
-                                listNum++;
-                                if (list.length === 0) {
-                                }
-                                else {
-                                    fileFound = true;
+                    let includeEndLine = includeLineCount + include.includeLine;
 
-                                    let includeLineCOunt = countLinesInFile(list[0].path.slice(1));
-
-                                    let includeEndLine = includeLineCOunt + includesInfo[0].includeLine;
-                                    if (lineNumber <= includeEndLine) {
-                                        xRefInfo.fileName = includesInfo[0].includeName;
-                                        openFile(workspaceConnections, xRefInfo, lineNumber - includesInfo[0].includeLine, profilerService);
-                                    }
-                                    else {
-                                        openFile(workspaceConnections, xRefInfo, lineNumber - includeLineCOunt - 1, profilerService);
-                                    }
-
-
-                                }
-                                if (!fileFound && num === listNum) {
-                                    vscode.window.showErrorMessage(
-                                        "File not found: " + includesInfo[0].includeName
-                                    );
-                                    return;
-                                }
-                            });
+                    if (lineNumber <= includeEndLine) {
+                        xRefInfo.fileName = include.includeName;
+                        openFile(workspaceConnections, xRefInfo, lineNumber - include.includeLine, profilerService);
+                        return;
+                    } else {
+                        lineNumber -= includeLineCount + 1;
                     }
                 }
-
             }
-
-
-
-
-            // xRefInfo = profilerService.parseXrefLine(xRefPath, lineNumber);
-            // openFileLine(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
         }
     });
-
 }
 
 function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let xRefInfo = getProcedureNames(moduleName);
-
 
     if (xRefInfo.procedureName === "" && lineNumber === 1) {
         openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
@@ -318,4 +286,31 @@ function countLinesInFile(filePath: string): number {
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     const lines = fileContent.split('\n');
     return lines.length;
+}
+
+
+async function findFilePath(workspaceConnections: { [key: string]: IConfig; } | undefined, fileName: string): Promise<string> {
+    let fileFound = false;
+    let num = 0;
+
+    if (workspaceConnections) {
+        for (const id of Object.keys(workspaceConnections)) {
+            let proPath = workspaceConnections[id].path;
+            num++;
+
+            const list = await vscode.workspace.findFiles(convertToFilePath(fileName, proPath));
+
+            if (list.length > 0) {
+                fileFound = true;
+                return list[0].path.slice(1);
+
+            }
+        }
+
+        if (!fileFound) {
+            vscode.window.showErrorMessage("File not found: " + fileName);
+        }
+    }
+
+    return ""; // Default value if the file is not found
 }
