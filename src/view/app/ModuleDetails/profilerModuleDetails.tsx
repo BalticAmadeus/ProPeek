@@ -399,23 +399,24 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
   const openFile = async (row) => {
     let moduleName = row.moduleName;
     let lineNumber = row.lineNumber;
-    console.log("row ", row);
-    console.log("sortedModuleRows ", sortedModuleRows);
-    console.log("row.moduleID ", row.moduleID);
+    let findLine = true;
 
     if (!moduleName) {
+      findLine = true;
       moduleName = sortedModuleRows.find(
         (moduleRow) => moduleRow.moduleID === row.moduleID
       ).moduleName;
     }
 
     if (!lineNumber) {
+      findLine = false;
       lineNumber = 1;
     }
 
     const obj = {
       moduleName: moduleName,
       lineNumber: lineNumber,
+      findLine: findLine,
     };
     vscode.postMessage(obj);
   };

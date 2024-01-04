@@ -4,6 +4,7 @@ import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
 import { IConfig, XRefInfo } from "../view/app/model";
 import { Constants } from "../common/Constants";
+import * as fs from 'fs';
 
 export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
@@ -72,8 +73,12 @@ export class ProfilerViewer {
                     [key: string]: IConfig;
                 }>(`${Constants.globalExtensionKey}.propaths`);
 
-                open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
-
+                if (obj.findLine === false) {
+                    open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
+                }
+                else {
+                    findSpecificLine(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
+                }
             }
         );
     }
@@ -134,10 +139,6 @@ function getProcedureNames(moduleName: string) {
     return xRefInfo;
 }
 
-function findSpecificLine() {
-
-}
-
 function handleErrors(errors: string[]) {
     if (errors.length > 0) {
         errors.forEach((error) => {
@@ -174,12 +175,86 @@ function convertToFilePath(filePath: string, path: string) {
     return filePath;
 }
 
+function findSpecificLine(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
+    let xRefInfo = getProcedureNames(moduleName);
+
+    xRefInfo.procedureName = "";
+
+    if (lineNumber < 1) {
+        lineNumber = 1;
+    }
+
+    const xRefFile = "**/.builder/.pct0/" + xRefInfo.fileName + ".xref";
+    vscode.workspace.findFiles(xRefFile).then(async (list) => {
+        if (list.length === 0) {
+            vscode.window.showWarningMessage(
+                "xRef file not found: " + xRefFile
+            );
+            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            return;
+        }
+        else {
+            const xRefPath = list[0].path.slice(1);
+            const includesInfo = profilerService.parseXrefIncludes(xRefPath);
+
+            if(lineNumber < includesInfo[0].includeLine) {
+                openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            }
+            else {
+                let fileFound = false;
+                let num = 0;
+                let listNum = 0;
+
+                if (workspaceConnections) {
+                    for (const id of Object.keys(workspaceConnections)) {
+                        let proPath = workspaceConnections[id].path;
+                        num++;
+                        vscode.workspace.findFiles(convertToFilePath(includesInfo[0].includeName, proPath))
+                            .then(async (list) => {
+                                listNum++;
+                                if (list.length === 0) {
+                                }
+                                else {
+                                    fileFound = true;
+
+                                    let includeLineCOunt = countLinesInFile(list[0].path.slice(1));
+
+                                    let includeEndLine = includeLineCOunt + includesInfo[0].includeLine;
+                                    if (lineNumber <= includeEndLine) {
+                                        xRefInfo.fileName = includesInfo[0].includeName;
+                                        openFile(workspaceConnections, xRefInfo, lineNumber - includesInfo[0].includeLine, profilerService);
+                                    }
+                                    else {
+                                        openFile(workspaceConnections, xRefInfo, lineNumber - includeLineCOunt - 1, profilerService);
+                                    }
+
+
+                                }
+                                if (!fileFound && num === listNum) {
+                                    vscode.window.showErrorMessage(
+                                        "File not found: " + includesInfo[0].includeName
+                                    );
+                                    return;
+                                }
+                            });
+                    }
+                }
+
+            }
+
+
+
+
+            // xRefInfo = profilerService.parseXrefLine(xRefPath, lineNumber);
+            // openFileLine(workspaceConnections, xRefInfo, lineNumber, profilerService);
+        }
+    });
+
+}
+
 function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let xRefInfo = getProcedureNames(moduleName);
 
-    if (lineNumber !== 1) {
-        xRefInfo.procedureName = "";
-    }
 
     if (xRefInfo.procedureName === "" && lineNumber === 1) {
         openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
@@ -192,7 +267,6 @@ function open(workspaceConnections: { [key: string]: IConfig; } | undefined, mod
             vscode.window.showWarningMessage(
                 "xRef file not found: " + xRefFile
             );
-            xRefInfo.procedureName = "";
             openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
             return;
         }
@@ -238,5 +312,10 @@ function openFile(workspaceConnections: { [key: string]: IConfig; } | undefined,
                 });
         }
     }
+}
 
+function countLinesInFile(filePath: string): number {
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const lines = fileContent.split('\n');
+    return lines.length;
 }

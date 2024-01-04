@@ -1,29 +1,24 @@
 
-import { XRefInfo } from "../../view/app/model";
+import { XRefInfo, IncludesInfo } from "../../view/app/model";
+import { readFile } from "./../helper/fileReader";
 
 export function collectData(readData: string, procedureName: string): XRefInfo{
-    let xrefInfo: XRefInfo = {
-        fileName: "",
-        endLine: 1,
-        type: "",
-        procedureName: procedureName
-    };
+    let xrefInfo: XRefInfo[] = [];
 
-    const xRefLine =  findLine(readData, procedureName);
+    const xRefLine =  findLines(readData, procedureName + ",");
 
-    if(xRefLine) {
-        xrefInfo = parseLine(xRefLine);
-        xrefInfo.procedureName = procedureName;
+    if(xRefLine.length > 0) {
+        xrefInfo = xRefLine.map(parseLine);
+        xrefInfo[0].procedureName = procedureName;
     }
 
-    return xrefInfo;
+    return xrefInfo[0];
 }
 
-function findLine(fileContent: string, procedureName: string): string | null {
-    const lines = fileContent.split('\n');
-    const line = lines.find(line => line.includes(procedureName + ","));
-
-    return line || null;
+function findLines(fileContent: string, procedureName: string): string[] {
+    const fileLines = fileContent.split('\n');
+    const lines = fileLines.filter(line => line.includes(procedureName));
+    return lines;
 }
 
 function parseLine(xRefLine: string) {
@@ -40,4 +35,27 @@ function parseLine(xRefLine: string) {
     return xrefInfo;
 }
 
+function parseIncludeLine(xRefLine: string) {
 
+    const splitInformation = xRefLine.split(" ");
+
+    const includesInfo: IncludesInfo = {
+        fileName: splitInformation[1],
+        includeLine: Number(splitInformation[2]),
+        includeName: splitInformation[4],
+    };
+
+    return includesInfo;
+}
+
+export function collectIncludes(readData: string): IncludesInfo[] {
+    let includesInfoArray: IncludesInfo[] = [];
+
+    const includeLines = findLines(readData, "INCLUDE");
+
+    if (includeLines.length > 0) {
+        includesInfoArray = includeLines.map(parseIncludeLine);
+    }
+
+    return includesInfoArray;
+}

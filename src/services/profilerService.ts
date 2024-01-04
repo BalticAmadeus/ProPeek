@@ -2,7 +2,7 @@ import { readFile, readUntilLineNumber } from './helper/fileReader';
 import { parseProfilerData } from './parser/profilerRawData';
 import { transformData } from './parser/presentationData';
 import { PresentationData } from '../common/PresentationData';
-import { collectData } from  './finder/xRefParser';
+import { collectData, collectIncludes } from  './finder/xRefParser';
 import {findLinesWithFunction } from './finder/lineFinder';
 import { ParserLogger } from './parser/ParserLogger';
 
@@ -26,6 +26,12 @@ export class ProfilerService {
         return xRefInfo;
     }
 
+    public parseXrefIncludes(fileName: string) {
+        const readData = readFile(fileName);
+        const includesInfoArray = collectIncludes(readData);
+        return includesInfoArray;
+    }
+
     public findFunctionStart(filePath: string, lastLine: number, functionName: string) {
         const readData = readUntilLineNumber(filePath, lastLine);
         if (readData) {
@@ -38,4 +44,3 @@ export class ProfilerService {
         return 1;
     }
 }
-

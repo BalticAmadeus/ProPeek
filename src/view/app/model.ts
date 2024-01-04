@@ -18,6 +18,12 @@ export interface XRefInfo {
     procedureName: string;
 }
 
+export interface IncludesInfo {
+    fileName: string;
+    includeLine: number;
+    includeName: string;
+}
+
 export interface ProcedureNames {
     procedureName: string;
     fileName: string;
