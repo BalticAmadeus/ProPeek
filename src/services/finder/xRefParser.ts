@@ -1,10 +1,8 @@
 
 import { XRefInfo, IncludesInfo } from "../../view/app/model";
-import { readFile } from "./../helper/fileReader";
 
 export function collectData(readData: string, procedureName: string): XRefInfo{
     let xrefInfo: XRefInfo[] = [];
-
     const xRefLine =  findLines(readData, procedureName + ",");
 
     if(xRefLine.length > 0) {
@@ -22,9 +20,7 @@ function findLines(fileContent: string, procedureName: string): string[] {
 }
 
 function parseLine(xRefLine: string) {
-
     const splitInformation = xRefLine.split(" ");
-
     const xrefInfo: XRefInfo = {
         fileName: splitInformation[1],
         endLine: Number(splitInformation[2]),
@@ -36,9 +32,7 @@ function parseLine(xRefLine: string) {
 }
 
 function parseIncludeLine(xRefLine: string) {
-
     const splitInformation = xRefLine.split(" ");
-
     const includesInfo: IncludesInfo = {
         fileName: splitInformation[1],
         includeLine: Number(splitInformation[2]),
@@ -50,12 +44,10 @@ function parseIncludeLine(xRefLine: string) {
 
 export function collectIncludes(readData: string): IncludesInfo[] {
     let includesInfoArray: IncludesInfo[] = [];
-
     const includeLines = findLines(readData, "INCLUDE");
 
     if (includeLines.length > 0) {
         includesInfoArray = includeLines.map(parseIncludeLine);
     }
-
     return includesInfoArray;
 }

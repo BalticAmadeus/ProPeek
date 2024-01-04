@@ -73,11 +73,13 @@ export class ProfilerViewer {
                     [key: string]: IConfig;
                 }>(`${Constants.globalExtensionKey}.propaths`);
 
+
+
                 if (obj.findLine === false) {
                     open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
                 }
                 else {
-                    findSpecificLine(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
+                    getSpecificLine(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
                 }
             }
         );
@@ -175,8 +177,9 @@ function convertToFilePath(filePath: string, path: string) {
     return filePath;
 }
 
-function findSpecificLine(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
+function getSpecificLine(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let xRefInfo = getProcedureNames(moduleName);
+    let proPaths = getProPath(workspaceConnections);
 
     xRefInfo.procedureName = "";
 
@@ -190,7 +193,7 @@ function findSpecificLine(workspaceConnections: { [key: string]: IConfig; } | un
             vscode.window.showWarningMessage(
                 "xRef file not found: " + xRefFile
             );
-            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            openFile(proPaths, xRefInfo, lineNumber, profilerService);
             return;
         }
         else {
@@ -199,33 +202,35 @@ function findSpecificLine(workspaceConnections: { [key: string]: IConfig; } | un
 
             for (const include of includesInfo) {
                 if (lineNumber < include.includeLine) {
-                    openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+                    openFile(proPaths, xRefInfo, lineNumber, profilerService);
                     return;
                 } else {
-                    let includeFilePath = await findFilePath(workspaceConnections, include.includeName);
-                    let includeLineCount = countLinesInFile(includeFilePath);
+
+                    let includeFilePath = await getFilePath(proPaths, include.includeName);
+                    let includeLineCount = countLinesInFile(includeFilePath.path.slice(1));
 
                     let includeEndLine = includeLineCount + include.includeLine;
 
                     if (lineNumber <= includeEndLine) {
                         xRefInfo.fileName = include.includeName;
-                        openFile(workspaceConnections, xRefInfo, lineNumber - include.includeLine, profilerService);
+                        openFile(proPaths, xRefInfo, lineNumber - include.includeLine, profilerService);
                         return;
                     } else {
                         lineNumber -= includeLineCount + 1;
                     }
                 }
             }
-            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            openFile(proPaths, xRefInfo, lineNumber, profilerService);
         }
     });
 }
 
 function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let xRefInfo = getProcedureNames(moduleName);
+    let proPaths = getProPath(workspaceConnections);
 
     if (xRefInfo.procedureName === "" && lineNumber === 1) {
-        openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+        openFile(proPaths, xRefInfo, lineNumber, profilerService);
         return;
     }
 
@@ -235,51 +240,27 @@ function open(workspaceConnections: { [key: string]: IConfig; } | undefined, mod
             vscode.window.showWarningMessage(
                 "xRef file not found: " + xRefFile
             );
-            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            openFile(proPaths, xRefInfo, lineNumber, profilerService);
             return;
         }
         else {
             const xRefPath = list[0].path.slice(1);
             xRefInfo = profilerService.parseXRef(xRefPath, xRefInfo.procedureName);
-            openFile(workspaceConnections, xRefInfo, lineNumber, profilerService);
+            openFile(proPaths, xRefInfo, lineNumber, profilerService);
         }
     });
 }
 
-function openFile(workspaceConnections: { [key: string]: IConfig; } | undefined, xRefInfo: XRefInfo, lineNumber: number, profilerService: ProfilerService) {
-    let fileFound = false;
-    let num = 0;
-    let listNum = 0;
+async function openFile(proPaths: string[], xRefInfo: XRefInfo, lineNumber: number, profilerService: ProfilerService) {
+    let filePath = await getFilePath(proPaths, xRefInfo.fileName);
 
-    if (workspaceConnections) {
-        for (const id of Object.keys(workspaceConnections)) {
-            let proPath = workspaceConnections[id].path;
-            num++;
-            vscode.workspace.findFiles(convertToFilePath(xRefInfo.fileName, proPath))
-                .then(async (list) => {
-                    listNum++;
-                    if (list.length === 0) {
-                    }
-                    else {
-                        fileFound = true;
-
-                        if (xRefInfo.procedureName !== "") {
-                            const functionName = xRefInfo.type + " ";
-                            lineNumber = profilerService.findFunctionStart(list[0].path.slice(1), xRefInfo.endLine, functionName);
-                        }
-                        const doc = await vscode.workspace.openTextDocument(list[0]);
-                        vscode.window.showTextDocument(doc, { selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0) });
-                        return;
-                    }
-                    if (!fileFound && num === listNum) {
-                        vscode.window.showErrorMessage(
-                            "File not found: " + xRefInfo.fileName
-                        );
-                        return;
-                    }
-                });
-        }
+    if (xRefInfo.procedureName !== "") {
+        const functionName = xRefInfo.type + " ";
+        lineNumber = profilerService.findFunctionStart(filePath.path.slice(1), xRefInfo.endLine, functionName);
     }
+    const doc = await vscode.workspace.openTextDocument(filePath);
+    vscode.window.showTextDocument(doc, { selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0) });
+    return;
 }
 
 function countLinesInFile(filePath: string): number {
@@ -288,29 +269,30 @@ function countLinesInFile(filePath: string): number {
     return lines.length;
 }
 
-
-async function findFilePath(workspaceConnections: { [key: string]: IConfig; } | undefined, fileName: string): Promise<string> {
+async function getFilePath(proPaths: string[], fileName: string): Promise<vscode.Uri> {
     let fileFound = false;
-    let num = 0;
 
-    if (workspaceConnections) {
-        for (const id of Object.keys(workspaceConnections)) {
-            let proPath = workspaceConnections[id].path;
-            num++;
-
+    if (proPaths) {
+        for (const proPath of proPaths) {
             const list = await vscode.workspace.findFiles(convertToFilePath(fileName, proPath));
-
             if (list.length > 0) {
                 fileFound = true;
-                return list[0].path.slice(1);
-
+                return list[0];
             }
         }
-
         if (!fileFound) {
             vscode.window.showErrorMessage("File not found: " + fileName);
         }
     }
+    return Promise.resolve(vscode.Uri.parse(""));
+}
 
-    return ""; // Default value if the file is not found
+function getProPath(workspaceConnections: { [key: string]: IConfig; } | undefined) {
+    let proPaths: string[] = [];
+    if (workspaceConnections) {
+        for (const id of Object.keys(workspaceConnections)) {
+            proPaths.push(workspaceConnections[id].path);
+        }
+    }
+    return proPaths;
 }
