@@ -145,44 +145,44 @@ function convertToNestedStructure(
   mode: Mode,
   searchPhrase: string
 ): any {
-  const root: any = {
-    name: "root",
-    value: 100,
-    children: [],
-  };
-
   const nodeMap: { [key: number]: any } = {};
+  const rootNode = data[0];
+  let root : any;
 
-  //if there is no tracing data, return only root
-  if (data[0] === undefined) {
-    return root;
-  }
-
-  const startNode: number = data[0].parentID;
-
-  for (const item of data) {
-    nodeMap[item.nodeID] = {
-      name: item.moduleName,
-      value: item.pcntOfSession,
-      backgroundColor: giveColor(mode, item, searchPhrase),
-      tooltip:
-        "Name: " +
-        item.moduleName +
-        " Percentage of Session: " +
-        item.pcntOfSession.toFixed(2) +
-        "% " +
-        "Cumulative Time: " +
-        item.cumulativeTime,
+  //if there is no call tree data, define and return empty root node
+  if (rootNode === undefined) {
+    root = {
+      name: "root",
+      value: 100,
+      left: 0,
       children: [],
     };
+  }
 
-    if (item.parentID === startNode) {
-      root.children.push(nodeMap[item.nodeID]);
+  for (const node of data) {
+    let flameGraphNode = {
+      name: node.moduleName,
+      value: node.pcntOfSession,
+      backgroundColor: giveColor(mode, node, searchPhrase),
+      tooltip: `Name: ${node.moduleName} Percentage of Session: ${node.pcntOfSession.toFixed(2)}% Cumulative Time: ${node.cumulativeTime}`,
+      children: [],
+      left: 0
+    };
+
+    if (node.parentID === rootNode.parentID) {
+      root = flameGraphNode;
     } else {
-      if (!nodeMap[item.parentID].children) {
-        nodeMap[item.parentID].children = [];
+      nodeMap[node.nodeID] = flameGraphNode;
+      nodeMap[node.nodeID].left = (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
+
+      if(node.parentID === rootNode.nodeID) {
+        root.children.push(nodeMap[node.nodeID]);
+      } else {
+        if(!nodeMap[node.parentID].children){
+          nodeMap[node.parentID].children = [];
+        }
+        nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
       }
-      nodeMap[item.parentID].children.push(nodeMap[item.nodeID]);
     }
   }
 
