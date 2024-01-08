@@ -6,3 +6,10 @@
     margin-top: 5px;
     font-weight: bold;
 }
+
+.rowFormat {
+    font-weight: bold;
+    font-size: 1.1em;
+    font-weight: 900;
+    background-color: rgba(0, 0, 0, 0.3);
+}
