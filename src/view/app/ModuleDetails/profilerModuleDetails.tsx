@@ -14,9 +14,9 @@ import "./profilerModuleDetails.css";
 interface IConfigProps {
   vscode: any;
   presentationData: PresentationData;
-  moduleName: string;
   selectedRow: any;
   onRowSelect: (row: any) => void;
+  moduleName: string;
 }
 
 const filterCSS: React.CSSProperties = {
@@ -92,9 +92,9 @@ function getLineComparator(sortColumn: string): LineComparator {
 function ProfilerModuleDetails({
   presentationData,
   vscode,
-  moduleName,
   selectedRow,
   onRowSelect,
+  moduleName,
 }: IConfigProps) {
   const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
   const [selectedModuleRow, setSelectedModuleRow] =

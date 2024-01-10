@@ -12,11 +12,20 @@ interface IConfigProps {
   presentationData: PresentationData;
 }
 
+enum ProfilerTab {
+  ModuleDetails = 0,
+  TreeView = 1,
+  FlameGraph = 2,
+}
+
 function ProfilerForm({ presentationData, vscode }: IConfigProps) {
-  const [activeTab, setActiveTab] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<ProfilerTab>(
+    ProfilerTab.ModuleDetails
+  );
   const [presentationData2, setPresentationData] = useState(presentationData);
   const [isLoading, setLoading] = useState(true);
-  const [selectedRow, setSelectedRow] = useState<any>(null); // State to keep track of the selected row
+  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [moduleName, setModuleName] = useState<string>("");
 
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
@@ -33,8 +42,9 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
         <ProfilerModuleDetails
           presentationData={presentationData2}
           vscode={vscode}
-          selectedRow={selectedRow} // Pass the selectedRow state
-          onRowSelect={handleRowSelection} // Pass the handleRowSelection callback
+          selectedRow={selectedRow}
+          onRowSelect={handleRowSelection}
+          moduleName={moduleName}
         />
       </div>
     );
@@ -58,27 +68,33 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
 
   let content: JSX.Element | null = null;
 
-  const handleTabClick = (tabIndex: number) => {
-    setActiveTab(tabIndex);
+  const handleTabClick = (tab: ProfilerTab) => {
+    setActiveTab(tab);
+
+    if (activeTab !== ProfilerTab.ModuleDetails) {
+      setModuleName("");
+    }
   };
 
   const handleRowSelection = (row: any) => {
     setSelectedRow(row);
   };
 
-  if (activeTab === 0) {
-    content = (
-      <ProfilerModuleDetails
-        presentationData={presentationData2}
-        vscode={vscode}
-        selectedRow={selectedRow}
-        onRowSelect={handleRowSelection}
-      />
-    );
-  } else if (activeTab === 1) {
-    content = <TreeViewTab />;
-  } else if (activeTab === 2) {
-    content = <FlameGraphTab />;
+  const handleNodeSelection = (moduleName: string) => {
+    setModuleName(moduleName);
+    setActiveTab(ProfilerTab.ModuleDetails);
+  };
+
+  switch (activeTab) {
+    case ProfilerTab.ModuleDetails:
+      content = <ModuleDetailsTab />;
+      break;
+    case ProfilerTab.TreeView:
+      content = <TreeViewTab />;
+      break;
+    case ProfilerTab.FlameGraph:
+      content = <FlameGraphTab />;
+      break;
   }
 
   return (
