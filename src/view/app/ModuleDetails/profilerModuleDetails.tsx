@@ -8,8 +8,9 @@ import './profilerModuleDetails.css';
 
 
 interface IConfigProps {
-    vscode: any;
-    presentationData: PresentationData
+    vscode: any,
+    presentationData: PresentationData,
+    moduleName: string
 }
 
 const filterCSS: React.CSSProperties = {
@@ -82,7 +83,7 @@ function getLineComparator(sortColumn: string): LineComparator {
     return getComparator(sortColumn);
 }
 
-function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
+function ProfilerModuleDetails({ presentationData, vscode, moduleName }: IConfigProps) {
     const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
     const [selectedModuleRow, setSelectedModuleRow] = useState<ModuleDetails | null>(null);
     const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
@@ -111,6 +112,13 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         filtersRef.current = data;
         _setFilters(data);
     };
+
+    React.useEffect(() => {
+        if (moduleName !== "") {
+            filterColumn("moduleName", moduleName);
+            setSelectedModuleRow(null);
+        }
+    }, [moduleName]);
 
     columnName.CalledColumns.forEach((column) => {
         if (column.key === "calleePcntOfSession") {
@@ -213,26 +221,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                 }
 
                 function handleInputKeyDown(event) {
-                    var tempFilters = filters;
-                    if (event.target.value === "") {
-                        delete tempFilters.columns[column.key];
-                    } else {
-                        tempFilters.columns[column.key] = event.target.value;
-                    }
-                    setFilters(tempFilters);
-
-                    if (Object.keys(filters.columns).length === 0) {
-                        setFilteredModuleRows(moduleRows);
-                    } else {
-                        setFilteredModuleRows(moduleRows.filter((row) => {
-                            for (let [key] of Object.entries(filters.columns)) {
-                                if (!row[key].toString().toLowerCase().includes(filters.columns[key].toLowerCase())) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }));
-                    }
+                    filterColumn(column.key, event.target.value);
                 }
 
                 return (
@@ -293,6 +282,31 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
             addPercentage(column);
         }
     });
+
+    function filterColumn (columnKey: string, value: any) {
+        var tempFilters = filters;
+
+        if (value === "") {
+            delete tempFilters.columns[columnKey];
+        } else {
+            tempFilters.columns[columnKey] = value;
+        }
+
+        setFilters(tempFilters);
+
+        if (Object.keys(filters.columns).length === 0) {
+            setFilteredModuleRows(moduleRows);
+        } else {
+            setFilteredModuleRows(moduleRows.filter((row) => {
+                for (let [key] of Object.entries(filters.columns)) {
+                    if (!row[key].toString().toLowerCase().includes(filters.columns[key].toLowerCase())) {
+                        return false;
+                    }
+                }
+                return true;
+            }));
+        }
+    }
 
     function addPercentage(column) {
         column["headerRenderer"] = function ({ }) {

@@ -4,7 +4,8 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
 
 interface IConfigProps {
-  presentationData: PresentationData;
+  presentationData: PresentationData,
+  handleNodeSelection: any
 }
 
 export enum SearchTypes {
@@ -13,7 +14,7 @@ export enum SearchTypes {
   Search,
 }
 
-function ProfilerFlameGraph({ presentationData }: IConfigProps) {
+function ProfilerFlameGraph({ presentationData, handleNodeSelection }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
 
@@ -130,8 +131,8 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
           data={nestedStructure}
           height={windowHeight}
           width={windowWidth - 40}
-          onChange={(node) => {
-            console.log(`"${node.name}" focused`);
+          onDoubleClick={(node) => {
+            handleNodeSelection(node.name);
           }}
         />
       </div>

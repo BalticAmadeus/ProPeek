@@ -1,8 +1,82 @@
 diff --git a/node_modules/react-flame-graph/dist/index.cjs.js b/node_modules/react-flame-graph/dist/index.cjs.js
-index b524c95..d7a98b6 100644
+index b524c95..346f26c 100644
 --- a/node_modules/react-flame-graph/dist/index.cjs.js
 +++ b/node_modules/react-flame-graph/dist/index.cjs.js
-@@ -2097,11 +2097,14 @@ function transformChartData(rawData) {
+@@ -1758,6 +1758,7 @@ var LabeledRect = function LabeledRect(_ref) {
+       isDimmed = _ref$isDimmed === undefined ? false : _ref$isDimmed,
+       label = _ref.label,
+       onClick = _ref.onClick,
++      onDoubleClick = _ref.onDoubleClick,
+       onMouseEnter = _ref.onMouseEnter,
+       onMouseLeave = _ref.onMouseLeave,
+       onMouseMove = _ref.onMouseMove,
+@@ -1785,6 +1786,7 @@ var LabeledRect = function LabeledRect(_ref) {
+       height: height,
+       fill: backgroundColor,
+       onClick: onClick,
++      onDoubleClick: onDoubleClick,
+       className: styles.rect,
+       style: {
+         opacity: isDimmed ? 0.5 : 1
+@@ -1906,6 +1908,7 @@ var ItemRenderer = function (_PureComponent) {
+       var data = itemData.data,
+           disableDefaultTooltips = itemData.disableDefaultTooltips,
+           focusedNode = itemData.focusedNode,
++          handleDblClick = itemData.handleDblClick,
+           handleMouseEnter = itemData.handleMouseEnter,
+           handleMouseLeave = itemData.handleMouseLeave,
+           handleMouseMove = itemData.handleMouseMove,
+@@ -1950,6 +1953,9 @@ var ItemRenderer = function (_PureComponent) {
+           onClick: function onClick() {
+             return itemData.focusNode(uid);
+           },
++          onDoubleClick: function onDoubleClick() {
++            return itemData.handleDblClick(uid);
++          },
+           onMouseEnter: function onMouseEnter(event) {
+             return handleMouseEnter(event, node.source);
+           },
+@@ -1986,12 +1992,13 @@ var FlameGraph = function (_PureComponent) {
+ 
+     return _ret = (_temp = (_this = possibleConstructorReturn$1(this, (_ref = FlameGraph.__proto__ || Object.getPrototypeOf(FlameGraph)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+       focusedNode: _this.props.data.nodes[_this.props.data.root]
+-    }, _this.getItemData = memoize(function (data, disableDefaultTooltips, focusedNode, focusNode, handleMouseEnter, handleMouseLeave, handleMouseMove, width) {
++    }, _this.getItemData = memoize(function (data, disableDefaultTooltips, focusedNode, focusNode, handleDblClick, handleMouseEnter, handleMouseLeave, handleMouseMove, width) {
+       return {
+         data: data,
+         disableDefaultTooltips: disableDefaultTooltips,
+         focusedNode: focusedNode,
+         focusNode: focusNode,
++        handleDblClick: handleDblClick,
+         handleMouseEnter: handleMouseEnter,
+         handleMouseLeave: handleMouseLeave,
+         handleMouseMove: handleMouseMove,
+@@ -2012,6 +2019,15 @@ var FlameGraph = function (_PureComponent) {
+           onChange(chartNode, uid);
+         }
+       });
++    }, _this.handleDblClick = function (uid) {
++      var nodes = _this.props.data.nodes;
++
++      var chartNode = nodes[uid];
++      var onDoubleClick = _this.props.onDoubleClick;
++
++      if (typeof onDoubleClick === 'function') {
++        onDoubleClick(chartNode, uid);
++      }
+     }, _this.handleMouseEnter = function (event, rawData) {
+       var onMouseOver = _this.props.onMouseOver;
+ 
+@@ -2052,7 +2068,7 @@ var FlameGraph = function (_PureComponent) {
+       var focusedNode = this.state.focusedNode;
+ 
+ 
+-      var itemData = this.getItemData(data, !!disableDefaultTooltips, focusedNode, this.focusNode, this.handleMouseEnter, this.handleMouseLeave, this.handleMouseMove, width);
++      var itemData = this.getItemData(data, !!disableDefaultTooltips, focusedNode, this.focusNode, this.handleDblClick, this.handleMouseEnter, this.handleMouseLeave, this.handleMouseMove, width);
+ 
+       return React__default.createElement(
+         FixedSizeList,
+@@ -2097,11 +2113,14 @@ function transformChartData(rawData) {
          id = sourceNode.id,
          name = sourceNode.name,
          tooltip = sourceNode.tooltip,
@@ -19,10 +93,84 @@ index b524c95..d7a98b6 100644
      var targetNode = nodes[uidOrCounter] = {
        backgroundColor: backgroundColor || getNodeBackgroundColor(value, maxValue),
 diff --git a/node_modules/react-flame-graph/dist/index.esm.js b/node_modules/react-flame-graph/dist/index.esm.js
-index b5ea6cd..bef24b3 100644
+index b5ea6cd..99a8170 100644
 --- a/node_modules/react-flame-graph/dist/index.esm.js
 +++ b/node_modules/react-flame-graph/dist/index.esm.js
-@@ -2090,11 +2090,14 @@ function transformChartData(rawData) {
+@@ -1751,6 +1751,7 @@ var LabeledRect = function LabeledRect(_ref) {
+       isDimmed = _ref$isDimmed === undefined ? false : _ref$isDimmed,
+       label = _ref.label,
+       onClick = _ref.onClick,
++      onDoubleClick = _ref.onDoubleClick,
+       onMouseEnter = _ref.onMouseEnter,
+       onMouseLeave = _ref.onMouseLeave,
+       onMouseMove = _ref.onMouseMove,
+@@ -1778,6 +1779,7 @@ var LabeledRect = function LabeledRect(_ref) {
+       height: height,
+       fill: backgroundColor,
+       onClick: onClick,
++      onDoubleClick: onDoubleClick,
+       className: styles.rect,
+       style: {
+         opacity: isDimmed ? 0.5 : 1
+@@ -1899,6 +1901,7 @@ var ItemRenderer = function (_PureComponent) {
+       var data = itemData.data,
+           disableDefaultTooltips = itemData.disableDefaultTooltips,
+           focusedNode = itemData.focusedNode,
++          handleDblClick = itemData.handleDblClick,
+           handleMouseEnter = itemData.handleMouseEnter,
+           handleMouseLeave = itemData.handleMouseLeave,
+           handleMouseMove = itemData.handleMouseMove,
+@@ -1943,6 +1946,9 @@ var ItemRenderer = function (_PureComponent) {
+           onClick: function onClick() {
+             return itemData.focusNode(uid);
+           },
++          onDoubleClick: function onDoubleClick() {
++            return itemData.handleDblClick(uid);
++          },
+           onMouseEnter: function onMouseEnter(event) {
+             return handleMouseEnter(event, node.source);
+           },
+@@ -1979,12 +1985,13 @@ var FlameGraph = function (_PureComponent) {
+ 
+     return _ret = (_temp = (_this = possibleConstructorReturn$1(this, (_ref = FlameGraph.__proto__ || Object.getPrototypeOf(FlameGraph)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+       focusedNode: _this.props.data.nodes[_this.props.data.root]
+-    }, _this.getItemData = memoize(function (data, disableDefaultTooltips, focusedNode, focusNode, handleMouseEnter, handleMouseLeave, handleMouseMove, width) {
++    }, _this.getItemData = memoize(function (data, disableDefaultTooltips, focusedNode, focusNode, handleDblClick, handleMouseEnter, handleMouseLeave, handleMouseMove, width) {
+       return {
+         data: data,
+         disableDefaultTooltips: disableDefaultTooltips,
+         focusedNode: focusedNode,
+         focusNode: focusNode,
++        handleDblClick: handleDblClick,
+         handleMouseEnter: handleMouseEnter,
+         handleMouseLeave: handleMouseLeave,
+         handleMouseMove: handleMouseMove,
+@@ -2005,6 +2012,15 @@ var FlameGraph = function (_PureComponent) {
+           onChange(chartNode, uid);
+         }
+       });
++    }, _this.handleDblClick = function (uid) {
++      var nodes = _this.props.data.nodes;
++
++      var chartNode = nodes[uid];
++      var onDoubleClick = _this.props.onDoubleClick;
++
++      if (typeof onDoubleClick === 'function') {
++        onDoubleClick(chartNode, uid);
++      }
+     }, _this.handleMouseEnter = function (event, rawData) {
+       var onMouseOver = _this.props.onMouseOver;
+ 
+@@ -2045,7 +2061,7 @@ var FlameGraph = function (_PureComponent) {
+       var focusedNode = this.state.focusedNode;
+ 
+ 
+-      var itemData = this.getItemData(data, !!disableDefaultTooltips, focusedNode, this.focusNode, this.handleMouseEnter, this.handleMouseLeave, this.handleMouseMove, width);
++      var itemData = this.getItemData(data, !!disableDefaultTooltips, focusedNode, this.focusNode, this.handleDblClick, this.handleMouseEnter, this.handleMouseLeave, this.handleMouseMove, width);
+ 
+       return React.createElement(
+         FixedSizeList,
+@@ -2090,11 +2106,14 @@ function transformChartData(rawData) {
          id = sourceNode.id,
          name = sourceNode.name,
          tooltip = sourceNode.tooltip,
