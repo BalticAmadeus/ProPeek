@@ -184,7 +184,6 @@ function ProfilerModuleDetails({
       return 0;
     });
 
-    // If no selection is already set, select the first row by default
     if (sortedRows.length > 0 && selectedModuleRow === null) {
       setSelectedModuleRow(sortedRows[0]);
       filterTables(sortedRows[0]);
