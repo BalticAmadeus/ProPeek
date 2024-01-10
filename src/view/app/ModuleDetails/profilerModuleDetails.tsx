@@ -387,12 +387,8 @@ function ProfilerModuleDetails({
     });
   });
 
-  const handleRowClick = (row) => {
-    onRowSelect(row);
-    showSelected(row);
-  };
-
   const showSelected = (row) => {
+    onRowSelect(row);
     filterTables(row);
   };
 
@@ -432,7 +428,7 @@ function ProfilerModuleDetails({
                 sortable: true,
                 resizable: true,
               }}
-              onRowClick={handleRowClick}
+              onRowClick={showSelected}
               headerRowHeight={filters.enabled ? 70 : undefined}
               rowKeyGetter={moduleRowKeyGetter}
               onRowsChange={setModuleRows}
