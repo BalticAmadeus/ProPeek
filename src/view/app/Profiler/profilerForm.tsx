@@ -53,7 +53,10 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
   const TreeViewTab: React.FC = () => {
     return (
       <div>
-        <ProfilerTreeView presentationData={presentationData2} />
+        <ProfilerTreeView
+          presentationData={presentationData2}
+          handleNodeSelection={handleNodeSelection}
+        />
       </div>
     );
   };

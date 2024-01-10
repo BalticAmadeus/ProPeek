@@ -146,10 +146,7 @@ function ProfilerModuleDetails({
   };
 
   React.useEffect(() => {
-    if (moduleName !== "") {
-      filterColumn("moduleName", moduleName);
-      setSelectedModuleRow(null);
-    }
+    filterByModuleName(moduleName);
   }, [moduleName]);
 
   columnName.CalledColumns.forEach((column) => {
@@ -163,6 +160,13 @@ function ProfilerModuleDetails({
       addPercentage(column);
     }
   });
+
+  const filterByModuleName = (moduleName: string) => {
+    if (moduleName !== "") {
+      filterColumn("moduleName", moduleName);
+      setSelectedModuleRow(null);
+    }
+  };
 
   const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
     if (sortModuleColumns.length === 0) {
@@ -471,6 +475,9 @@ function ProfilerModuleDetails({
               onRowsChange={setSelectedCallingRows}
               sortColumns={sortCallingColumns}
               onSortColumnsChange={setSortCallingColumns}
+              onRowDoubleClick={(row) => {
+                filterByModuleName(row.callerModuleName);
+              }}
             />
           </div>
 
@@ -487,6 +494,9 @@ function ProfilerModuleDetails({
               onRowsChange={setSelectedCalledRows}
               sortColumns={sortCalledColumns}
               onSortColumnsChange={setSortCalledColumns}
+              onRowDoubleClick={(row) => {
+                filterByModuleName(row.calleeModuleName);
+              }}
             />
           </div>
         </div>
