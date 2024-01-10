@@ -53,15 +53,18 @@ export function getTotalSessionTimeByLineSummary(rawData: ProfilerRawData): numb
 }
 
 /**
- * Returns call tree based on profiler version
+ * Returns call tree based on profiler version and config parameters
  */
 export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number): CallTree[] {
 
-    switch (rawData.DescriptionData.Version) {
-        case 1:
-        case 2:
-            return calculateCallTreeByTracingData(rawData, moduleDetails);
-        default:
-            return calculateCallTree(rawData, moduleDetails, totalSessionTime);
+    const showStartTime: boolean = true;
+    const hasTracingData: boolean = rawData.TracingData.length > 0;
+    const version: number = rawData.DescriptionData.Version;
+
+    // calculate call tree by tracing data if start time is needed or version is older than 3
+    if (version === 3 && !(showStartTime && hasTracingData)) {
+        return calculateCallTree(rawData, moduleDetails, totalSessionTime);
+    } else {
+        return calculateCallTreeByTracingData(rawData, moduleDetails);
     }
 }

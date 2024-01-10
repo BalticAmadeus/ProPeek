@@ -61,7 +61,10 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
   const FlameGraphTab: React.FC = () => {
     return (
       <div>
-        <ProfilerFlameGraph presentationData={presentationData2} />
+        <ProfilerFlameGraph
+          presentationData={presentationData2}
+          handleNodeSelection={handleNodeSelection}
+        />
       </div>
     );
   };
