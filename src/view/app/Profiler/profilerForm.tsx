@@ -50,6 +50,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
         <div>
           <ProfilerTreeView
               presentationData={presentationData2}
+              handleNodeSelection={handleNodeSelection}
           />
         </div>
       );
