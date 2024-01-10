@@ -90,7 +90,15 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
 
   switch (activeTab) {
     case ProfilerTab.ModuleDetails:
-      content = <ModuleDetailsTab />;
+      content = (
+        <ProfilerModuleDetails
+          presentationData={presentationData2}
+          vscode={vscode}
+          selectedRow={selectedRow}
+          onRowSelect={handleRowSelection}
+          moduleName={moduleName}
+        />
+      );
       break;
     case ProfilerTab.TreeView:
       content = <TreeViewTab />;
