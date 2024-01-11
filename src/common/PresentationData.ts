@@ -20,6 +20,7 @@ export interface LineSummary {
 export interface ModuleDetails {
     moduleID: number,
     moduleName: string,
+    startLineNum: number,
     timesCalled: number,
     avgTimePerCall?: number,
     totalTime: number,

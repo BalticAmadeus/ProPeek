@@ -14,6 +14,7 @@ export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTim
     let moduleDetails: ModuleDetails = {
       moduleID     : module.ModuleID,
       moduleName   : module.ModuleName,
+      startLineNum : module.LineNum ? module.LineNum : 0,
       timesCalled  : 0,
       totalTime    : 0
     }
@@ -51,6 +52,7 @@ export function insertSessionModuleDetails(moduleDetailsList: ModuleDetails[]): 
   moduleDetailsList.push({
     moduleID      : 0,
     moduleName    : "Session",
+    startLineNum  : 0,
     timesCalled   : 1,
     avgTimePerCall: 0,
     totalTime     : 0,

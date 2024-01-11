@@ -2,7 +2,8 @@ import path = require("path");
 import * as vscode from "vscode";
 import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
-import { IConfig, XRefInfo } from "../view/app/model";
+import { IncludeFile } from "../common/XRefData"
+import { IConfig } from "../view/app/model";
 import { Constants } from "../common/Constants";
 import * as fs from 'fs';
 
@@ -71,16 +72,9 @@ export class ProfilerViewer {
             (obj) => {
                 const workspaceConnections = this.context.workspaceState.get<{
                     [key: string]: IConfig;
-                }>(`${Constants.globalExtensionKey}.propaths`);
+                }>(`${Constants.globalExtensionKey}.propath`);
 
-
-
-                if (obj.findLine === false) {
-                    open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
-                }
-                else {
-                    getSpecificLine(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
-                }
+                open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
             }
         );
     }
@@ -119,28 +113,6 @@ export class ProfilerViewer {
 
 }
 
-function getProcedureNames(moduleName: string) {
-    const moduleNames: string[] = moduleName.split(" ");
-
-    const xRefInfo: XRefInfo = {
-        fileName: "",
-        endLine: 0,
-        type: "",
-        procedureName: ""
-    };
-
-    if (moduleNames.length >= 2) {
-        xRefInfo.procedureName = moduleNames[0];
-        xRefInfo.fileName = moduleNames[1];
-    }
-    else {
-        xRefInfo.fileName = moduleNames[0];
-    }
-    xRefInfo.fileName = replaceDots(xRefInfo.fileName);
-
-    return xRefInfo;
-}
-
 function handleErrors(errors: string[]) {
     if (errors.length > 0) {
         errors.forEach((error) => {
@@ -149,150 +121,147 @@ function handleErrors(errors: string[]) {
     }
 }
 
-function replaceDots(input: string): string {
-    const lastIndex = input.lastIndexOf(".");
-
-    if (lastIndex !== -1) {
-        const prefix = input.substring(0, lastIndex);
-        const suffix = input.substring(lastIndex);
-
-        if (suffix.endsWith(".p") || suffix.endsWith(".r")) {
-            return prefix.replace(/\./g, "/") + ".p";
-        } else {
-            return input.replace(/\./g, "/") + ".cls";
-        }
-    }
-    return input + ".cls";
-}
-
-function convertToFilePath(filePath: string, path: string) {
-    if (filePath.length >= 2 && filePath[1] !== ":") {
-        filePath = path + "/" + filePath;
-
-        if (filePath.substring(0, 3) !== "**/") {
-            filePath = "**/" + filePath;
-        }
-    }
-
-    return filePath;
-}
-
-function getSpecificLine(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
-    let xRefInfo = getProcedureNames(moduleName);
-    let proPaths = getProPath(workspaceConnections);
-
-    xRefInfo.procedureName = "";
-
-    if (lineNumber < 1) {
-        lineNumber = 1;
-    }
-
-    const xRefFile = "**/.builder/.pct0/" + xRefInfo.fileName + ".xref";
-    vscode.workspace.findFiles(xRefFile).then(async (list) => {
-        if (list.length === 0) {
-            vscode.window.showWarningMessage(
-                "xRef file not found: " + xRefFile
-            );
-            openFile(proPaths, xRefInfo, lineNumber, profilerService);
-            return;
-        }
-        else {
-            const xRefPath = list[0].path.slice(1);
-            const includesInfo = profilerService.parseXrefIncludes(xRefPath);
-
-            for (const include of includesInfo) {
-                if (lineNumber < include.includeLine) {
-                    openFile(proPaths, xRefInfo, lineNumber, profilerService);
-                    return;
-                } else {
-
-                    let includeFilePath = await getFilePath(proPaths, include.includeName);
-                    let includeLineCount = countLinesInFile(includeFilePath.path.slice(1));
-
-                    let includeEndLine = includeLineCount + include.includeLine;
-
-                    if (lineNumber <= includeEndLine) {
-                        xRefInfo.fileName = include.includeName;
-                        openFile(proPaths, xRefInfo, lineNumber - include.includeLine, profilerService);
-                        return;
-                    } else {
-                        lineNumber -= includeLineCount + 1;
-                    }
-                }
-            }
-            openFile(proPaths, xRefInfo, lineNumber, profilerService);
-        }
-    });
-}
-
 function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
-    let xRefInfo = getProcedureNames(moduleName);
-    let proPaths = getProPath(workspaceConnections);
+    let { fileName, procedureName } = getFileAndProcedureName(moduleName);
+    const proPath = getProPath(workspaceConnections);
 
-    if (xRefInfo.procedureName === "" && lineNumber === 1) {
-        openFile(proPaths, xRefInfo, lineNumber, profilerService);
+    if (!procedureName || lineNumber < 1) {
+        openFile(proPath, fileName, 1);
         return;
     }
 
-    const xRefFile = "**/.builder/.pct0/" + xRefInfo.fileName + ".xref";
+    const xRefFile = "**/.builder/.pct0/" + fileName + ".xref";
+
     vscode.workspace.findFiles(xRefFile).then(async (list) => {
         if (list.length === 0) {
-            vscode.window.showWarningMessage(
-                "xRef file not found: " + xRefFile
-            );
-            openFile(proPaths, xRefInfo, lineNumber, profilerService);
-            return;
-        }
-        else {
+            vscode.window.showWarningMessage(`xRef file not found: ${xRefFile}\nLine position might be incorrect`);
+        } else {
             const xRefPath = list[0].path.slice(1);
-            xRefInfo = profilerService.parseXRef(xRefPath, xRefInfo.procedureName);
-            openFile(proPaths, xRefInfo, lineNumber, profilerService);
+            const includeFiles = profilerService.getIncludeFilesFromXref(xRefPath);
+
+            ({ fileName, lineNumber } = await getAdjustedInfo(includeFiles, proPath, fileName, lineNumber));
         }
+
+        openFile(proPath, fileName, lineNumber);
     });
 }
 
-async function openFile(proPaths: string[], xRefInfo: XRefInfo, lineNumber: number, profilerService: ProfilerService) {
-    let filePath = await getFilePath(proPaths, xRefInfo.fileName);
+async function openFile(proPath: string[], fileName: string, lineNumber: number) {
+    const filePath = await getFilePath(proPath, fileName);
 
-    if (xRefInfo.procedureName !== "") {
-        const functionName = xRefInfo.type + " ";
-        lineNumber = profilerService.findFunctionStart(filePath.path.slice(1), xRefInfo.endLine, functionName);
-    }
     const doc = await vscode.workspace.openTextDocument(filePath);
+
     vscode.window.showTextDocument(doc, { selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0) });
-    return;
+}
+
+function getFileAndProcedureName(moduleName: string): { fileName: string, procedureName: string } {
+    const moduleNames: string[] = moduleName.split(" ");
+    let fileName: string;
+    let procedureName: string = "";
+
+    if (moduleNames.length >= 2) {
+        procedureName = moduleNames[0];
+        fileName = moduleNames[1];
+    }
+    else {
+        fileName = moduleNames[0];
+    }
+
+    fileName = replaceDots(fileName);
+
+    return { fileName, procedureName };
+}
+
+async function getAdjustedInfo(includeFiles: IncludeFile[], proPath: string[], fileName: string, lineNumber: number): Promise<{ fileName: string, lineNumber: number }> {
+
+    for (const includeFile of includeFiles) {
+        if (lineNumber < includeFile.includeLine) {
+            break;
+        } else {
+            let includeFilePath = await getFilePath(proPath, includeFile.includeFileName);
+            let includeLineCount = countLinesInFile(includeFilePath.path.slice(1));
+
+            let includeEndLine = includeLineCount + includeFile.includeLine;
+
+            if (lineNumber < includeEndLine) {
+                fileName = includeFile.includeFileName;
+                lineNumber = lineNumber - includeFile.includeLine;
+                break;
+            } else {
+                lineNumber -= includeLineCount;
+            }
+        }
+    }
+
+    return { fileName, lineNumber };
 }
 
 function countLinesInFile(filePath: string): number {
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     const lines = fileContent.split('\n');
-    return lines.length;
+    let lineCount = lines.length;
+
+    if (lines[lineCount - 1] !== "") lineCount++;
+
+    return lineCount;
 }
 
-async function getFilePath(proPaths: string[], fileName: string): Promise<vscode.Uri> {
+async function getFilePath(proPath: string[], fileName: string): Promise<vscode.Uri> {
     let fileFound = false;
 
-    if (proPaths) {
-        for (const proPath of proPaths) {
-            const list = await vscode.workspace.findFiles(convertToFilePath(fileName, proPath));
-            if (list.length > 0) {
-                fileFound = true;
-                return list[0];
+    if (fs.existsSync(fileName)) {
+        return Promise.resolve(vscode.Uri.file(fileName));
+    }
+
+    if (proPath) {
+        for (const path of proPath) {
+            const files = await vscode.workspace.findFiles(convertToFilePath(fileName, path));
+            if (files.length > 0) {
+                return files[0];
             }
         }
         if (!fileFound) {
             vscode.window.showErrorMessage("File not found: " + fileName);
         }
     }
-    return Promise.resolve(vscode.Uri.parse(""));
+    return Promise.resolve(vscode.Uri.file(""));
 }
 
 function getProPath(workspaceConnections: { [key: string]: IConfig; } | undefined) {
-    let proPaths: string[] = [];
+    let proPath: string[] = [];
+
     if (workspaceConnections) {
         for (const id of Object.keys(workspaceConnections)) {
-            proPaths.push(workspaceConnections[id].path);
+            proPath.push(workspaceConnections[id].path);
         }
     }
-    return proPaths;
+    return proPath;
+}
+
+function replaceDots(fileName: string): string {
+    const lastIndex = fileName.lastIndexOf(".");
+
+    if (lastIndex !== -1) {
+        const prefix = fileName.substring(0, lastIndex);
+        const suffix = fileName.substring(lastIndex);
+
+        if (suffix.endsWith(".p") || suffix.endsWith(".r")) {
+            return prefix.replace(/\./g, "/") + ".p";
+        } else {
+            return fileName.replace(/\./g, "/") + ".cls";
+        }
+    }
+    return fileName + ".cls";
+}
+
+function convertToFilePath(fileName: string, path: string) {
+    if (fileName.length >= 2 && fileName[1] !== ":") {
+        fileName = path + "/" + fileName;
+
+        if (fileName.substring(0, 3) !== "**/") {
+            fileName = "**/" + fileName;
+        }
+    }
+
+    return fileName;
 }
