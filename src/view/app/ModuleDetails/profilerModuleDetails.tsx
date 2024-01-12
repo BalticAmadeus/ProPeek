@@ -411,6 +411,7 @@ function ProfilerModuleDetails({
   };
 
   function filterTables(row) {
+    if (!row) return;
     setSelectedCallingRows(
       callingRows.filter((element) => element.calleeID === row.moduleID)
     );
