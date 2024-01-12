@@ -12,11 +12,17 @@ interface IConfigProps {
     presentationData: PresentationData
 }
 
+enum ProfilerTab {
+  ModuleDetails = 0,
+  TreeView = 1,
+  FlameGraph = 2
+}
+
 function ProfilerForm({ presentationData, vscode }: IConfigProps) {
-    const [activeTab, setActiveTab] = useState<number>(0);;
+    const [activeTab, setActiveTab] = useState<ProfilerTab>(ProfilerTab.ModuleDetails);
     const [presentationData2, setPresentationData] = useState(presentationData);
     const [isLoading, setLoading] = useState(true);
-
+    const [moduleName, setModuleName] = useState<string>("");
 
     React.useLayoutEffect(() => {
         window.addEventListener("message", (event) => {
@@ -33,45 +39,60 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
             <ProfilerModuleDetails
                 presentationData={presentationData2}
                 vscode={vscode}
+                moduleName={moduleName}
             />
         </div>
         );
       };
 
-      const TreeViewTab: React.FC = () => {
-        return (
-          <div>
-            <ProfilerTreeView
-                presentationData={presentationData2}
-            />
-          </div>
-        );
-      };
+    const TreeViewTab: React.FC = () => {
+      return (
+        <div>
+          <ProfilerTreeView
+              presentationData={presentationData2}
+              handleNodeSelection={handleNodeSelection}
+          />
+        </div>
+      );
+    };
 
-      const FlameGraphTab: React.FC = () => {
-        return (
-          <div>
-            <ProfilerFlameGraph
-                presentationData={presentationData2}
-            />
-          </div>
-        );
-      };
+    const FlameGraphTab: React.FC = () => {
+      return (
+        <div>
+          <ProfilerFlameGraph
+              presentationData={presentationData2}
+              handleNodeSelection={handleNodeSelection}
+          />
+        </div>
+      );
+    };
 
-      let content: JSX.Element | null = null;
+    let content: JSX.Element | null = null;
 
-        const handleTabClick = (tabIndex: number) => {
-          setActiveTab(tabIndex);
-        };
+    const handleTabClick = (tab: ProfilerTab) => {
+      setActiveTab(tab);
 
+      if (activeTab !== ProfilerTab.ModuleDetails) {
+        setModuleName("");
+      }
+    };
 
-        if (activeTab === 0) {
-            content = <ModuleDetailsTab />;
-          } else if (activeTab === 1) {
-            content = <TreeViewTab />;
-          } else if (activeTab === 2) {
-            content = <FlameGraphTab />;
-          }
+    const handleNodeSelection = (moduleName: string) => {
+      setModuleName(moduleName);
+      setActiveTab(ProfilerTab.ModuleDetails);
+    };
+
+    switch(activeTab){
+      case ProfilerTab.ModuleDetails:
+        content = <ModuleDetailsTab />;
+        break;
+      case ProfilerTab.TreeView:
+        content = <TreeViewTab />;
+        break;
+      case ProfilerTab.FlameGraph:
+        content = <FlameGraphTab />;
+        break;
+    }
 
     return (
         <React.Fragment>
@@ -79,21 +100,21 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
             <div>
                 <div className="tabs">
                     <Button
-                        className={`tab ${activeTab === 0 ? 'active' : ''} buttonProfilerForm button-primary`}
-                        onClick={() => handleTabClick(0)}
+                        className={`tab ${activeTab === ProfilerTab.ModuleDetails ? 'active' : ''} buttonProfilerForm button-primary`}
+                        onClick={() => handleTabClick(ProfilerTab.ModuleDetails)}
                         variant="contained"
                     >
                     Module Details
                     </Button>
                     <Button
-                        className={`tab ${activeTab === 1 ? 'active' : ''} buttonProfilerForm button-primary`}
-                        onClick={() => handleTabClick(1)}
+                        className={`tab ${activeTab === ProfilerTab.TreeView ? 'active' : ''} buttonProfilerForm button-primary`}
+                        onClick={() => handleTabClick(ProfilerTab.TreeView)}
                     >
                     Tree View
                     </Button>
                     <Button
-                        className={`tab ${activeTab === 2 ? 'active' : ''} buttonProfilerForm button-primary`}
-                        onClick={() => handleTabClick(2)}
+                        className={`tab ${activeTab === ProfilerTab.FlameGraph ? 'active' : ''} buttonProfilerForm button-primary`}
+                        onClick={() => handleTabClick(ProfilerTab.FlameGraph)}
                     >
                     Flame Graph
                     </Button>

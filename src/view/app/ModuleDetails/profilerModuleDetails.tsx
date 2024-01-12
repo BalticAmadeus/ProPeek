@@ -1,19 +1,15 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
-import {
-    PresentationData,
-    ModuleDetails,
-    CalledModules,
-    LineSummary,
-} from "../../../common/PresentationData";
+import { PresentationData, ModuleDetails, CalledModules, LineSummary } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
 import "./profilerModuleDetails.css";
 
 interface IConfigProps {
-    vscode: any;
-    presentationData: PresentationData;
+    vscode: any,
+    presentationData: PresentationData,
+    moduleName: string
 }
 
 const filterCSS: React.CSSProperties = {
@@ -86,49 +82,25 @@ function getLineComparator(sortColumn: string): LineComparator {
     return getComparator(sortColumn);
 }
 
-function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
-    const [moduleRows, setModuleRows] = useState(
-        presentationData.moduleDetails
-    );
-    const [selectedModuleRow, setSelectedModuleRow] =
-        useState<ModuleDetails | null>(null);
-    const [sortModuleColumns, setSortModuleColumns] = useState<
-        readonly SortColumn[]
-    >([defaultModuleSort]);
+function ProfilerModuleDetails({ presentationData, vscode, moduleName }: IConfigProps) {
+    const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
+    const [selectedModuleRow, setSelectedModuleRow] = useState<ModuleDetails | null>(null);
+    const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
     const [filteredModuleRows, setFilteredModuleRows] = useState(moduleRows);
 
-    const [callingRows, setCallingRows] = useState(
-        presentationData.calledModules
-    );
-    const [selectedCallingRows, setSelectedCallingRows] = useState(
-        presentationData.calledModules
-    );
-    const [sortCallingColumns, setSortCallingColumns] = useState<
-        readonly SortColumn[]
-    >([]);
+    const [callingRows, setCallingRows] = useState(presentationData.calledModules);
+    const [selectedCallingRows, setSelectedCallingRows] = useState(presentationData.calledModules);
+    const [sortCallingColumns, setSortCallingColumns] = useState<readonly SortColumn[]>([]);
 
-    const [calledRows, setCalledRows] = useState(
-        presentationData.calledModules
-    );
-    const [selectedCalledRows, setSelectedCalledRows] = useState(
-        presentationData.calledModules
-    );
-    const [sortCalledColumns, setSortCalledColumns] = useState<
-        readonly SortColumn[]
-    >([]);
+    const [calledRows, setCalledRows] = useState(presentationData.calledModules);
+    const [selectedCalledRows, setSelectedCalledRows] = useState(presentationData.calledModules);
+    const [sortCalledColumns, setSortCalledColumns] = useState<readonly SortColumn[]>([]);
 
     const [lineRows, setLineRows] = useState(presentationData.lineSummary);
-    const [selectedLineRows, setSelectedLineRows] = useState(
-        presentationData.lineSummary
-    );
-    const [sortLineColumns, setSortLineColumns] = useState<
-        readonly SortColumn[]
-    >([defaultLineSort]);
+    const [selectedLineRows, setSelectedLineRows] = useState(presentationData.lineSummary);
+    const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>([defaultLineSort]);
 
-    const sumTotalTime = presentationData.moduleDetails.reduce(
-        (acc, module) => acc + module.totalTime,
-        0
-    );
+    const sumTotalTime = presentationData.moduleDetails.reduce((acc, module) => acc + module.totalTime, 0);
 
     const [filters, _setFilters] = React.useState({
         columns: {},
@@ -139,6 +111,10 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
         filtersRef.current = data;
         _setFilters(data);
     };
+
+    React.useEffect(() => {
+        filterByModuleName(moduleName);
+    }, [moduleName]);
 
     columnName.CalledColumns.forEach((column) => {
         if (column.key === "calleePcntOfSession") {
@@ -151,6 +127,13 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
             addPercentage(column);
         }
     });
+
+    const filterByModuleName = (moduleName: string) => {
+        if (moduleName !== "") {
+            filterColumn("moduleName", moduleName);
+            setSelectedModuleRow(null);
+        }
+    };
 
     const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
         if (sortModuleColumns.length === 0) {
@@ -235,53 +218,18 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                 sortDirection,
                 priority,
             }) {
+
                 function handleClick(event) {
                     onSort(event.ctrlKey || event.metaKey);
                 }
 
                 function handleInputKeyDown(event) {
-                    var tempFilters = filters;
-                    if (event.target.value === "") {
-                        delete tempFilters.columns[column.key];
-                    } else {
-                        tempFilters.columns[column.key] = event.target.value;
-                    }
-                    setFilters(tempFilters);
-
-                    if (Object.keys(filters.columns).length === 0) {
-                        setFilteredModuleRows(moduleRows);
-                    } else {
-                        setFilteredModuleRows(
-                            moduleRows.filter((row) => {
-                                for (let [key] of Object.entries(
-                                    filters.columns
-                                )) {
-                                    if (
-                                        !row[key]
-                                            .toString()
-                                            .toLowerCase()
-                                            .includes(
-                                                filters.columns[
-                                                    key
-                                                ].toLowerCase()
-                                            )
-                                    ) {
-                                        return false;
-                                    }
-                                }
-                                return true;
-                            })
-                        );
-                    }
+                    filterColumn(column.key, event.target.value);
                 }
 
                 return (
                     <React.Fragment>
-                        <div
-                            className={
-                                filters.enabled ? "filter-cell" : undefined
-                            }
-                        >
+                        <div className={filters.enabled ? "filter-cell" : undefined}>
                             <span
                                 tabIndex={-1}
                                 style={{
@@ -311,12 +259,8 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                                             fill: "currentcolor",
                                         }}
                                     >
-                                        {sortDirection === "ASC" && (
-                                            <path d="M0 8 6 0 12 8"></path>
-                                        )}
-                                        {sortDirection === "DESC" && (
-                                            <path d="M0 0 6 8 12 0"></path>
-                                        )}
+                                        {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
+                                        {sortDirection === "DESC" && <path d="M0 0 6 8 12 0"></path>}
                                     </svg>
                                     {priority}
                                 </span>
@@ -341,6 +285,31 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
             addPercentage(column);
         }
     });
+
+    function filterColumn (columnKey: string, value: any) {
+        var tempFilters = filters;
+
+        if (value === "") {
+            delete tempFilters.columns[columnKey];
+        } else {
+            tempFilters.columns[columnKey] = value;
+        }
+
+        setFilters(tempFilters);
+
+        if (Object.keys(filters.columns).length === 0) {
+            setFilteredModuleRows(moduleRows);
+        } else {
+            setFilteredModuleRows(moduleRows.filter((row) => {
+                for (let [key] of Object.entries(filters.columns)) {
+                    if (!row[key].toString().toLowerCase().includes(filters.columns[key].toLowerCase())) {
+                        return false;
+                    }
+                }
+                return true;
+            }));
+        }
+    }
 
     function addPercentage(column) {
         column["headerRenderer"] = function ({ }) {
@@ -401,15 +370,9 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
     };
 
     function filterTables(row) {
-        setSelectedCallingRows(
-            callingRows.filter((element) => element.calleeID === row.moduleID)
-        );
-        setSelectedCalledRows(
-            calledRows.filter((element) => element.callerID === row.moduleID)
-        );
-        setSelectedLineRows(
-            lineRows.filter((element) => element.moduleID === row.moduleID)
-        );
+        setSelectedCallingRows(callingRows.filter(element => element.calleeID === row.moduleID));
+        setSelectedCalledRows(calledRows.filter(element => element.callerID === row.moduleID));
+        setSelectedLineRows(lineRows.filter(element => element.moduleID === row.moduleID));
     }
 
     const openFile = async (row) => {
@@ -431,9 +394,9 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
             moduleName: moduleName,
             lineNumber: lineNumber,
         };
-
         vscode.postMessage(obj);
     };
+
 
     return (
         <React.Fragment>
@@ -457,43 +420,47 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                             onRowDoubleClick={openFile}
                         />
                     ) : null}
-                    <div className="total-time">
-                        Total Time: {sumTotalTime.toFixed(6)}s
-                    </div>
+                <div className="total-time">
+                Total Time: {sumTotalTime.toFixed(6)}s
                 </div>
-                <div className="columns">
-                    <div className="calling-columns">
-                        <div className="grid-name">Calling Modules</div>
-                        <DataGrid
-                            className="columns"
-                            columns={columnName.CallingColumns}
-                            rows={sortedCallingRows}
-                            defaultColumnOptions={{
-                                sortable: true,
-                                resizable: true,
-                            }}
-                            onRowsChange={setSelectedCallingRows}
-                            sortColumns={sortCallingColumns}
-                            onSortColumnsChange={setSortCallingColumns}
-                        />
-                    </div>
+            </div>
+            <div className="columns">
+            <div className="calling-columns">
+                <div className="grid-name">Calling Modules</div>
+                <DataGrid className="columns"
+                    columns={columnName.CallingColumns}
+                    rows={sortedCallingRows}
+                    defaultColumnOptions={{
+                        sortable: true,
+                        resizable: true,
+                    }}
+                    onRowsChange={setSelectedCallingRows}
+                    sortColumns={sortCallingColumns}
+                    onSortColumnsChange={setSortCallingColumns}
+                    onRowDoubleClick={(row) => {
+                        filterByModuleName(row.callerModuleName)
+                    }}
+                />
+            </div>
 
-                    <div className="called-columns">
-                        <div className="grid-name">Called Modules</div>
-                        <DataGrid
-                            className="columns"
-                            columns={columnName.CalledColumns}
-                            rows={sortedCalledRows}
-                            defaultColumnOptions={{
-                                sortable: true,
-                                resizable: true,
-                            }}
-                            onRowsChange={setSelectedCalledRows}
-                            sortColumns={sortCalledColumns}
-                            onSortColumnsChange={setSortCalledColumns}
-                        />
-                    </div>
-                </div>
+            <div className="called-columns">
+                <div className="grid-name">Called Modules</div>
+                <DataGrid className="columns"
+                    columns={columnName.CalledColumns}
+                    rows={sortedCalledRows}
+                    defaultColumnOptions={{
+                        sortable: true,
+                        resizable: true,
+                    }}
+                    onRowsChange={setSelectedCalledRows}
+                    sortColumns={sortCalledColumns}
+                    onSortColumnsChange={setSortCalledColumns}
+                    onRowDoubleClick={(row) => {
+                        filterByModuleName(row.calleeModuleName)
+                    }}
+                />
+            </div>
+            </div>
 
                 <div className="line-columns">
                     <div className="grid-name">Line Summary</div>
@@ -511,6 +478,7 @@ function ProfilerModuleDetails({ presentationData, vscode }: IConfigProps) {
                     />
                 </div>
             </div>
+
         </React.Fragment>
     );
 }

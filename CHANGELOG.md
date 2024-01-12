@@ -1,3 +1,9 @@
+## 1.1.1 (2023-12-21)
+
+### Changed
+
+- Fixed various small bugs
+
 ## 1.1.0 (2023-11-10)
 
 ### Changed
