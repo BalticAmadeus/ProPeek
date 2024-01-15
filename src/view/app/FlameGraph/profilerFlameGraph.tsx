@@ -2,10 +2,11 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
+import "./profilerFlameGraph.css";
 
 interface IConfigProps {
-  presentationData: PresentationData,
-  handleNodeSelection: any
+  presentationData: PresentationData;
+  handleNodeSelection: any;
 }
 
 export enum SearchTypes {
@@ -14,7 +15,10 @@ export enum SearchTypes {
   Search,
 }
 
-function ProfilerFlameGraph({ presentationData, handleNodeSelection }: IConfigProps) {
+function ProfilerFlameGraph({
+  presentationData,
+  handleNodeSelection,
+}: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
 
@@ -79,29 +83,48 @@ function ProfilerFlameGraph({ presentationData, handleNodeSelection }: IConfigPr
 
   return (
     <React.Fragment>
-      <div className="checkbox">
-        <label>
-          <b>Search Type:</b>
-        </label>
-        <br />
-        <br />
-        {Object.keys(SearchTypes)
-          .filter((key) => Number.isNaN(+key))
-          .map((key) => (
-            <label className="radioBtn" key={key}>
-              <input
-                type="radio"
-                name="exportdata"
-                onChange={(e) => {
-                  handleChange(e);
-                  setSelectedSearchType(key);
-                }}
-                value={key}
-                defaultChecked={SearchTypes[key] === SearchTypes.Length}
-              />
-              {key}
-            </label>
-          ))}
+      <div className="flex-row-container">
+        {/* Existing Checkbox for Search Type */}
+        <div className="checkbox">
+          <label>
+            <b>Search Type:</b>
+          </label>
+          <br />
+          <br />
+          {Object.keys(SearchTypes)
+            .filter((key) => Number.isNaN(+key))
+            .map((key) => (
+              <label className="radioBtn" key={key}>
+                <input
+                  type="radio"
+                  name="exportdata"
+                  onChange={(e) => {
+                    handleChange(e);
+                    setSelectedSearchType(key);
+                  }}
+                  value={key}
+                  defaultChecked={SearchTypes[key] === SearchTypes.Length}
+                />
+                {key}
+              </label>
+            ))}
+        </div>
+
+        <div className="graph-type-selects">
+          <label>
+            <b>Graph Type:</b>
+          </label>
+          <br />
+          <br />
+          <label>
+            <input type="radio" name="graphType" value="Combined" />
+            Combined
+          </label>
+          <label>
+            <input type="radio" name="graphType" value="Separate" />
+            Separate
+          </label>
+        </div>
       </div>
 
       {selectedSearchType === "Search" && (
@@ -148,7 +171,7 @@ function convertToNestedStructure(
 ): any {
   const nodeMap: { [key: number]: any } = {};
   const rootNode = data[0];
-  let root : any;
+  let root: any;
 
   //if there is no call tree data, define and return empty root node
   if (rootNode === undefined) {
@@ -165,21 +188,26 @@ function convertToNestedStructure(
       name: node.moduleName,
       value: node.pcntOfSession,
       backgroundColor: giveColor(mode, node, searchPhrase),
-      tooltip: `Name: ${node.moduleName} Percentage of Session: ${node.pcntOfSession.toFixed(2)}% Cumulative Time: ${node.cumulativeTime}`,
+      tooltip: `Name: ${
+        node.moduleName
+      } Percentage of Session: ${node.pcntOfSession.toFixed(
+        2
+      )}% Cumulative Time: ${node.cumulativeTime}`,
       children: [],
-      left: 0
+      left: 0,
     };
 
     if (node.parentID === rootNode.parentID) {
       root = flameGraphNode;
     } else {
       nodeMap[node.nodeID] = flameGraphNode;
-      nodeMap[node.nodeID].left = (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
+      nodeMap[node.nodeID].left =
+        (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
 
-      if(node.parentID === rootNode.nodeID) {
+      if (node.parentID === rootNode.nodeID) {
         root.children.push(nodeMap[node.nodeID]);
       } else {
-        if(!nodeMap[node.parentID].children){
+        if (!nodeMap[node.parentID].children) {
           nodeMap[node.parentID].children = [];
         }
         nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);

@@ -57,7 +57,7 @@ export function getTotalSessionTimeByLineSummary(rawData: ProfilerRawData): numb
  */
 export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number): CallTree[] {
 
-    const showStartTime: boolean = true;
+    const showStartTime: boolean = false;
     const hasTracingData: boolean = rawData.TracingData.length > 0;
     const version: number = rawData.DescriptionData.Version;
 
