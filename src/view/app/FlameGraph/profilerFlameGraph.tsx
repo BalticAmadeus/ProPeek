@@ -2,12 +2,14 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
+import "./profilerFlameGraph.css";
 
 interface IConfigProps {
   presentationData: PresentationData;
   handleNodeSelection: any;
   showStartTime: boolean;
   setShowStartTime: React.Dispatch<React.SetStateAction<boolean>>;
+  vscode: any;
 }
 
 export enum SearchTypes {
@@ -21,6 +23,7 @@ function ProfilerFlameGraph({
   handleNodeSelection,
   showStartTime,
   setShowStartTime,
+  vscode,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
@@ -85,11 +88,14 @@ function ProfilerFlameGraph({
     }
   };
 
-  const handleGraphTypeChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const selectedGraphType = event.target.value;
-    setShowStartTime(selectedGraphType === "Separate"); // Use the passed setShowStartTime
+  const handleGraphTypeChange = (event) => {
+    const newShowStartTime = event.target.value === "Combined" ? false : true;
+    setShowStartTime(newShowStartTime);
+
+    vscode.postMessage({
+      type: "GRAPH_TYPE_CHANGE",
+      showStartTime: newShowStartTime,
+    });
   };
 
   return (
@@ -131,7 +137,7 @@ function ProfilerFlameGraph({
               name="graphType"
               value="Combined"
               onChange={handleGraphTypeChange}
-              checked={graphType === "Combined"}
+              checked={showStartTime === false}
             />
             Combined
           </label>
@@ -141,7 +147,7 @@ function ProfilerFlameGraph({
               name="graphType"
               value="Separate"
               onChange={handleGraphTypeChange}
-              checked={graphType === "Separate"}
+              checked={showStartTime === true}
             />
             Separate
           </label>

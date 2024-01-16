@@ -5,6 +5,11 @@ import { PresentationData } from "../common/PresentationData";
 import { IConfig, XRefInfo } from "../view/app/model";
 import { Constants } from "../common/Constants";
 
+interface Message {
+    showStartTime: any;
+    moduleName: string;
+}
+
 export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
@@ -67,14 +72,24 @@ export class ProfilerViewer {
         this.panel?.webview.postMessage(dataString);
 
         this.panel.webview.onDidReceiveMessage(
-            (moduleName) => {
-                const workspaceConnections = this.context.workspaceState.get<{
-                    [key: string]: IConfig;
-                }>(`${Constants.globalExtensionKey}.propaths`);
-
-                open(workspaceConnections, moduleName.columns, profilerService);
-
-            }
+            message => {
+                switch(message.type) {
+                    case "GRAPH_TYPE_CHANGE":
+                        const showStartTime = message.showStartTime;
+                        const dataString = profilerService.parse(filePath, showStartTime);
+                        handleErrors(new ProfilerService().getErrors());
+                        this.panel?.webview.postMessage(dataString);
+                        break;
+                    case "MODULE_NAME":
+                        const workspaceConnections = this.context.workspaceState.get<{
+                            [key: string]: IConfig;
+                        }>(`${Constants.globalExtensionKey}.propaths`);
+        
+                        open(workspaceConnections, message.columns, profilerService);
+                        break;
+                    default:
+                }
+            },
         );
     }
 

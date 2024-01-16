@@ -67,6 +67,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
           handleNodeSelection={handleNodeSelection}
           showStartTime={showStartTime}
           setShowStartTime={setShowStartTime}
+          vscode={vscode}
         />
       </div>
     );
