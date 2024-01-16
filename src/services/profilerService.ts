@@ -7,12 +7,12 @@ import {findLinesWithFunction } from './finder/lineFinder';
 import { ParserLogger } from './parser/ParserLogger';
 
 export class ProfilerService {
-    public parse(fileName: string): PresentationData {
+    public parse(fileName: string, showStartTime: boolean): PresentationData {
         ParserLogger.resetErrors();
 
         const readData = readFile(fileName);
         const rawData = parseProfilerData(readData);
-        const transformedData = transformData(rawData);
+        const transformedData = transformData(rawData, showStartTime);
         return transformedData;
     }
 

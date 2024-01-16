@@ -59,8 +59,8 @@ export class ProfilerViewer {
         );
 
         const profilerService = new ProfilerService();
-
-        let dataString = profilerService.parse(filePath);
+        const showStartTime = false;
+        let dataString = profilerService.parse(filePath, showStartTime);
 
         handleErrors(profilerService.getErrors());
 

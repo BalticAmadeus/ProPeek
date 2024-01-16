@@ -8,7 +8,7 @@ import { CallTree, ModuleDetails, PresentationData } from "../../common/Presenta
 /**
  * Transform ProfilerRawData object into PresentationData object
  */
-export function transformData(rawData: ProfilerRawData): PresentationData {
+export function transformData(rawData: ProfilerRawData, showStartTime: boolean): PresentationData {
 
     const totalSessionTime: number = getTotalSessionTime(rawData);
     const moduleDetails: ModuleDetails[] = calculateModuleDetails(rawData, totalSessionTime);
@@ -17,7 +17,7 @@ export function transformData(rawData: ProfilerRawData): PresentationData {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
         lineSummary: calculateLineSummary(rawData),
-        callTree: getCallTree(rawData, moduleDetails, totalSessionTime)
+        callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
     };
 
     return presentationData;
@@ -55,9 +55,8 @@ export function getTotalSessionTimeByLineSummary(rawData: ProfilerRawData): numb
 /**
  * Returns call tree based on profiler version and config parameters
  */
-export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number): CallTree[] {
+export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number, showStartTime: boolean): CallTree[] {
 
-    const showStartTime: boolean = false;
     const hasTracingData: boolean = rawData.TracingData.length > 0;
     const version: number = rawData.DescriptionData.Version;
 

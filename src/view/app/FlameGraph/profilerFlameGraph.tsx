@@ -2,11 +2,12 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
-import "./profilerFlameGraph.css";
 
 interface IConfigProps {
   presentationData: PresentationData;
   handleNodeSelection: any;
+  showStartTime: boolean;
+  setShowStartTime: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export enum SearchTypes {
@@ -18,6 +19,8 @@ export enum SearchTypes {
 function ProfilerFlameGraph({
   presentationData,
   handleNodeSelection,
+  showStartTime,
+  setShowStartTime,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
@@ -28,6 +31,7 @@ function ProfilerFlameGraph({
   const [nestedStructure, setNestedStructure] = React.useState<any>(
     convertToNestedStructure(callTree, Mode.Length, searchPhrase)
   );
+  const [graphType, setGraphType] = React.useState("Combined"); // New state for graph type
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -81,10 +85,16 @@ function ProfilerFlameGraph({
     }
   };
 
+  const handleGraphTypeChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const selectedGraphType = event.target.value;
+    setShowStartTime(selectedGraphType === "Separate"); // Use the passed setShowStartTime
+  };
+
   return (
     <React.Fragment>
       <div className="flex-row-container">
-        {/* Existing Checkbox for Search Type */}
         <div className="checkbox">
           <label>
             <b>Search Type:</b>
@@ -109,7 +119,6 @@ function ProfilerFlameGraph({
               </label>
             ))}
         </div>
-
         <div className="graph-type-selects">
           <label>
             <b>Graph Type:</b>
@@ -117,11 +126,23 @@ function ProfilerFlameGraph({
           <br />
           <br />
           <label>
-            <input type="radio" name="graphType" value="Combined" />
+            <input
+              type="radio"
+              name="graphType"
+              value="Combined"
+              onChange={handleGraphTypeChange}
+              checked={graphType === "Combined"}
+            />
             Combined
           </label>
           <label>
-            <input type="radio" name="graphType" value="Separate" />
+            <input
+              type="radio"
+              name="graphType"
+              value="Separate"
+              onChange={handleGraphTypeChange}
+              checked={graphType === "Separate"}
+            />
             Separate
           </label>
         </div>
