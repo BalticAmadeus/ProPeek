@@ -4,8 +4,7 @@ import { PresentationData, ModuleDetails, CalledModules, LineSummary } from "../
 import DataGrid from "react-data-grid";
 import type { SortColumn } from "react-data-grid";
 import * as columnName from "./column.json";
-import './profilerModuleDetails.css';
-
+import "./profilerModuleDetails.css";
 
 interface IConfigProps {
     vscode: any,
@@ -377,8 +376,23 @@ function ProfilerModuleDetails({ presentationData, vscode, moduleName }: IConfig
     }
 
     const openFile = async (row) => {
+        let moduleName = row.moduleName;
+        let lineNumber = row.lineNumber;
+        const moduleRow = sortedModuleRows.find(
+            (moduleRow) => moduleRow.moduleID === row.moduleID
+        );
+
+        if (!moduleName) {
+            moduleName = moduleRow.moduleName;
+        }
+
+        if (!lineNumber || lineNumber < 0) {
+            lineNumber = moduleRow.startLineNum;
+        }
+
         const obj = {
-            columns: row.moduleName
+            moduleName: moduleName,
+            lineNumber: lineNumber,
         };
         vscode.postMessage(obj);
     };
@@ -386,9 +400,9 @@ function ProfilerModuleDetails({ presentationData, vscode, moduleName }: IConfig
 
     return (
         <React.Fragment>
-                   <div>
-            <div className="details-columns">
-                <div className="grid-name">Module Details</div>
+            <div>
+                <div className="details-columns">
+                    <div className="grid-name">Module Details</div>
                     {moduleRows.length > 0 ? (
                         <DataGrid
                             columns={columnName.moduleColumns}
@@ -448,21 +462,23 @@ function ProfilerModuleDetails({ presentationData, vscode, moduleName }: IConfig
             </div>
             </div>
 
-            <div className="line-columns">
-                <div className="grid-name">Line Summary</div>
-                <DataGrid
-                    columns={columnName.LineColumns}
-                    rows={sortedLineRows}
-                    defaultColumnOptions={{
-                        sortable: true,
-                        resizable: true,
-                    }}
-                    onRowsChange={setSelectedLineRows}
-                    sortColumns={sortLineColumns}
-                    onSortColumnsChange={setSortLineColumns}
-                />
+                <div className="line-columns">
+                    <div className="grid-name">Line Summary</div>
+                    <DataGrid
+                        columns={columnName.LineColumns}
+                        rows={sortedLineRows}
+                        defaultColumnOptions={{
+                            sortable: true,
+                            resizable: true,
+                        }}
+                        onRowsChange={setSelectedLineRows}
+                        sortColumns={sortLineColumns}
+                        onSortColumnsChange={setSortLineColumns}
+                        onRowDoubleClick={openFile}
+                    />
+                </div>
             </div>
-        </div>
+
         </React.Fragment>
     );
 }
