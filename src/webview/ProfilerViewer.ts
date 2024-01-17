@@ -87,7 +87,7 @@ export class ProfilerViewer {
                             [key: string]: IConfig;
                         }>(`${Constants.globalExtensionKey}.propath`);
         
-                        open(workspaceConnections, message.columns, message.lineNumber, profilerService);
+                        open(workspaceConnections, message.columns, message.lines, profilerService);
                         break;
                     default:
                 }

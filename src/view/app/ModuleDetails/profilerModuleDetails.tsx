@@ -435,11 +435,10 @@ function ProfilerModuleDetails({
 
     vscode.postMessage({
       type: "MODULE_NAME",
-      moduleName,
-      lineNumber,
+      columns: moduleName,
+      lines: lineNumber,
     });
   };
-
 
   return (
     <React.Fragment>
@@ -519,30 +518,12 @@ function ProfilerModuleDetails({
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
+            onRowDoubleClick={openFile}
           />
         </div>
       </div>
     </React.Fragment>
   );
-                <div className="line-columns">
-                    <div className="grid-name">Line Summary</div>
-                    <DataGrid
-                        columns={columnName.LineColumns}
-                        rows={sortedLineRows}
-                        defaultColumnOptions={{
-                            sortable: true,
-                            resizable: true,
-                        }}
-                        onRowsChange={setSelectedLineRows}
-                        sortColumns={sortLineColumns}
-                        onSortColumnsChange={setSortLineColumns}
-                        onRowDoubleClick={openFile}
-                    />
-                </div>
-            </div>
-
-        </React.Fragment>
-    );
 }
 
 export default ProfilerModuleDetails;
