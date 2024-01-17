@@ -1,9 +1,8 @@
-import { readFile, readUntilLineNumber } from './helper/fileReader';
+import { readFile } from './helper/fileReader';
 import { parseProfilerData } from './parser/profilerRawData';
 import { transformData } from './parser/presentationData';
 import { PresentationData } from '../common/PresentationData';
-import { collectData } from  './finder/xRefParser';
-import {findLinesWithFunction } from './finder/lineFinder';
+import { getIncludeFiles } from './helper/xRefParser';
 import { ParserLogger } from './parser/ParserLogger';
 
 export class ProfilerService {
@@ -20,22 +19,11 @@ export class ProfilerService {
         return ParserLogger.getErrors();
     }
 
-    public parseXRef(fileName: string, procedureName: string) {
+    public getIncludeFilesFromXref(fileName: string) {
         const readData = readFile(fileName);
-        const xRefInfo = collectData(readData, procedureName);
-        return xRefInfo;
+        const includeFiles = getIncludeFiles(readData);
+
+        return includeFiles;
     }
 
-    public findFunctionStart(filePath: string, lastLine: number, functionName: string) {
-        const readData = readUntilLineNumber(filePath, lastLine);
-        if (readData) {
-            let lineNumber = findLinesWithFunction(readData, functionName);
-
-            lineNumber = lastLine - lineNumber - 1;
-            lineNumber = Math.max(lineNumber, 1);
-            return lineNumber;
-        }
-        return 1;
-    }
 }
-

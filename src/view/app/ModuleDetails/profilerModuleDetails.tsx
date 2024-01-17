@@ -419,11 +419,27 @@ function ProfilerModuleDetails({
   }
 
   const openFile = async (row) => {
+    let moduleName = row.moduleName;
+    let lineNumber = row.lineNumber;
+    const moduleRow = sortedModuleRows.find(
+      (moduleRow) => moduleRow.moduleID === row.moduleID
+    );
+
+    if (!moduleName) {
+      moduleName = moduleRow.moduleName;
+    }
+
+    if (!lineNumber || lineNumber < 0) {
+      lineNumber = moduleRow.startLineNum;
+    }
+
     vscode.postMessage({
       type: "MODULE_NAME",
-      columns: row.moduleName,
+      moduleName,
+      lineNumber,
     });
   };
+
 
   return (
     <React.Fragment>
@@ -508,6 +524,25 @@ function ProfilerModuleDetails({
       </div>
     </React.Fragment>
   );
+                <div className="line-columns">
+                    <div className="grid-name">Line Summary</div>
+                    <DataGrid
+                        columns={columnName.LineColumns}
+                        rows={sortedLineRows}
+                        defaultColumnOptions={{
+                            sortable: true,
+                            resizable: true,
+                        }}
+                        onRowsChange={setSelectedLineRows}
+                        sortColumns={sortLineColumns}
+                        onSortColumnsChange={setSortLineColumns}
+                        onRowDoubleClick={openFile}
+                    />
+                </div>
+            </div>
+
+        </React.Fragment>
+    );
 }
 
 export default ProfilerModuleDetails;
