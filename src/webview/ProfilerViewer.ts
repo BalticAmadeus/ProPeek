@@ -54,7 +54,7 @@ export class ProfilerViewer {
 
         this.panel.webview.html = this.getWebviewContent({
             moduleDetails: [], calledModules: [], lineSummary: [],
-            callTree: []
+            callTree: [], hasTracingData: false
         });
 
         this.panel.onDidDispose(

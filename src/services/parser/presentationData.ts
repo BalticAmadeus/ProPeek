@@ -12,12 +12,14 @@ export function transformData(rawData: ProfilerRawData, showStartTime: boolean):
 
     const totalSessionTime: number = getTotalSessionTime(rawData);
     const moduleDetails: ModuleDetails[] = calculateModuleDetails(rawData, totalSessionTime);
+    const hasTracingData: boolean = rawData.TracingData.length > 0;
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
         lineSummary: calculateLineSummary(rawData),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
+        hasTracingData: hasTracingData
     };
 
     return presentationData;

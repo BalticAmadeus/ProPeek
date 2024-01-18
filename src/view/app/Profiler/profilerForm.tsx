@@ -64,6 +64,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
       <div>
         <ProfilerFlameGraph
           presentationData={presentationData2}
+          hasTracingData={presentationData2.hasTracingData}
           handleNodeSelection={handleNodeSelection}
           showStartTime={showStartTime}
           setShowStartTime={setShowStartTime}

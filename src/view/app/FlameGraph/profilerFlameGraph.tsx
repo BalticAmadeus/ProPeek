@@ -10,6 +10,7 @@ interface IConfigProps {
   showStartTime: boolean;
   setShowStartTime: React.Dispatch<React.SetStateAction<boolean>>;
   vscode: any;
+  hasTracingData: boolean;
 }
 
 export enum SearchTypes {
@@ -24,6 +25,7 @@ function ProfilerFlameGraph({
   showStartTime,
   setShowStartTime,
   vscode,
+  hasTracingData,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
@@ -138,6 +140,7 @@ function ProfilerFlameGraph({
               value="Combined"
               onChange={handleGraphTypeChange}
               checked={showStartTime === false}
+              disabled={!hasTracingData}
             />
             Combined
           </label>
@@ -148,6 +151,7 @@ function ProfilerFlameGraph({
               value="Separate"
               onChange={handleGraphTypeChange}
               checked={showStartTime === true}
+              disabled={!hasTracingData}
             />
             Separate
           </label>

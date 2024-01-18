@@ -43,5 +43,6 @@ export interface PresentationData {
     moduleDetails: ModuleDetails[],
     calledModules: CalledModules[],
     lineSummary: LineSummary[],
-    callTree: CallTree[]
+    callTree: CallTree[],
+    hasTracingData: boolean
 }
