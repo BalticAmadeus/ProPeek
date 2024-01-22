@@ -14,6 +14,8 @@ import "./profilerModuleDetails.css";
 interface IConfigProps {
   vscode: any;
   presentationData: PresentationData;
+  selectedRow: any;
+  onRowSelect: (row: any) => void;
   moduleName: string;
 }
 
@@ -90,6 +92,8 @@ function getLineComparator(sortColumn: string): LineComparator {
 function ProfilerModuleDetails({
   presentationData,
   vscode,
+  selectedRow,
+  onRowSelect,
   moduleName,
 }: IConfigProps) {
   const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
@@ -180,7 +184,6 @@ function ProfilerModuleDetails({
       return 0;
     });
 
-    // If no selection is already set, select the first row by default
     if (sortedRows.length > 0 && selectedModuleRow === null) {
       setSelectedModuleRow(sortedRows[0]);
       filterTables(sortedRows[0]);
@@ -403,10 +406,12 @@ function ProfilerModuleDetails({
   });
 
   const showSelected = (row) => {
+    onRowSelect(row);
     filterTables(row);
   };
 
   function filterTables(row) {
+    if (!row) return;
     setSelectedCallingRows(
       callingRows.filter((element) => element.calleeID === row.moduleID)
     );
@@ -417,6 +422,10 @@ function ProfilerModuleDetails({
       lineRows.filter((element) => element.moduleID === row.moduleID)
     );
   }
+
+  React.useEffect(() => {
+    filterTables(selectedRow);
+  }, [selectedRow]);
 
   const openFile = async (row) => {
     let moduleName = row.moduleName;
@@ -460,6 +469,7 @@ function ProfilerModuleDetails({
               sortColumns={sortModuleColumns}
               onSortColumnsChange={setSortModuleColumns}
               onRowDoubleClick={openFile}
+              rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
             />
           ) : null}
           <div className="total-time">

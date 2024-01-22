@@ -24,6 +24,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
   );
   const [presentationData2, setPresentationData] = useState(presentationData);
   const [isLoading, setLoading] = useState(true);
+  const [selectedRow, setSelectedRow] = useState<any>(null);
   const [moduleName, setModuleName] = useState<string>("");
   const [showStartTime, setShowStartTime] = useState<boolean>(false);
 
@@ -42,6 +43,8 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
         <ProfilerModuleDetails
           presentationData={presentationData2}
           vscode={vscode}
+          selectedRow={selectedRow}
+          onRowSelect={handleRowSelection}
           moduleName={moduleName}
         />
       </div>
@@ -84,6 +87,10 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
     }
   };
 
+  const handleRowSelection = (row: any) => {
+    setSelectedRow(row);
+  };
+
   const handleNodeSelection = (moduleName: string) => {
     setModuleName(moduleName);
     setActiveTab(ProfilerTab.ModuleDetails);
@@ -91,7 +98,15 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
 
   switch (activeTab) {
     case ProfilerTab.ModuleDetails:
-      content = <ModuleDetailsTab />;
+      content = (
+        <ProfilerModuleDetails
+          presentationData={presentationData2}
+          vscode={vscode}
+          selectedRow={selectedRow}
+          onRowSelect={handleRowSelection}
+          moduleName={moduleName}
+        />
+      );
       break;
     case ProfilerTab.TreeView:
       content = <TreeViewTab />;
