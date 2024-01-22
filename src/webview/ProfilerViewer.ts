@@ -7,6 +7,11 @@ import { IConfig } from "../view/app/model";
 import { Constants } from "../common/Constants";
 import * as fs from 'fs';
 
+interface Message {
+    showStartTime: any;
+    moduleName: string;
+}
+
 export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
@@ -49,7 +54,7 @@ export class ProfilerViewer {
 
         this.panel.webview.html = this.getWebviewContent({
             moduleDetails: [], calledModules: [], lineSummary: [],
-            callTree: []
+            callTree: [], hasTracingData: false
         });
 
         this.panel.onDidDispose(
@@ -61,21 +66,32 @@ export class ProfilerViewer {
         );
 
         const profilerService = new ProfilerService();
-
-        let dataString = profilerService.parse(filePath);
+        const showStartTime = false;
+        let dataString = profilerService.parse(filePath, showStartTime);
 
         handleErrors(profilerService.getErrors());
 
         this.panel?.webview.postMessage(dataString);
 
         this.panel.webview.onDidReceiveMessage(
-            (obj) => {
-                const workspaceConnections = this.context.workspaceState.get<{
-                    [key: string]: IConfig;
-                }>(`${Constants.globalExtensionKey}.propath`);
-
-                open(workspaceConnections, obj.moduleName, obj.lineNumber, profilerService);
-            }
+            message => {
+                switch(message.type) {
+                    case "GRAPH_TYPE_CHANGE":
+                        const showStartTime = message.showStartTime;
+                        const dataString = profilerService.parse(filePath, showStartTime);
+                        handleErrors(new ProfilerService().getErrors());
+                        this.panel?.webview.postMessage(dataString);
+                        break;
+                    case "MODULE_NAME":
+                        const workspaceConnections = this.context.workspaceState.get<{
+                            [key: string]: IConfig;
+                        }>(`${Constants.globalExtensionKey}.propath`);
+        
+                        open(workspaceConnections, message.columns, message.lines, profilerService);
+                        break;
+                    default:
+                }
+            },
         );
     }
 
