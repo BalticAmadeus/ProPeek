@@ -10,9 +10,9 @@ export function readFile(fileName: string): string {
   return allFileContents;
 }
 
-export function parseOEFile(fileContent: string) {
+export function getBuildPaths(fileContent: string) {
   const data = JSON.parse(fileContent);
-  const {buildPath} = data;
+  const { buildPath } = data;
   let configList: IConfig[] = [];
 
   let num = 0;

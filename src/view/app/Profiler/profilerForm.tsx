@@ -26,6 +26,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
   const [isLoading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [moduleName, setModuleName] = useState<string>("");
+  const [showStartTime, setShowStartTime] = useState<boolean>(false);
 
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
@@ -66,7 +67,11 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
       <div>
         <ProfilerFlameGraph
           presentationData={presentationData2}
+          hasTracingData={presentationData2.hasTracingData}
           handleNodeSelection={handleNodeSelection}
+          showStartTime={showStartTime}
+          setShowStartTime={setShowStartTime}
+          vscode={vscode}
         />
       </div>
     );
@@ -118,26 +123,26 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
         <div className="tabs">
           <Button
             className={`tab ${
-              activeTab === 0 ? "active" : ""
+              activeTab === ProfilerTab.ModuleDetails ? "active" : ""
             } buttonProfilerForm button-primary`}
-            onClick={() => handleTabClick(0)}
+            onClick={() => handleTabClick(ProfilerTab.ModuleDetails)}
             variant="contained"
           >
             Module Details
           </Button>
           <Button
             className={`tab ${
-              activeTab === 1 ? "active" : ""
+              activeTab === ProfilerTab.TreeView ? "active" : ""
             } buttonProfilerForm button-primary`}
-            onClick={() => handleTabClick(1)}
+            onClick={() => handleTabClick(ProfilerTab.TreeView)}
           >
             Tree View
           </Button>
           <Button
             className={`tab ${
-              activeTab === 2 ? "active" : ""
+              activeTab === ProfilerTab.FlameGraph ? "active" : ""
             } buttonProfilerForm button-primary`}
-            onClick={() => handleTabClick(2)}
+            onClick={() => handleTabClick(ProfilerTab.FlameGraph)}
           >
             Flame Graph
           </Button>

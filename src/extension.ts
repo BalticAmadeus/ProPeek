@@ -2,8 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { ProfilerViewer } from './webview/ProfilerViewer';
-import { parseOEFile, readFile} from "./common/OpenEdgeJsonReaded";
-import { IConfig } from "../src/view/app/model";
+import { getBuildPaths, readFile } from "./common/OpenEdgeJsonReader";
 import { Constants } from './common/Constants';
 
 // This method is called when your extension is activated
@@ -12,34 +11,22 @@ export function activate(context: vscode.ExtensionContext) {
     Constants.context = context;
 
     vscode.workspace.findFiles("**/openedge-project.json").then((list) => {
-        list.forEach((uri) => createJsonDatabases(uri));
-      });
+        list.forEach((uri) => updatePropath(uri));
+    });
 
-      vscode.workspace
+    vscode.workspace
         .createFileSystemWatcher("**/openedge-project.json")
-        .onDidChange((uri) => createJsonDatabases(uri));
+        .onDidChange((uri) => updatePropath(uri));
 
-        function createJsonDatabases(uri: vscode.Uri) {
-            let allFileContent: string = "";
-            allFileContent = readFile(uri.path);
-            const buildPaths = parseOEFile(allFileContent);
+    function updatePropath(uri: vscode.Uri) {
+        const fileContent: string = readFile(uri.path);
+        const buildPaths = getBuildPaths(fileContent);
 
-            let paths = context.workspaceState.get<{ [id: string]: IConfig }>(
-                `${Constants.globalExtensionKey}.propaths`
-              );
-              paths = {};
-
-              buildPaths.forEach((buildPath) => {
-                if (!paths) {
-                  paths = {};
-                }
-                paths[buildPath.id] = buildPath;
-                context.workspaceState.update(
-                  `${Constants.globalExtensionKey}.propaths`,
-                  paths
-                );
-              });
-          }
+        context.workspaceState.update(
+            `${Constants.globalExtensionKey}.propath`,
+            buildPaths
+        );
+    }
 
     let disposable = vscode.commands.registerCommand('vsc-profiler.profiler', async (uri: vscode.Uri) => {
         const filePath = uri.path;

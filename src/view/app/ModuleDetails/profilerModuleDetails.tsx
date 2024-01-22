@@ -423,15 +423,26 @@ function ProfilerModuleDetails({
     );
   }
 
-  React.useEffect(() => {
-    filterTables(selectedRow);
-  }, [selectedRow]);
-
   const openFile = async (row) => {
-    const obj = {
-      columns: row.moduleName,
-    };
-    vscode.postMessage(obj);
+    let moduleName = row.moduleName;
+    let lineNumber = row.lineNumber;
+    const moduleRow = sortedModuleRows.find(
+      (moduleRow) => moduleRow.moduleID === row.moduleID
+    );
+
+    if (!moduleName) {
+      moduleName = moduleRow.moduleName;
+    }
+
+    if (!lineNumber || lineNumber < 0) {
+      lineNumber = moduleRow.startLineNum;
+    }
+
+    vscode.postMessage({
+      type: "MODULE_NAME",
+      columns: moduleName,
+      lines: lineNumber,
+    });
   };
 
   return (
@@ -513,6 +524,7 @@ function ProfilerModuleDetails({
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
+            onRowDoubleClick={openFile}
           />
         </div>
       </div>

@@ -20,6 +20,7 @@ export interface LineSummary {
 export interface ModuleDetails {
     moduleID: number,
     moduleName: string,
+    startLineNum: number,
     timesCalled: number,
     avgTimePerCall?: number,
     totalTime: number,
@@ -42,5 +43,6 @@ export interface PresentationData {
     moduleDetails: ModuleDetails[],
     calledModules: CalledModules[],
     lineSummary: LineSummary[],
-    callTree: CallTree[]
+    callTree: CallTree[],
+    hasTracingData: boolean
 }
