@@ -423,6 +423,10 @@ function ProfilerModuleDetails({
     );
   }
 
+  React.useEffect(() => {
+    filterTables(selectedRow);
+  }, [selectedRow]);
+
   const openFile = async (row) => {
     let moduleName = row.moduleName;
     let lineNumber = row.lineNumber;
