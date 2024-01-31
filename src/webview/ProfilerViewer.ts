@@ -78,6 +78,7 @@ export class ProfilerViewer {
                 switch(message.type) {
                     case "GRAPH_TYPE_CHANGE":
                         const showStartTime = message.showStartTime;
+                        console.log(showStartTime, "Switchhhhhhhhhhhhh");
                         const dataString = profilerService.parse(filePath, showStartTime);
                         handleErrors(new ProfilerService().getErrors());
                         this.panel?.webview.postMessage(dataString);

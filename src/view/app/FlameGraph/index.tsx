@@ -20,5 +20,6 @@ root.render(
     setShowStartTime={function (value: React.SetStateAction<boolean>): void {
       throw new Error("Function not implemented.");
     }}
+    hasTracingData={false}
   />
 );
