@@ -8,16 +8,16 @@ import { CallTree, ModuleDetails, PresentationData } from "../../common/Presenta
 /**
  * Transform ProfilerRawData object into PresentationData object
  */
-export function transformData(rawData: ProfilerRawData, showStartTime: boolean): PresentationData {
+export async function transformData(rawData: ProfilerRawData, showStartTime: boolean): Promise<PresentationData> {
 
     const totalSessionTime: number = getTotalSessionTime(rawData);
-    const moduleDetails: ModuleDetails[] = calculateModuleDetails(rawData, totalSessionTime);
+    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime);
     const hasTracingData: boolean = rawData.TracingData.length > 0;
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
-        lineSummary: calculateLineSummary(rawData),
+        lineSummary: await calculateLineSummary(rawData),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
         hasTracingData: hasTracingData
     };

@@ -7,9 +7,15 @@ import {
   LineSummary,
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
-import type { SortColumn } from "react-data-grid";
-import * as columnName from "./column.json";
+import type { Column, SortColumn } from "react-data-grid";
+import * as columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
+
+interface ModuleColumn extends Column<any> {
+  key: string;
+  name: string;
+  width: string;
+}
 
 interface IConfigProps {
   vscode: any;
@@ -38,6 +44,23 @@ const defaultLineSort: SortColumn = {
 function moduleRowKeyGetter(row: ModuleDetails) {
   return row.moduleID;
 }
+
+const addConditionalFormatting = (
+  columns: Array<ModuleColumn>
+): Array<ModuleColumn> => {
+  return columns.map((column) => {
+    if (column.key === "moduleName" || column.key === "lineNumber") {
+      return {
+        ...column,
+        formatter: ({ row }: { row: ModuleDetails | LineSummary }) => {
+          const className = row.hasLink ? "link-cell" : "";
+          return <div className={className}>{row[column.key]}</div>;
+        },
+      };
+    }
+    return column;
+  });
+};
 
 type ModuleComparator = (a: ModuleDetails, b: ModuleDetails) => number;
 type CallingComparator = (a: CalledModules, b: CalledModules) => number;
@@ -130,6 +153,17 @@ function ProfilerModuleDetails({
     [defaultLineSort]
   );
 
+  const [formattedModuleColumns] = useState(
+    addConditionalFormatting(columnDefinition.moduleColumns)
+  );
+
+  const [formattedLineColumns] = useState(
+    addConditionalFormatting(columnDefinition.LineColumns)
+  );
+
+  const calledColumns = columnDefinition.CalledColumns;
+  const callingColumns = columnDefinition.CallingColumns;
+
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
     0
@@ -149,13 +183,13 @@ function ProfilerModuleDetails({
     filterByModuleName(moduleName);
   }, [moduleName]);
 
-  columnName.CalledColumns.forEach((column) => {
+  calledColumns.forEach((column) => {
     if (column.key === "calleePcntOfSession") {
       addPercentage(column);
     }
   });
 
-  columnName.CallingColumns.forEach((column) => {
+  callingColumns.forEach((column) => {
     if (column.key === "callerPcntOfSession") {
       addPercentage(column);
     }
@@ -243,7 +277,7 @@ function ProfilerModuleDetails({
     });
   }, [selectedLineRows, sortLineColumns]);
 
-  columnName.moduleColumns.forEach((column) => {
+  formattedModuleColumns.forEach((column) => {
     if (column.key === "moduleName") {
       column["headerRenderer"] = function ({
         onSort,
@@ -403,7 +437,7 @@ function ProfilerModuleDetails({
       setCalledRows(message.calledModules);
       setLineRows(message.lineSummary);
     });
-  });
+  }, []);
 
   const showSelected = (row) => {
     onRowSelect(row);
@@ -427,25 +461,33 @@ function ProfilerModuleDetails({
     filterTables(selectedRow);
   }, [selectedRow]);
 
-  const openFile = async (row) => {
-    let moduleName = row.moduleName;
-    let lineNumber = row.lineNumber;
+  const openFileForLineSummary = (row: LineSummary): void => {
+    if (!row.hasLink) {
+      return;
+    }
+
     const moduleRow = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    if (!moduleName) {
-      moduleName = moduleRow.moduleName;
-    }
-
-    if (!lineNumber || lineNumber < 0) {
-      lineNumber = moduleRow.startLineNum;
-    }
+    const moduleName = moduleRow.moduleName;
 
     vscode.postMessage({
       type: "MODULE_NAME",
       columns: moduleName,
-      lines: lineNumber,
+      lines: row.lineNumber,
+    });
+  };
+
+  const openFileForModuleDetails = (row: ModuleDetails): void => {
+    if (!row.hasLink) {
+      return;
+    }
+
+    vscode.postMessage({
+      type: "MODULE_NAME",
+      columns: row.moduleName,
+      lines: row.startLineNum,
     });
   };
 
@@ -456,7 +498,8 @@ function ProfilerModuleDetails({
           <div className="grid-name">Module Details</div>
           {moduleRows.length > 0 ? (
             <DataGrid
-              columns={columnName.moduleColumns}
+              columns={formattedModuleColumns}
+              // columns={columnDefinition.moduleColumns}
               rows={sortedModuleRows}
               defaultColumnOptions={{
                 sortable: true,
@@ -468,7 +511,7 @@ function ProfilerModuleDetails({
               onRowsChange={setModuleRows}
               sortColumns={sortModuleColumns}
               onSortColumnsChange={setSortModuleColumns}
-              onRowDoubleClick={openFile}
+              onRowDoubleClick={openFileForModuleDetails}
               rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
             />
           ) : null}
@@ -481,7 +524,7 @@ function ProfilerModuleDetails({
             <div className="grid-name">Calling Modules</div>
             <DataGrid
               className="columns"
-              columns={columnName.CallingColumns}
+              columns={callingColumns}
               rows={sortedCallingRows}
               defaultColumnOptions={{
                 sortable: true,
@@ -500,7 +543,7 @@ function ProfilerModuleDetails({
             <div className="grid-name">Called Modules</div>
             <DataGrid
               className="columns"
-              columns={columnName.CalledColumns}
+              columns={calledColumns}
               rows={sortedCalledRows}
               defaultColumnOptions={{
                 sortable: true,
@@ -519,7 +562,7 @@ function ProfilerModuleDetails({
         <div className="line-columns">
           <div className="grid-name">Line Summary</div>
           <DataGrid
-            columns={columnName.LineColumns}
+            columns={formattedLineColumns}
             rows={sortedLineRows}
             defaultColumnOptions={{
               sortable: true,
@@ -528,7 +571,7 @@ function ProfilerModuleDetails({
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
-            onRowDoubleClick={openFile}
+            onRowDoubleClick={openFileForLineSummary}
           />
         </div>
       </div>

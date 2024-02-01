@@ -1,26 +1,28 @@
 import { LineSummary } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
+import { getHasLink } from "./common";
 
 /**
  * Transforms raw profiler data into presentable Line Summary list
  */
-export function calculateLineSummary(rawData: ProfilerRawData): LineSummary[] {
+export async function calculateLineSummary(rawData: ProfilerRawData): Promise<LineSummary[]> {
 
   const lineSummaryList = [] as LineSummary[];
 
-  for(let module of rawData.ModuleData) {
+  for(const module of rawData.ModuleData) {
 
-    for(let line of rawData.LineSummaryData) {
+    for(const line of rawData.LineSummaryData) {
 
       if (line.ModuleID === module.ModuleID) {
 
-        let lineSummary: LineSummary = {
+        const lineSummary: LineSummary = {
           moduleID   : line.ModuleID,
           lineNumber : line.LineNo,
           timesCalled: line.ExecCount,
           avgTime    : Number((line.ActualTime / line.ExecCount).toFixed(6)),
-          totalTime  : line.ActualTime
-        }
+          totalTime  : line.ActualTime,
+          hasLink    : await getHasLink(module.ModuleName)
+        };
 
         lineSummaryList.push(lineSummary);
       }

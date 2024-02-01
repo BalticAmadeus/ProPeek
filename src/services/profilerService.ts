@@ -6,12 +6,12 @@ import { getIncludeFiles } from './helper/xRefParser';
 import { ParserLogger } from './parser/ParserLogger';
 
 export class ProfilerService {
-    public parse(fileName: string, showStartTime: boolean): PresentationData {
+    public async parse(fileName: string, showStartTime: boolean): Promise<PresentationData> {
         ParserLogger.resetErrors();
 
         const readData = readFile(fileName);
         const rawData = parseProfilerData(readData);
-        const transformedData = transformData(rawData, showStartTime);
+        const transformedData = await transformData(rawData, showStartTime);
         return transformedData;
     }
 
