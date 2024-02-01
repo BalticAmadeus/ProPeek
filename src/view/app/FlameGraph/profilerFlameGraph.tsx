@@ -99,7 +99,7 @@ function ProfilerFlameGraph({
 
   const handleGraphTypeChange = (event) => {
     setIsLoading(true);
-    showStartTime = event.target.value === "Combined" ? false : true;
+    showStartTime = event.target.value !== "Combined";
     vscode.postMessage({
       type: "GRAPH_TYPE_CHANGE",
       showStartTime: showStartTime,
