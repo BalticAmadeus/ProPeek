@@ -26,7 +26,6 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
   const [isLoading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [moduleName, setModuleName] = useState<string>("");
-  const [showStartTime, setShowStartTime] = useState<boolean>(false);
 
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
@@ -69,8 +68,6 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
           presentationData={presentationData2}
           hasTracingData={presentationData2.hasTracingData}
           handleNodeSelection={handleNodeSelection}
-          showStartTime={showStartTime}
-          setShowStartTime={setShowStartTime}
           vscode={vscode}
         />
       </div>

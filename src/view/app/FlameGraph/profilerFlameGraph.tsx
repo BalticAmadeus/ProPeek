@@ -3,12 +3,12 @@ import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
+import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
+import { Input } from "@mui/material";
 
 interface IConfigProps {
   presentationData: PresentationData;
   handleNodeSelection: any;
-  showStartTime: boolean;
-  setShowStartTime: React.Dispatch<React.SetStateAction<boolean>>;
   vscode: any;
   hasTracingData: boolean;
 }
@@ -19,11 +19,11 @@ export enum SearchTypes {
   Search,
 }
 
+let showStartTime = false;
+
 function ProfilerFlameGraph({
   presentationData,
   handleNodeSelection,
-  showStartTime,
-  setShowStartTime,
   vscode,
   hasTracingData,
 }: IConfigProps) {
@@ -36,7 +36,7 @@ function ProfilerFlameGraph({
   const [nestedStructure, setNestedStructure] = React.useState<any>(
     convertToNestedStructure(callTree, Mode.Length, searchPhrase)
   );
-  const [graphType, setGraphType] = React.useState("Combined"); // New state for graph type
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -51,10 +51,17 @@ function ProfilerFlameGraph({
   }, []);
 
   React.useEffect(() => {
-    window.addEventListener("message", (event) => {
+    const handleMessage = (event) => {
       const message = event.data as PresentationData;
       setCallTree(message.callTree);
-    });
+      setIsLoading(false);
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   var inputQuery: HTMLButtonElement = undefined;
@@ -91,17 +98,17 @@ function ProfilerFlameGraph({
   };
 
   const handleGraphTypeChange = (event) => {
-    const newShowStartTime = event.target.value === "Combined" ? false : true;
-    setShowStartTime(newShowStartTime);
-
+    setIsLoading(true);
+    showStartTime = event.target.value !== "Combined";
     vscode.postMessage({
       type: "GRAPH_TYPE_CHANGE",
-      showStartTime: newShowStartTime,
+      showStartTime: showStartTime,
     });
   };
 
   return (
     <React.Fragment>
+      {isLoading && <LoadingOverlay></LoadingOverlay>}
       <div className="flex-row-container">
         <div className="checkbox">
           <label>
@@ -139,7 +146,7 @@ function ProfilerFlameGraph({
               name="graphType"
               value="Combined"
               onChange={handleGraphTypeChange}
-              checked={showStartTime === false}
+              defaultChecked={!showStartTime}
               disabled={!hasTracingData}
             />
             Combined
@@ -150,7 +157,7 @@ function ProfilerFlameGraph({
               name="graphType"
               value="Separate"
               onChange={handleGraphTypeChange}
-              checked={showStartTime === true}
+              defaultChecked={showStartTime}
               disabled={!hasTracingData}
             />
             Separate
