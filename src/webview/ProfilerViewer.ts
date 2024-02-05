@@ -64,7 +64,7 @@ export class ProfilerViewer {
             context.subscriptions
         );
 
-        const profilerService = new ProfilerService();
+        const profilerService = new ProfilerService(action);
         
         this.initProfiler(profilerService, filePath);
 

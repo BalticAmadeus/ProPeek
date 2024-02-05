@@ -6,6 +6,7 @@ export class Constants {
     public static extensionId = "ProfilerName";
     public static globalExtensionKey = "ProfilerName";
     public static context: ExtensionContext;
+    public static fileSearchLimit = 100;
 }
 
 

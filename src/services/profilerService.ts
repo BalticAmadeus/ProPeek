@@ -6,12 +6,18 @@ import { getIncludeFiles } from './helper/xRefParser';
 import { ParserLogger } from './parser/ParserLogger';
 
 export class ProfilerService {
+    private profilerTitle: string = "";
+
+    constructor(title: string) {
+        this.profilerTitle = title;
+    }
+
     public async parse(fileName: string, showStartTime: boolean): Promise<PresentationData> {
         ParserLogger.resetErrors();
 
         const readData = readFile(fileName);
         const rawData = parseProfilerData(readData);
-        const transformedData = await transformData(rawData, showStartTime);
+        const transformedData = await transformData(rawData, showStartTime, this.profilerTitle);
         return transformedData;
     }
 

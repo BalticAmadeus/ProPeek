@@ -1,11 +1,12 @@
+import { Constants } from "../../../common/Constants";
 import { ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
-import { getHasLink } from "./common";
+import { getHasLink, getWorkspaceConfig } from "./common";
 
 /**
  * Transforms raw profiler data into presentable Module Details list
  */
-export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number): Promise<ModuleDetails[]> {
+export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string): Promise<ModuleDetails[]> {
 
   let moduleDetailsList = [] as ModuleDetails[];
 
@@ -18,7 +19,7 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
       startLineNum : module.LineNum ? module.LineNum : 0,
       timesCalled  : 0,
       totalTime    : 0,
-      hasLink      : await getHasLink(module.ModuleName)
+      hasLink      : rawData.ModuleData.length < Constants.fileSearchLimit ? await getHasLink(module.ModuleName, profilerTitle) : (getWorkspaceConfig().length > 0 ? true : false)
     };
 
     for(const node of rawData.CallGraphData){

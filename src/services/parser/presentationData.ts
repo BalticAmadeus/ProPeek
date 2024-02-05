@@ -4,20 +4,26 @@ import { calculateCalledModules } from "./presentation/calledModules";
 import { calculateLineSummary } from "./presentation/lineSummary";
 import { calculateCallTree, calculateCallTreeByTracingData } from "./presentation/callTree";
 import { CallTree, ModuleDetails, PresentationData } from "../../common/PresentationData";
+import { Constants } from "../../common/Constants";
+import * as vscode from "vscode";
 
 /**
  * Transform ProfilerRawData object into PresentationData object
  */
-export async function transformData(rawData: ProfilerRawData, showStartTime: boolean): Promise<PresentationData> {
+export async function transformData(rawData: ProfilerRawData, showStartTime: boolean, profilerTitle: string): Promise<PresentationData> {
+
+    if (rawData.ModuleData.length >= Constants.fileSearchLimit) {
+        vscode.window.showWarningMessage('Skipping workspace module pre-search. (ProPeek)');
+    }
 
     const totalSessionTime: number = getTotalSessionTime(rawData);
-    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime);
+    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle);
     const hasTracingData: boolean = rawData.TracingData.length > 0;
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
-        lineSummary: await calculateLineSummary(rawData),
+        lineSummary: await calculateLineSummary(rawData, profilerTitle),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
         hasTracingData: hasTracingData
     };

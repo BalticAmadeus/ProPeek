@@ -17,14 +17,18 @@ let notFoundFileCache = new Map<string, string>();
 
 /**
  * returns true if file exists
- * @param moduleName
+ * @param moduleName Module name
+ * @param profilerTitle Profiler file name
  * @returns
  */
-export const getHasLink = async (moduleName: string): Promise<boolean> => {
+export const getHasLink = async (
+  moduleName: string,
+  profilerTitle: string
+): Promise<boolean> => {
   let { fileName } = getFileAndProcedureName(moduleName);
 
   if (fileName && fileName.length > 0) {
-    return await fileExists(fileName);
+    return await fileExists(fileName, profilerTitle);
   }
   return false;
 };
@@ -98,11 +102,16 @@ export const convertToFilePath = (fileName: string, path: string): string => {
 /**
  * Returns true or false if file exists
  * @param fileName File name to search
+ * @param profilerTitle Profiler file name
  * @returns true if file exists
  */
-const fileExists = async (fileName: string): Promise<boolean> => {
-  const cachedValue = foundFileCache.get(fileName);
-  const notFoundFile = notFoundFileCache.get(fileName);
+const fileExists = async (
+  fileName: string,
+  profilerTitle: string
+): Promise<boolean> => {
+  const key = `${profilerTitle}_${fileName}`;
+  const cachedValue = foundFileCache.get(key);
+  const notFoundFile = notFoundFileCache.get(key);
 
   if (cachedValue) {
     return true;
@@ -112,7 +121,7 @@ const fileExists = async (fileName: string): Promise<boolean> => {
   }
 
   if (existsSync(fileName)) {
-    foundFileCache.set(fileName, fileName);
+    foundFileCache.set(key, fileName);
     return true;
   }
 
@@ -124,12 +133,12 @@ const fileExists = async (fileName: string): Promise<boolean> => {
       "{**/node_modules/**,**/.builder/**}"
     );
     if (files.length > 0) {
-      foundFileCache.set(fileName, files[0]);
+      foundFileCache.set(key, files[0]);
       return true;
     }
   }
 
-  notFoundFileCache.set(fileName, fileName);
+  notFoundFileCache.set(key, fileName);
 
   return false;
 };
