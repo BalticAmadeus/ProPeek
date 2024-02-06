@@ -3,9 +3,8 @@ import * as vscode from "vscode";
 import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
 import { IncludeFile } from "../common/XRefData"
-import { IConfig } from "../view/app/model";
-import { Constants } from "../common/Constants";
 import * as fs from 'fs';
+import { convertToFilePath, getFileAndProcedureName, getProPath } from "../services/parser/presentation/common";
 
 interface Message {
     showStartTime: any;
@@ -65,34 +64,33 @@ export class ProfilerViewer {
             context.subscriptions
         );
 
-        const profilerService = new ProfilerService();
-        const showStartTime = false;
-        let dataString = profilerService.parse(filePath, showStartTime);
-
-        handleErrors(profilerService.getErrors());
-
-        this.panel?.webview.postMessage(dataString);
+        const profilerService = new ProfilerService(action);
+        
+        this.initProfiler(profilerService, filePath);
 
         this.panel.webview.onDidReceiveMessage(
-            message => {
+            async message => {
                 switch(message.type) {
                     case "GRAPH_TYPE_CHANGE":
-                        const showStartTime = message.showStartTime;
-                        const dataString = profilerService.parse(filePath, showStartTime);
-                        handleErrors(new ProfilerService().getErrors());
-                        this.panel?.webview.postMessage(dataString);
+                        this.initProfiler(profilerService, filePath, message.showStartTime);
                         break;
                     case "MODULE_NAME":
-                        const workspaceConnections = this.context.workspaceState.get<{
-                            [key: string]: IConfig;
-                        }>(`${Constants.globalExtensionKey}.propath`);
-        
-                        open(workspaceConnections, message.columns, message.lines, profilerService);
+                        open(message.columns, message.lines, profilerService);
                         break;
                     default:
                 }
             },
         );
+    }
+
+    private async initProfiler(profilerService: ProfilerService, filePath: string, showStartTime = false): Promise<void> {
+        try {
+            const dataString = await profilerService.parse(filePath, showStartTime);
+            handleErrors(profilerService.getErrors());
+            this.panel?.webview.postMessage(dataString);
+        } catch (error) {
+            handleErrors(["Failed to initialize ProPeek Profiler"]);
+        }
     }
 
     private getWebviewContent(data: PresentationData): string {
@@ -137,9 +135,9 @@ function handleErrors(errors: string[]) {
     }
 }
 
-function open(workspaceConnections: { [key: string]: IConfig; } | undefined, moduleName: string, lineNumber: number, profilerService: ProfilerService) {
+function open(moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let { fileName, procedureName } = getFileAndProcedureName(moduleName);
-    const proPath = getProPath(workspaceConnections);
+    const proPath = getProPath();
 
     if (!procedureName || lineNumber < 1) {
         openFile(proPath, fileName, 1);
@@ -168,24 +166,6 @@ async function openFile(proPath: string[], fileName: string, lineNumber: number)
     const doc = await vscode.workspace.openTextDocument(filePath);
 
     vscode.window.showTextDocument(doc, { selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0) });
-}
-
-function getFileAndProcedureName(moduleName: string): { fileName: string, procedureName: string } {
-    const moduleNames: string[] = moduleName.split(" ");
-    let fileName: string;
-    let procedureName: string = "";
-
-    if (moduleNames.length >= 2) {
-        procedureName = moduleNames[0];
-        fileName = moduleNames[1];
-    }
-    else {
-        fileName = moduleNames[0];
-    }
-
-    fileName = replaceDots(fileName);
-
-    return { fileName, procedureName };
 }
 
 async function getAdjustedInfo(includeFiles: IncludeFile[], proPath: string[], fileName: string, lineNumber: number): Promise<{ fileName: string, lineNumber: number }> {
@@ -223,8 +203,6 @@ function countLinesInFile(filePath: string): number {
 }
 
 async function getFilePath(proPath: string[], fileName: string): Promise<vscode.Uri> {
-    let fileFound = false;
-
     if (fs.existsSync(fileName)) {
         return Promise.resolve(vscode.Uri.file(fileName));
     }
@@ -236,48 +214,7 @@ async function getFilePath(proPath: string[], fileName: string): Promise<vscode.
                 return files[0];
             }
         }
-        if (!fileFound) {
-            vscode.window.showErrorMessage("File not found: " + fileName);
-        }
+        vscode.window.showErrorMessage("File not found: " + fileName);
     }
     return Promise.resolve(vscode.Uri.file(""));
-}
-
-function getProPath(workspaceConnections: { [key: string]: IConfig; } | undefined) {
-    let proPath: string[] = [];
-
-    if (workspaceConnections) {
-        for (const id of Object.keys(workspaceConnections)) {
-            proPath.push(workspaceConnections[id].path);
-        }
-    }
-    return proPath;
-}
-
-function replaceDots(fileName: string): string {
-    const lastIndex = fileName.lastIndexOf(".");
-
-    if (lastIndex !== -1) {
-        const prefix = fileName.substring(0, lastIndex);
-        const suffix = fileName.substring(lastIndex);
-
-        if (suffix.endsWith(".p") || suffix.endsWith(".r")) {
-            return prefix.replace(/\./g, "/") + ".p";
-        } else {
-            return fileName.replace(/\./g, "/") + ".cls";
-        }
-    }
-    return fileName + ".cls";
-}
-
-function convertToFilePath(fileName: string, path: string) {
-    if (fileName.length >= 2 && fileName[1] !== ":") {
-        fileName = path + "/" + fileName;
-
-        if (fileName.substring(0, 3) !== "**/") {
-            fileName = "**/" + fileName;
-        }
-    }
-
-    return fileName;
 }
