@@ -10,6 +10,9 @@ import DataGrid from "react-data-grid";
 import type { Column, SortColumn } from "react-data-grid";
 import * as columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
+import { TextField } from "@mui/material";
+import ModuleDetailsTable from "./components/ModuleDetailsTable";
+import { getVSCodeAPI } from "../utils/vscode";
 
 interface ModuleColumn extends Column<any> {
   key: string;
@@ -18,10 +21,7 @@ interface ModuleColumn extends Column<any> {
 }
 
 interface IConfigProps {
-  vscode: any;
   presentationData: PresentationData;
-  selectedRow: any;
-  onRowSelect: (row: any) => void;
   moduleName: string;
 }
 
@@ -114,11 +114,8 @@ function getLineComparator(sortColumn: string): LineComparator {
 
 function ProfilerModuleDetails({
   presentationData,
-  vscode,
-  selectedRow,
-  onRowSelect,
   moduleName,
-}: IConfigProps) {
+}: Readonly<IConfigProps>) {
   const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
@@ -130,6 +127,7 @@ function ProfilerModuleDetails({
   const [callingRows, setCallingRows] = useState(
     presentationData.calledModules
   );
+  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(null);
   const [selectedCallingRows, setSelectedCallingRows] = useState(
     presentationData.calledModules
   );
@@ -157,9 +155,96 @@ function ProfilerModuleDetails({
     addConditionalFormatting(columnDefinition.moduleColumns)
   );
 
+  // const formattedModuleColumns = useMemo(
+  //   () =>
+  //     addConditionalFormatting(columnDefinition.moduleColumns).map((column) => {
+  //       if (column.key === "moduleName") {
+  //         column["filterRenderer"] = function ({
+  //           onSort,
+  //           sortDirection,
+  //           priority,
+  //         }) {
+  //           function handleClick(event) {
+  //             onSort(event.ctrlKey || event.metaKey);
+  //           }
+  //           console.log("IS THIS RERENDERED?!?!?!?");
+
+  //           return (
+  //             <React.Fragment>
+  //               <div className={"filter-cell"}>
+  //                 <span
+  //                   tabIndex={-1}
+  //                   style={{
+  //                     cursor: "pointer",
+  //                     display: "flex",
+  //                   }}
+  //                   className="rdg-header-sort-cell"
+  //                   onClick={handleClick}
+  //                 >
+  //                   <span
+  //                     className="rdg-header-sort-name"
+  //                     style={{
+  //                       flexGrow: "1",
+  //                       overflow: "clip",
+  //                       textOverflow: "ellipsis",
+  //                     }}
+  //                   >
+  //                     {column.name}
+  //                   </span>
+  //                   <span>
+  //                     <svg
+  //                       viewBox="0 0 12 8"
+  //                       width="12"
+  //                       height="8"
+  //                       className="rdg-sort-arrow"
+  //                       style={{
+  //                         fill: "currentcolor",
+  //                       }}
+  //                     >
+  //                       {sortDirection === "ASC" && (
+  //                         <path d="M0 8 6 0 12 8"></path>
+  //                       )}
+  //                       {sortDirection === "DESC" && (
+  //                         <path d="M0 0 6 8 12 0"></path>
+  //                       )}
+  //                     </svg>
+  //                     {priority}
+  //                   </span>
+  //                 </span>
+  //               </div>
+  //               <div className={"filter-cell"}>
+  //                 <TextField
+  //                   className="textInput"
+  //                   style={filterCSS}
+  //                   value={moduleNameFilter}
+  //                   onChange={(e) => {
+  //                     // filterByModuleName(e.target.value);
+  //                     setModuleNameFilter(e.target.value);
+  //                   }}
+  //                 />
+  //               </div>
+  //             </React.Fragment>
+  //           );
+  //         };
+  //       }
+
+  //       if (column.key === "pcntOfSession") {
+  //         addPercentage(column);
+  //       }
+  //       // Other customizations like addPercentage
+  //       return column;
+  //     }),
+  //   [addConditionalFormatting, columnDefinition.moduleColumns]
+  // );
+
   const [formattedLineColumns] = useState(
     addConditionalFormatting(columnDefinition.LineColumns)
   );
+
+  const [moduleNameFilter, setModuleNameFilter] =
+    React.useState<string>(moduleName);
+
+  const vscode = getVSCodeAPI();
 
   const calledColumns = columnDefinition.CalledColumns;
   const callingColumns = columnDefinition.CallingColumns;
@@ -169,19 +254,14 @@ function ProfilerModuleDetails({
     0
   );
 
-  const [filters, _setFilters] = React.useState({
-    columns: {},
-    enabled: true,
-  });
-  const filtersRef = React.useRef(filters);
-  const setFilters = (data) => {
-    filtersRef.current = data;
-    _setFilters(data);
-  };
+  console.log("COMPLETE COMPONNET RERENDER");
 
   React.useEffect(() => {
-    filterByModuleName(moduleName);
-  }, [moduleName]);
+    console.log("THIS IS LOADED ONCE!!", moduleNameFilter);
+  }, [moduleNameFilter]);
+  // React.useEffect(() => {
+  //   filterByModuleName(moduleName);
+  // }, [moduleName]);
 
   calledColumns.forEach((column) => {
     if (column.key === "calleePcntOfSession") {
@@ -195,11 +275,29 @@ function ProfilerModuleDetails({
     }
   });
 
-  const filterByModuleName = (moduleName: string) => {
-    if (moduleName !== "") {
-      filterColumn("moduleName", moduleName);
-      setSelectedModuleRow(null);
+  React.useEffect(() => {
+    console.log("moduleNameFilter", moduleNameFilter);
+  }, [moduleNameFilter]);
+
+  const filterByModuleName = (value: string) => {
+    console.log("filterColumn", value);
+
+    // setModuleNameFilter(value);
+
+    if (value === "") {
+      setFilteredModuleRows(moduleRows);
+    } else {
+      setFilteredModuleRows(
+        moduleRows.filter(
+          (row) =>
+            !row.moduleName
+              .toString()
+              .toLowerCase()
+              .includes(moduleNameFilter.toLowerCase())
+        )
+      );
     }
+    setSelectedModuleRow(null);
   };
 
   const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
@@ -277,113 +375,79 @@ function ProfilerModuleDetails({
     });
   }, [selectedLineRows, sortLineColumns]);
 
-  formattedModuleColumns.forEach((column) => {
-    if (column.key === "moduleName") {
-      column["headerRenderer"] = function ({
-        onSort,
-        sortDirection,
-        priority,
-      }) {
-        function handleClick(event) {
-          onSort(event.ctrlKey || event.metaKey);
-        }
+  // formattedModuleColumns.forEach((column) => {
+  //   if (column.key === "moduleName") {
+  //     column["headerRenderer"] = function ({
+  //       onSort,
+  //       sortDirection,
+  //       priority,
+  //     }) {
+  //       function handleClick(event) {
+  //         onSort(event.ctrlKey || event.metaKey);
+  //       }
+  //       console.log("IS THIS RERENDERED?!?!?!?");
 
-        function handleInputKeyDown(event) {
-          filterColumn(column.key, event.target.value);
-        }
+  //       return (
+  //         <React.Fragment>
+  //           <div className={"filter-cell"}>
+  //             <span
+  //               tabIndex={-1}
+  //               style={{
+  //                 cursor: "pointer",
+  //                 display: "flex",
+  //               }}
+  //               className="rdg-header-sort-cell"
+  //               onClick={handleClick}
+  //             >
+  //               <span
+  //                 className="rdg-header-sort-name"
+  //                 style={{
+  //                   flexGrow: "1",
+  //                   overflow: "clip",
+  //                   textOverflow: "ellipsis",
+  //                 }}
+  //               >
+  //                 {column.name}
+  //               </span>
+  //               <span>
+  //                 <svg
+  //                   viewBox="0 0 12 8"
+  //                   width="12"
+  //                   height="8"
+  //                   className="rdg-sort-arrow"
+  //                   style={{
+  //                     fill: "currentcolor",
+  //                   }}
+  //                 >
+  //                   {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
+  //                   {sortDirection === "DESC" && (
+  //                     <path d="M0 0 6 8 12 0"></path>
+  //                   )}
+  //                 </svg>
+  //                 {priority}
+  //               </span>
+  //             </span>
+  //           </div>
+  //           <div className={"filter-cell"}>
+  //             <TextField
+  //               className="textInput"
+  //               style={filterCSS}
+  //               value={moduleNameFilter}
+  //               onChange={(e) => {
+  //                 // filterByModuleName(e.target.value);
+  //                 setModuleNameFilter(e.target.value);
+  //               }}
+  //             />
+  //           </div>
+  //         </React.Fragment>
+  //       );
+  //     };
+  //   }
 
-        return (
-          <React.Fragment>
-            <div className={filters.enabled ? "filter-cell" : undefined}>
-              <span
-                tabIndex={-1}
-                style={{
-                  cursor: "pointer",
-                  display: "flex",
-                }}
-                className="rdg-header-sort-cell"
-                onClick={handleClick}
-              >
-                <span
-                  className="rdg-header-sort-name"
-                  style={{
-                    flexGrow: "1",
-                    overflow: "clip",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {column.name}
-                </span>
-                <span>
-                  <svg
-                    viewBox="0 0 12 8"
-                    width="12"
-                    height="8"
-                    className="rdg-sort-arrow"
-                    style={{
-                      fill: "currentcolor",
-                    }}
-                  >
-                    {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
-                    {sortDirection === "DESC" && (
-                      <path d="M0 0 6 8 12 0"></path>
-                    )}
-                  </svg>
-                  {priority}
-                </span>
-              </span>
-            </div>
-            {filters.enabled && (
-              <div className={"filter-cell"}>
-                <input
-                  className="textInput"
-                  style={filterCSS}
-                  defaultValue={filters.columns[column.key]}
-                  onChange={handleInputKeyDown}
-                />
-              </div>
-            )}
-          </React.Fragment>
-        );
-      };
-    }
-
-    if (column.key === "pcntOfSession") {
-      addPercentage(column);
-    }
-  });
-
-  function filterColumn(columnKey: string, value: any) {
-    var tempFilters = filters;
-
-    if (value === "") {
-      delete tempFilters.columns[columnKey];
-    } else {
-      tempFilters.columns[columnKey] = value;
-    }
-
-    setFilters(tempFilters);
-
-    if (Object.keys(filters.columns).length === 0) {
-      setFilteredModuleRows(moduleRows);
-    } else {
-      setFilteredModuleRows(
-        moduleRows.filter((row) => {
-          for (let [key] of Object.entries(filters.columns)) {
-            if (
-              !row[key]
-                .toString()
-                .toLowerCase()
-                .includes(filters.columns[key].toLowerCase())
-            ) {
-              return false;
-            }
-          }
-          return true;
-        })
-      );
-    }
-  }
+  //   if (column.key === "pcntOfSession") {
+  //     addPercentage(column);
+  //   }
+  // });
 
   function addPercentage(column) {
     column["headerRenderer"] = function ({}) {
@@ -430,7 +494,6 @@ function ProfilerModuleDetails({
       setFilteredModuleRows(message.moduleDetails);
       setFilters({
         columns: {},
-        enabled: true,
       });
 
       setCallingRows(message.calledModules);
@@ -440,7 +503,7 @@ function ProfilerModuleDetails({
   }, []);
 
   const showSelected = (row) => {
-    onRowSelect(row);
+    setSelectedRow(row);
     filterTables(row);
   };
 
@@ -470,112 +533,108 @@ function ProfilerModuleDetails({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    const moduleName = moduleRow.moduleName;
-
     vscode.postMessage({
       type: "MODULE_NAME",
-      columns: moduleName,
+      columns: moduleRow.moduleName,
       lines: row.lineNumber,
     });
   };
 
-  const openFileForModuleDetails = (row: ModuleDetails): void => {
-    if (!row.hasLink) {
-      return;
-    }
-
-    vscode.postMessage({
-      type: "MODULE_NAME",
-      columns: row.moduleName,
-      lines: row.startLineNum,
-    });
-  };
-
   return (
-    <React.Fragment>
-      <div>
-        <div className="details-columns">
-          <div className="grid-name">Module Details</div>
-          {moduleRows.length > 0 ? (
-            <DataGrid
-              columns={formattedModuleColumns}
-              // columns={columnDefinition.moduleColumns}
-              rows={sortedModuleRows}
-              defaultColumnOptions={{
-                sortable: true,
-                resizable: true,
-              }}
-              onRowClick={showSelected}
-              headerRowHeight={filters.enabled ? 70 : undefined}
-              rowKeyGetter={moduleRowKeyGetter}
-              onRowsChange={setModuleRows}
-              sortColumns={sortModuleColumns}
-              onSortColumnsChange={setSortModuleColumns}
-              onRowDoubleClick={openFileForModuleDetails}
-              rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-            />
-          ) : null}
-          <div className="total-time">
-            Total Time: {sumTotalTime.toFixed(6)}s
-          </div>
-        </div>
-        <div className="columns">
-          <div className="calling-columns">
-            <div className="grid-name">Calling Modules</div>
-            <DataGrid
-              className="columns"
-              columns={callingColumns}
-              rows={sortedCallingRows}
-              defaultColumnOptions={{
-                sortable: true,
-                resizable: true,
-              }}
-              onRowsChange={setSelectedCallingRows}
-              sortColumns={sortCallingColumns}
-              onSortColumnsChange={setSortCallingColumns}
-              onRowDoubleClick={(row) => {
-                filterByModuleName(row.callerModuleName);
-              }}
-            />
-          </div>
-
-          <div className="called-columns">
-            <div className="grid-name">Called Modules</div>
-            <DataGrid
-              className="columns"
-              columns={calledColumns}
-              rows={sortedCalledRows}
-              defaultColumnOptions={{
-                sortable: true,
-                resizable: true,
-              }}
-              onRowsChange={setSelectedCalledRows}
-              sortColumns={sortCalledColumns}
-              onSortColumnsChange={setSortCalledColumns}
-              onRowDoubleClick={(row) => {
-                filterByModuleName(row.calleeModuleName);
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="line-columns">
-          <div className="grid-name">Line Summary</div>
+    <div>
+      {moduleRows.length > 0 ? (
+        <ModuleDetailsTable
+          columns={formattedModuleColumns}
+          // columns={columnDefinition.moduleColumns}
+          rows={sortedModuleRows}
+          onRowClick={showSelected}
+          rowKeyGetter={moduleRowKeyGetter}
+          onRowsChange={setModuleRows}
+          sortColumns={sortModuleColumns}
+          onSortColumnsChange={setSortModuleColumns}
+          rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
+          sumTotalTime={sumTotalTime}
+        />
+      ) : // <div className="details-columns">
+      //   <div className="grid-name">Module Details</div>
+      //   <DataGrid
+      //     columns={formattedModuleColumns}
+      //     // columns={columnDefinition.moduleColumns}
+      //     rows={sortedModuleRows}
+      //     defaultColumnOptions={{
+      //       sortable: true,
+      //       resizable: true,
+      //     }}
+      //     onRowClick={showSelected}
+      //     headerRowHeight={70}
+      //     rowKeyGetter={moduleRowKeyGetter}
+      //     onRowsChange={setModuleRows}
+      //     sortColumns={sortModuleColumns}
+      //     onSortColumnsChange={setSortModuleColumns}
+      //     onRowDoubleClick={openFileForModuleDetails}
+      //     rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
+      //   />
+      //   <div className="total-time">
+      //     Total Time: {sumTotalTime.toFixed(6)}s
+      //   </div>
+      // </div>
+      null}
+      <div className="columns">
+        <div className="calling-columns">
+          <div className="grid-name">Calling Modules</div>
           <DataGrid
-            columns={formattedLineColumns}
-            rows={sortedLineRows}
+            className="columns"
+            columns={callingColumns}
+            rows={sortedCallingRows}
             defaultColumnOptions={{
               sortable: true,
               resizable: true,
             }}
-            onRowsChange={setSelectedLineRows}
-            sortColumns={sortLineColumns}
-            onSortColumnsChange={setSortLineColumns}
-            onRowDoubleClick={openFileForLineSummary}
+            onRowsChange={setSelectedCallingRows}
+            sortColumns={sortCallingColumns}
+            onSortColumnsChange={setSortCallingColumns}
+            onRowDoubleClick={(row) => {
+              filterByModuleName(row.callerModuleName);
+            }}
+          />
+        </div>
+
+        <div className="called-columns">
+          <div className="grid-name">Called Modules</div>
+          <DataGrid
+            className="columns"
+            columns={calledColumns}
+            rows={sortedCalledRows}
+            defaultColumnOptions={{
+              sortable: true,
+              resizable: true,
+            }}
+            onRowsChange={setSelectedCalledRows}
+            sortColumns={sortCalledColumns}
+            onSortColumnsChange={setSortCalledColumns}
+            onRowDoubleClick={(row) => {
+              filterByModuleName(row.calleeModuleName);
+            }}
           />
         </div>
       </div>
-    </React.Fragment>
+
+      <div className="line-columns">
+        <div className="grid-name">Line Summary</div>
+        <DataGrid
+          columns={formattedLineColumns}
+          rows={sortedLineRows}
+          defaultColumnOptions={{
+            sortable: true,
+            resizable: true,
+          }}
+          onRowsChange={setSelectedLineRows}
+          sortColumns={sortLineColumns}
+          onSortColumnsChange={setSortLineColumns}
+          onRowDoubleClick={openFileForLineSummary}
+        />
+      </div>
+    </div>
   );
 }
 

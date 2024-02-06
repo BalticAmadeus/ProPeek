@@ -6,9 +6,9 @@ import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
 import { Button } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
+import { getVSCodeAPI } from "../utils/vscode";
 
 interface IConfigProps {
-  vscode: any;
   presentationData: PresentationData;
 }
 
@@ -18,14 +18,15 @@ enum ProfilerTab {
   FlameGraph = 2,
 }
 
-function ProfilerForm({ presentationData, vscode }: IConfigProps) {
+function ProfilerForm({ presentationData }: IConfigProps) {
   const [activeTab, setActiveTab] = useState<ProfilerTab>(
     ProfilerTab.ModuleDetails
   );
   const [presentationData2, setPresentationData] = useState(presentationData);
   const [isLoading, setLoading] = useState(true);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
   const [moduleName, setModuleName] = useState<string>("");
+
+  const vscode = getVSCodeAPI();
 
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
@@ -37,13 +38,11 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
   });
 
   const ModuleDetailsTab: React.FC = () => {
+    console.log("ModuleDetailsTab");
     return (
       <div>
         <ProfilerModuleDetails
           presentationData={presentationData2}
-          vscode={vscode}
-          selectedRow={selectedRow}
-          onRowSelect={handleRowSelection}
           moduleName={moduleName}
         />
       </div>
@@ -84,10 +83,6 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
     }
   };
 
-  const handleRowSelection = (row: any) => {
-    setSelectedRow(row);
-  };
-
   const handleNodeSelection = (moduleName: string) => {
     setModuleName(moduleName);
     setActiveTab(ProfilerTab.ModuleDetails);
@@ -95,15 +90,7 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
 
   switch (activeTab) {
     case ProfilerTab.ModuleDetails:
-      content = (
-        <ProfilerModuleDetails
-          presentationData={presentationData2}
-          vscode={vscode}
-          selectedRow={selectedRow}
-          onRowSelect={handleRowSelection}
-          moduleName={moduleName}
-        />
-      );
+      content = <ModuleDetailsTab />;
       break;
     case ProfilerTab.TreeView:
       content = <TreeViewTab />;
