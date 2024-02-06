@@ -16,10 +16,6 @@ root.render(
     presentationData={window.presentationData}
     handleNodeSelection={undefined}
     vscode={undefined}
-    showStartTime={false}
-    setShowStartTime={function (value: React.SetStateAction<boolean>): void {
-      throw new Error("Function not implemented.");
-    }}
     hasTracingData={false}
   />
 );

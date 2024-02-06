@@ -63,7 +63,7 @@ export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetai
     const version: number = rawData.DescriptionData.Version;
 
     // calculate call tree by tracing data if start time is needed or version is older than 3
-    if (version === 3 && !(showStartTime && hasTracingData)) {
+    if (version >= 3 && !(showStartTime && hasTracingData)) {
         return calculateCallTree(rawData, moduleDetails, totalSessionTime);
     } else {
         return calculateCallTreeByTracingData(rawData, moduleDetails);
