@@ -2,9 +2,15 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
+import "./profilerFlameGraph.css";
+import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
+import { Input } from "@mui/material";
 
 interface IConfigProps {
   presentationData: PresentationData;
+  handleNodeSelection: any;
+  vscode: any;
+  hasTracingData: boolean;
 }
 
 export enum SearchTypes {
@@ -13,7 +19,14 @@ export enum SearchTypes {
   Search,
 }
 
-function ProfilerFlameGraph({ presentationData }: IConfigProps) {
+let showStartTime = false;
+
+function ProfilerFlameGraph({
+  presentationData,
+  handleNodeSelection,
+  vscode,
+  hasTracingData,
+}: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
 
@@ -23,6 +36,7 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
   const [nestedStructure, setNestedStructure] = React.useState<any>(
     convertToNestedStructure(callTree, Mode.Length, searchPhrase)
   );
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -37,10 +51,17 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
   }, []);
 
   React.useEffect(() => {
-    window.addEventListener("message", (event) => {
+    const handleMessage = (event) => {
       const message = event.data as PresentationData;
       setCallTree(message.callTree);
-    });
+      setIsLoading(false);
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   var inputQuery: HTMLButtonElement = undefined;
@@ -76,31 +97,72 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
     }
   };
 
+  const handleGraphTypeChange = (event) => {
+    setIsLoading(true);
+    showStartTime = event.target.value !== "Combined";
+    vscode.postMessage({
+      type: "GRAPH_TYPE_CHANGE",
+      showStartTime: showStartTime,
+    });
+  };
+
   return (
     <React.Fragment>
-      <div className="checkbox">
-        <label>
-          <b>Search Type:</b>
-        </label>
-        <br />
-        <br />
-        {Object.keys(SearchTypes)
-          .filter((key) => Number.isNaN(+key))
-          .map((key) => (
-            <label className="radioBtn" key={key}>
-              <input
-                type="radio"
-                name="exportdata"
-                onChange={(e) => {
-                  handleChange(e);
-                  setSelectedSearchType(key);
-                }}
-                value={key}
-                defaultChecked={SearchTypes[key] === SearchTypes.Length}
-              />
-              {key}
-            </label>
-          ))}
+      {isLoading && <LoadingOverlay></LoadingOverlay>}
+      <div className="flex-row-container">
+        <div className="checkbox">
+          <label>
+            <b>Search Type:</b>
+          </label>
+          <br />
+          <br />
+          {Object.keys(SearchTypes)
+            .filter((key) => Number.isNaN(+key))
+            .map((key) => (
+              <label className="radioBtn" key={key}>
+                <input
+                  type="radio"
+                  name="exportdata"
+                  onChange={(e) => {
+                    handleChange(e);
+                    setSelectedSearchType(key);
+                  }}
+                  value={key}
+                  defaultChecked={SearchTypes[key] === SearchTypes.Length}
+                />
+                {key}
+              </label>
+            ))}
+        </div>
+        <div className="graph-type-selects">
+          <label>
+            <b>Graph Type:</b>
+          </label>
+          <br />
+          <br />
+          <label>
+            <input
+              type="radio"
+              name="graphType"
+              value="Combined"
+              onChange={handleGraphTypeChange}
+              defaultChecked={!showStartTime}
+              disabled={!hasTracingData}
+            />
+            Combined
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="graphType"
+              value="Separate"
+              onChange={handleGraphTypeChange}
+              defaultChecked={showStartTime}
+              disabled={!hasTracingData}
+            />
+            Separate
+          </label>
+        </div>
       </div>
 
       {selectedSearchType === "Search" && (
@@ -130,8 +192,8 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
           data={nestedStructure}
           height={windowHeight}
           width={windowWidth - 40}
-          onChange={(node) => {
-            console.log(`"${node.name}" focused`);
+          onDoubleClick={(node) => {
+            handleNodeSelection(node.name);
           }}
         />
       </div>
@@ -145,44 +207,49 @@ function convertToNestedStructure(
   mode: Mode,
   searchPhrase: string
 ): any {
-  const root: any = {
-    name: "root",
-    value: 100,
-    children: [],
-  };
-
   const nodeMap: { [key: number]: any } = {};
+  const rootNode = data[0];
+  let root: any;
 
-  //if there is no tracing data, return only root
-  if (data[0] === undefined) {
-    return root;
-  }
-
-  const startNode: number = data[0].parentID;
-
-  for (const item of data) {
-    nodeMap[item.nodeID] = {
-      name: item.moduleName,
-      value: item.pcntOfSession,
-      backgroundColor: giveColor(mode, item, searchPhrase),
-      tooltip:
-        "Name: " +
-        item.moduleName +
-        " Percentage of Session: " +
-        item.pcntOfSession.toFixed(2) +
-        "% " +
-        "Cumulative Time: " +
-        item.cumulativeTime,
+  //if there is no call tree data, define and return empty root node
+  if (rootNode === undefined) {
+    root = {
+      name: "root",
+      value: 100,
+      left: 0,
       children: [],
     };
+  }
 
-    if (item.parentID === startNode) {
-      root.children.push(nodeMap[item.nodeID]);
+  for (const node of data) {
+    let flameGraphNode = {
+      name: node.moduleName,
+      value: node.pcntOfSession,
+      backgroundColor: giveColor(mode, node, searchPhrase),
+      tooltip: `Name: ${
+        node.moduleName
+      } Percentage of Session: ${node.pcntOfSession.toFixed(
+        2
+      )}% Cumulative Time: ${node.cumulativeTime}`,
+      children: [],
+      left: 0,
+    };
+
+    if (node.parentID === rootNode.parentID) {
+      root = flameGraphNode;
     } else {
-      if (!nodeMap[item.parentID].children) {
-        nodeMap[item.parentID].children = [];
+      nodeMap[node.nodeID] = flameGraphNode;
+      nodeMap[node.nodeID].left =
+        (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
+
+      if (node.parentID === rootNode.nodeID) {
+        root.children.push(nodeMap[node.nodeID]);
+      } else {
+        if (!nodeMap[node.parentID].children) {
+          nodeMap[node.parentID].children = [];
+        }
+        nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
       }
-      nodeMap[item.parentID].children.push(nodeMap[item.nodeID]);
     }
   }
 

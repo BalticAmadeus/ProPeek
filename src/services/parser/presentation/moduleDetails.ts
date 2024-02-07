@@ -1,30 +1,34 @@
+import { Constants } from "../../../common/Constants";
 import { ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
+import { getHasLink, getWorkspaceConfig } from "./common";
 
 /**
  * Transforms raw profiler data into presentable Module Details list
  */
-export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number): ModuleDetails[] {
+export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string): Promise<ModuleDetails[]> {
 
   let moduleDetailsList = [] as ModuleDetails[];
 
   moduleDetailsList = insertSessionModuleDetails(moduleDetailsList);
 
-  for(let module of rawData.ModuleData){
-    let moduleDetails: ModuleDetails = {
+  for(const module of rawData.ModuleData) {
+    const moduleDetails: ModuleDetails = {
       moduleID     : module.ModuleID,
       moduleName   : module.ModuleName,
+      startLineNum : module.LineNum ? module.LineNum : 0,
       timesCalled  : 0,
-      totalTime    : 0
-    }
+      totalTime    : 0,
+      hasLink      : rawData.ModuleData.length < Constants.fileSearchLimit ? await getHasLink(module.ModuleName, profilerTitle) : (getWorkspaceConfig().length > 0 ? true : false)
+    };
 
-    for(let node of rawData.CallGraphData){
+    for(const node of rawData.CallGraphData){
       if (node.CalleeID === module.ModuleID) {
         moduleDetails.timesCalled = moduleDetails.timesCalled + node.CallCount;
       }
     }
 
-    for(let line of rawData.LineSummaryData){
+    for(const line of rawData.LineSummaryData){
       if (line.ModuleID === module.ModuleID) {
         moduleDetails.totalTime = moduleDetails.totalTime + line.ActualTime;
       }
@@ -32,10 +36,10 @@ export function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTim
 
     moduleDetails.totalTime = Number((moduleDetails.totalTime).toFixed(6));
     moduleDetails.avgTimePerCall = Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6));
-    moduleDetailsList.push(moduleDetails)
+    moduleDetailsList.push(moduleDetails);
   }
 
-  for(let moduleDetails of moduleDetailsList){
+  for(const moduleDetails of moduleDetailsList) {
     moduleDetails.pcntOfSession = Number((moduleDetails.totalTime / totalSessionTime * 100).toFixed(4));
   }
 
@@ -51,10 +55,12 @@ export function insertSessionModuleDetails(moduleDetailsList: ModuleDetails[]): 
   moduleDetailsList.push({
     moduleID      : 0,
     moduleName    : "Session",
+    startLineNum  : 0,
     timesCalled   : 1,
     avgTimePerCall: 0,
     totalTime     : 0,
-    pcntOfSession : 0
+    pcntOfSession : 0,
+    hasLink       : false,
   });
 
   return moduleDetailsList;

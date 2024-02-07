@@ -14,16 +14,19 @@ export interface LineSummary {
     lineNumber: number,
     timesCalled: number,
     avgTime: number,
-    totalTime: number
+    totalTime: number,
+    hasLink: boolean
 }
 
 export interface ModuleDetails {
     moduleID: number,
     moduleName: string,
+    startLineNum: number,
     timesCalled: number,
     avgTimePerCall?: number,
     totalTime: number,
-    pcntOfSession?: number
+    pcntOfSession?: number,
+    hasLink: boolean
 }
 
 export interface CallTree {
@@ -42,5 +45,6 @@ export interface PresentationData {
     moduleDetails: ModuleDetails[],
     calledModules: CalledModules[],
     lineSummary: LineSummary[],
-    callTree: CallTree[]
+    callTree: CallTree[],
+    hasTracingData: boolean
 }

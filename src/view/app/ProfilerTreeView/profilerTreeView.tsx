@@ -4,7 +4,8 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import './profilerTreeView.css';
 
 interface IConfigProps {
-  presentationData: PresentationData
+  presentationData: PresentationData,
+  handleNodeSelection: any
 }
 
 interface TreeNode {
@@ -53,7 +54,7 @@ function buildTreeView(data: CallTree[]): TreeNode[] {
   return treeView;
 }
 
-function ProfilerTreeView({ presentationData }: IConfigProps) {
+function ProfilerTreeView({ presentationData, handleNodeSelection }: IConfigProps) {
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [expandedNodes, setExpandedNodes] = React.useState<number[]>([]);
 
@@ -104,12 +105,12 @@ function ProfilerTreeView({ presentationData }: IConfigProps) {
       <div className="collapse-button">
         <button className="profilerFormButton button-primary" onClick={() => toggleExpansion(null)}>Collapse All</button>
       </div>
-      <TreeView rows={rows} toggleExpansion={toggleExpansion} />
+      <TreeView rows={rows} toggleExpansion={toggleExpansion} handleNodeSelection={handleNodeSelection} />
     </React.Fragment>
   );
 }
 
-const TreeView: React.FC<{ rows: TreeRow[]; toggleExpansion: (node: TreeNode) => void }> = React.memo(({ rows, toggleExpansion }) => {
+const TreeView: React.FC<{rows: TreeRow[], toggleExpansion: (node: TreeNode) => void, handleNodeSelection: (moduleName: string) => void}> = React.memo(({ rows, toggleExpansion, handleNodeSelection }) => {
 
   const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
     const marginLeft = row.level * 20;
@@ -142,7 +143,6 @@ const TreeView: React.FC<{ rows: TreeRow[]; toggleExpansion: (node: TreeNode) =>
     },
   ];
 
-  
   return (
     <React.Fragment>
       <div className="treeview">
@@ -153,6 +153,9 @@ const TreeView: React.FC<{ rows: TreeRow[]; toggleExpansion: (node: TreeNode) =>
           }}
           columns={columns}
           rows={rows}
+          onRowDoubleClick={(row) => {
+            handleNodeSelection(row.moduleName)
+          }}
         />
       </div>
     </React.Fragment>

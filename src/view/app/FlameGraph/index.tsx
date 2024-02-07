@@ -5,14 +5,17 @@ import { PresentationData } from "../../../common/PresentationData";
 import FlameGraph from "./profilerFlameGraph";
 
 declare global {
-    interface Window {
-        presentationData: PresentationData
-    }
+  interface Window {
+    presentationData: PresentationData;
+  }
 }
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-    <FlameGraph
-        presentationData={window.presentationData}
-    />
+  <FlameGraph
+    presentationData={window.presentationData}
+    handleNodeSelection={undefined}
+    vscode={undefined}
+    hasTracingData={false}
+  />
 );

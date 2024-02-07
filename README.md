@@ -20,7 +20,8 @@ There are 3 option how to open view:
 
 - Load and view _.prof_ and _.out_ profiler file
   - View Module details.
-    - Jump to code. (_new_)
+    - Jump to code.
+    - Jump to line. (_New_)
   - View Calling module details.
   - View Called module details.
   - View Line Summary.
@@ -28,6 +29,7 @@ There are 3 option how to open view:
 - Flamegraph.
   - Ability to sort out procedure names by text.
   - Ability to sort out by constructor and destructor.
+  - Ability to toggle graph type. (_New_)
 - Profiler Start/Stop Snippets.
 
 ## Related work
