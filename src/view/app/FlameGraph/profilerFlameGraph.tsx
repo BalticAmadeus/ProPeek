@@ -202,27 +202,19 @@ function ProfilerFlameGraph({
 }
 export default ProfilerFlameGraph;
 
-function convertToNestedStructure(
-  data: CallTree[],
-  mode: Mode,
-  searchPhrase: string
-): any {
+function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
   const nodeMap: { [key: number]: any } = {};
   const rootNode = data[0];
-  let root: any;
 
-  //if there is no call tree data, define and return empty root node
-  if (rootNode === undefined) {
-    root = {
-      name: "root",
-      value: 100,
-      left: 0,
-      children: [],
-    };
-  }
+  const root: any = {
+    name: "root",
+    value: 100,
+    left: 0,
+    children: [],
+  };
 
   for (const node of data) {
-    let flameGraphNode = {
+    nodeMap[node.nodeID] = {
       name: node.moduleName,
       value: node.pcntOfSession,
       backgroundColor: giveColor(mode, node, searchPhrase),
@@ -236,20 +228,15 @@ function convertToNestedStructure(
     };
 
     if (node.parentID === rootNode.parentID) {
-      root = flameGraphNode;
+      root.children.push(nodeMap[node.nodeID]);
     } else {
-      nodeMap[node.nodeID] = flameGraphNode;
-      nodeMap[node.nodeID].left =
-        (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
+      nodeMap[node.nodeID].left = (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
 
-      if (node.parentID === rootNode.nodeID) {
-        root.children.push(nodeMap[node.nodeID]);
-      } else {
-        if (!nodeMap[node.parentID].children) {
-          nodeMap[node.parentID].children = [];
-        }
-        nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
+      if (!nodeMap[node.parentID].children) {
+        nodeMap[node.parentID].children = [];
       }
+
+      nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
     }
   }
 
