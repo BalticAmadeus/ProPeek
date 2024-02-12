@@ -4,7 +4,19 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
-import { Input } from "@mui/material";
+
+interface FlameGraphNodeRoot {
+  name: "root";
+  value: number;
+  left: number;
+  children: Array<FlameGraphNode>;
+}
+
+interface FlameGraphNode extends Omit<FlameGraphNodeRoot, "name"> {
+  name: string;
+  backgroundColor: string;
+  tooltip: string;
+}
 
 interface IConfigProps {
   presentationData: PresentationData;
@@ -33,9 +45,10 @@ function ProfilerFlameGraph({
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-  const [nestedStructure, setNestedStructure] = React.useState<any>(
-    convertToNestedStructure(callTree, Mode.Length, searchPhrase)
-  );
+  const [nestedStructure, setNestedStructure] =
+    React.useState<FlameGraphNodeRoot>(
+      convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+    );
   const [isLoading, setIsLoading] = React.useState(false);
 
   const windowResize = () => {
@@ -202,11 +215,15 @@ function ProfilerFlameGraph({
 }
 export default ProfilerFlameGraph;
 
-function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
-  const nodeMap: { [key: number]: any } = {};
+function convertToNestedStructure(
+  data: CallTree[],
+  mode: Mode,
+  searchPhrase: string
+): FlameGraphNodeRoot {
+  const nodeMap: { [key: number]: FlameGraphNode } = {};
   const rootNode = data[0];
 
-  const root: any = {
+  const root: FlameGraphNodeRoot = {
     name: "root",
     value: 100,
     left: 0,
@@ -230,7 +247,8 @@ function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: st
     if (node.parentID === rootNode.parentID) {
       root.children.push(nodeMap[node.nodeID]);
     } else {
-      nodeMap[node.nodeID].left = (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
+      nodeMap[node.nodeID].left =
+        (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
 
       if (!nodeMap[node.parentID].children) {
         nodeMap[node.parentID].children = [];
