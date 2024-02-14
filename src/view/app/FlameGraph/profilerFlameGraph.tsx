@@ -4,7 +4,19 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
-import { Input } from "@mui/material";
+
+interface FlameGraphNodeRoot {
+  name: "root";
+  value: number;
+  left: number;
+  children: Array<FlameGraphNode>;
+}
+
+interface FlameGraphNode extends Omit<FlameGraphNodeRoot, "name"> {
+  name: string;
+  backgroundColor: string;
+  tooltip: string;
+}
 
 interface IConfigProps {
   presentationData: PresentationData;
@@ -33,9 +45,10 @@ function ProfilerFlameGraph({
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-  const [nestedStructure, setNestedStructure] = React.useState<any>(
-    convertToNestedStructure(callTree, Mode.Length, searchPhrase)
-  );
+  const [nestedStructure, setNestedStructure] =
+    React.useState<FlameGraphNodeRoot>(
+      convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+    );
   const [isLoading, setIsLoading] = React.useState(false);
 
   const windowResize = () => {
@@ -206,23 +219,19 @@ function convertToNestedStructure(
   data: CallTree[],
   mode: Mode,
   searchPhrase: string
-): any {
-  const nodeMap: { [key: number]: any } = {};
+): FlameGraphNodeRoot {
+  const nodeMap: { [key: number]: FlameGraphNode } = {};
   const rootNode = data[0];
-  let root: any;
 
-  //if there is no call tree data, define and return empty root node
-  if (rootNode === undefined) {
-    root = {
-      name: "root",
-      value: 100,
-      left: 0,
-      children: [],
-    };
-  }
+  const root: FlameGraphNodeRoot = {
+    name: "root",
+    value: 100,
+    left: 0,
+    children: [],
+  };
 
   for (const node of data) {
-    let flameGraphNode = {
+    nodeMap[node.nodeID] = {
       name: node.moduleName,
       value: node.pcntOfSession,
       backgroundColor: giveColor(mode, node, searchPhrase),
@@ -236,20 +245,16 @@ function convertToNestedStructure(
     };
 
     if (node.parentID === rootNode.parentID) {
-      root = flameGraphNode;
+      root.children.push(nodeMap[node.nodeID]);
     } else {
-      nodeMap[node.nodeID] = flameGraphNode;
       nodeMap[node.nodeID].left =
         (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
 
-      if (node.parentID === rootNode.nodeID) {
-        root.children.push(nodeMap[node.nodeID]);
-      } else {
-        if (!nodeMap[node.parentID].children) {
-          nodeMap[node.parentID].children = [];
-        }
-        nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
+      if (!nodeMap[node.parentID].children) {
+        nodeMap[node.parentID].children = [];
       }
+
+      nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
     }
   }
 
