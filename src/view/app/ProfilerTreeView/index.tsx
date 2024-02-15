@@ -5,14 +5,15 @@ import { PresentationData } from "../../../common/PresentationData";
 import ProfilerTreeView from "./profilerTreeView";
 
 declare global {
-    interface Window {
-        presentationData: PresentationData
-    }
+  interface Window {
+    presentationData: PresentationData;
+  }
 }
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-    <ProfilerTreeView
-        presentationData={window.presentationData}
-    />
+  <ProfilerTreeView
+    presentationData={window.presentationData}
+    handleNodeSelection={() => {}}
+  />
 );

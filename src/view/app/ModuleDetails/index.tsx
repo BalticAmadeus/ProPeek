@@ -16,5 +16,7 @@ root.render(
     presentationData={window.presentationData}
     vscode={undefined}
     moduleName={""}
+    onRowSelect={() => {}}
+    selectedRow={null}
   />
 );

@@ -36,20 +36,6 @@ function ProfilerForm({ presentationData, vscode }: IConfigProps) {
     });
   });
 
-  const ModuleDetailsTab: React.FC = () => {
-    return (
-      <div>
-        <ProfilerModuleDetails
-          presentationData={presentationData2}
-          vscode={vscode}
-          selectedRow={selectedRow}
-          onRowSelect={handleRowSelection}
-          moduleName={moduleName}
-        />
-      </div>
-    );
-  };
-
   const TreeViewTab: React.FC = () => {
     return (
       <div>
