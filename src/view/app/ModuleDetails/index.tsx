@@ -1,8 +1,8 @@
 import * as React from "react";
-import { createRoot } from "react-dom/client";
 
 import { PresentationData } from "../../../common/PresentationData";
 import ProfilerModuleDetails from "./profilerModuleDetails";
+import { renderRoot } from "../renderRoot";
 
 declare global {
   interface Window {
@@ -10,8 +10,7 @@ declare global {
   }
 }
 
-const root = createRoot(document.getElementById("root"));
-root.render(
+renderRoot(
   <ProfilerModuleDetails
     presentationData={window.presentationData}
     vscode={undefined}

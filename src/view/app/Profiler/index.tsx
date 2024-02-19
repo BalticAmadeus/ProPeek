@@ -1,9 +1,9 @@
 import * as React from "react";
-import { createRoot } from "react-dom/client";
 
 import "./profiler.css";
 import ProfilerForm from "./profilerForm";
 import { PresentationData } from "../../../common/PresentationData";
+import { renderRoot } from "../renderRoot";
 
 declare global {
   interface Window {
@@ -14,7 +14,6 @@ declare global {
 
 const vscode = window.acquireVsCodeApi();
 
-const root = createRoot(document.getElementById("root"));
-root.render(
+renderRoot(
   <ProfilerForm presentationData={window.presentationData} vscode={vscode} />
 );

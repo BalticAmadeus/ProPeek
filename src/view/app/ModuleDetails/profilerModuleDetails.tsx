@@ -45,9 +45,7 @@ function moduleRowKeyGetter(row: ModuleDetails) {
   return row.moduleID;
 }
 
-const addConditionalFormatting = (
-  columns: Array<ModuleColumn>
-): Array<ModuleColumn> => {
+const createLinkCell = (columns: Array<ModuleColumn>): Array<ModuleColumn> => {
   return columns.map((column) => {
     if (column.key === "moduleName" || column.key === "lineNumber") {
       return {
@@ -153,47 +151,167 @@ function ProfilerModuleDetails({
     [defaultLineSort]
   );
 
-  const [formattedModuleColumns] = useState(
-    addConditionalFormatting(columnDefinition.moduleColumns)
-  );
+  const createSearchColumn = (baseColumn: ModuleColumn): ModuleColumn => {
+    return {
+      ...baseColumn,
+      headerRenderer: function ({ onSort, sortDirection, priority }) {
+        function handleClick(event) {
+          onSort(event.ctrlKey || event.metaKey);
+        }
+
+        function handleInputKeyDown(event) {
+          filterColumn(baseColumn.key, event.target.value);
+        }
+
+        return (
+          <React.Fragment>
+            <div className={filters.enabled ? "filter-cell" : undefined}>
+              <span
+                tabIndex={-1}
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                }}
+                className="rdg-header-sort-cell"
+                onClick={handleClick}
+              >
+                <span
+                  className="rdg-header-sort-name"
+                  style={{
+                    flexGrow: "1",
+                    overflow: "clip",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {baseColumn.name}
+                </span>
+                <span>
+                  <svg
+                    viewBox="0 0 12 8"
+                    width="12"
+                    height="8"
+                    className="rdg-sort-arrow"
+                    style={{
+                      fill: "currentcolor",
+                    }}
+                  >
+                    {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
+                    {sortDirection === "DESC" && (
+                      <path d="M0 0 6 8 12 0"></path>
+                    )}
+                  </svg>
+                  {priority}
+                </span>
+              </span>
+            </div>
+            {filters.enabled && (
+              <div className={"filter-cell"}>
+                <input
+                  className="textInput"
+                  style={filterCSS}
+                  defaultValue={filters.columns[baseColumn.key]}
+                  onChange={handleInputKeyDown}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        );
+      },
+    };
+  };
+
+  const createPercentageColumn = (baseColumn: ModuleColumn): ModuleColumn => {
+    return {
+      ...baseColumn,
+      headerRenderer: function ({}) {
+        return <span>{baseColumn.name}</span>;
+      },
+      formatter: function ({ row }: { row: ModuleDetails }) {
+        // (row as Record<string, any>) is used to bypass compilation error
+        const percentage = (row as Record<string, any>)[baseColumn.key];
+        const progressStyle: React.CSSProperties = {
+          width: `${percentage}%`,
+          height: "10px",
+          backgroundColor: "#007bff",
+        };
+
+        const borderStyle: React.CSSProperties = {
+          border: "1px solid #ccc",
+          boxSizing: "border-box",
+        };
+
+        return (
+          <div className="progress" style={{ height: "10px" }}>
+            <div className="progress-border" style={borderStyle}>
+              <div
+                className="progress-bar"
+                role="progressbar"
+                style={progressStyle}
+                aria-valuenow={percentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                {percentage}%
+              </div>
+            </div>
+          </div>
+        );
+      },
+    };
+  };
+
+  const formattedModuleColumns = useMemo(() => {
+    return createLinkCell(columnDefinition.moduleColumns).map((column) => {
+      if (column.key === "moduleName") {
+        return createSearchColumn(column);
+      }
+
+      if (column.key === "pcntOfSession") {
+        return createPercentageColumn(column);
+      }
+      return column;
+    });
+  }, [columnDefinition.moduleColumns]);
 
   const [formattedLineColumns] = useState(
-    addConditionalFormatting(columnDefinition.LineColumns)
+    createLinkCell(columnDefinition.LineColumns)
   );
 
-  const calledColumns = columnDefinition.CalledColumns;
-  const callingColumns = columnDefinition.CallingColumns;
+  const calledColumns = columnDefinition.CalledColumns.map((column) => {
+    if (column.key === "calleePcntOfSession") {
+      return createPercentageColumn(column);
+    }
+    return column;
+  });
+
+  const callingColumns = columnDefinition.CallingColumns.map((column) => {
+    if (column.key === "callerPcntOfSession") {
+      return createPercentageColumn(column);
+    }
+    return column;
+  });
 
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
     0
   );
 
-  const [filters, _setFilters] = React.useState({
+  interface Filters {
+    columns: { [key: string]: string };
+    enabled: boolean;
+  }
+
+  const [filters, _setFilters] = React.useState<Filters>({
     columns: {},
     enabled: true,
   });
-  const filtersRef = React.useRef(filters);
-  const setFilters = (data) => {
-    filtersRef.current = data;
+  const setFilters = (data: Filters) => {
     _setFilters(data);
   };
 
   React.useEffect(() => {
     filterByModuleName(moduleName);
   }, [moduleName]);
-
-  calledColumns.forEach((column) => {
-    if (column.key === "calleePcntOfSession") {
-      addPercentage(column);
-    }
-  });
-
-  callingColumns.forEach((column) => {
-    if (column.key === "callerPcntOfSession") {
-      addPercentage(column);
-    }
-  });
 
   const filterByModuleName = (moduleName: string) => {
     if (moduleName !== "") {
@@ -277,82 +395,6 @@ function ProfilerModuleDetails({
     });
   }, [selectedLineRows, sortLineColumns]);
 
-  formattedModuleColumns.forEach((column) => {
-    if (column.key === "moduleName") {
-      column["headerRenderer"] = function ({
-        onSort,
-        sortDirection,
-        priority,
-      }) {
-        function handleClick(event) {
-          onSort(event.ctrlKey || event.metaKey);
-        }
-
-        function handleInputKeyDown(event) {
-          filterColumn(column.key, event.target.value);
-        }
-
-        return (
-          <React.Fragment>
-            <div className={filters.enabled ? "filter-cell" : undefined}>
-              <span
-                tabIndex={-1}
-                style={{
-                  cursor: "pointer",
-                  display: "flex",
-                }}
-                className="rdg-header-sort-cell"
-                onClick={handleClick}
-              >
-                <span
-                  className="rdg-header-sort-name"
-                  style={{
-                    flexGrow: "1",
-                    overflow: "clip",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {column.name}
-                </span>
-                <span>
-                  <svg
-                    viewBox="0 0 12 8"
-                    width="12"
-                    height="8"
-                    className="rdg-sort-arrow"
-                    style={{
-                      fill: "currentcolor",
-                    }}
-                  >
-                    {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
-                    {sortDirection === "DESC" && (
-                      <path d="M0 0 6 8 12 0"></path>
-                    )}
-                  </svg>
-                  {priority}
-                </span>
-              </span>
-            </div>
-            {filters.enabled && (
-              <div className={"filter-cell"}>
-                <input
-                  className="textInput"
-                  style={filterCSS}
-                  defaultValue={filters.columns[column.key]}
-                  onChange={handleInputKeyDown}
-                />
-              </div>
-            )}
-          </React.Fragment>
-        );
-      };
-    }
-
-    if (column.key === "pcntOfSession") {
-      addPercentage(column);
-    }
-  });
-
   function filterColumn(columnKey: string, value: any) {
     var tempFilters = filters;
 
@@ -369,12 +411,12 @@ function ProfilerModuleDetails({
     } else {
       setFilteredModuleRows(
         moduleRows.filter((row) => {
-          for (let [key] of Object.entries(filters.columns)) {
+          for (let [key, value] of Object.entries(filters.columns)) {
             if (
-              !row[key]
+              !(row as Record<string, any>)[key]
                 .toString()
                 .toLowerCase()
-                .includes(filters.columns[key].toLowerCase())
+                .includes((value as string).toLowerCase())
             ) {
               return false;
             }
@@ -383,43 +425,6 @@ function ProfilerModuleDetails({
         })
       );
     }
-  }
-
-  function addPercentage(column) {
-    column["headerRenderer"] = function ({}) {
-      return <span>{column.name}</span>;
-    };
-
-    column["formatter"] = function ({ row }) {
-      const percentage = row[column.key];
-      const progressStyle: React.CSSProperties = {
-        width: `${percentage}%`,
-        height: "10px",
-        backgroundColor: "#007bff",
-      };
-
-      const borderStyle: React.CSSProperties = {
-        border: "1px solid #ccc",
-        boxSizing: "border-box",
-      };
-
-      return (
-        <div className="progress" style={{ height: "10px" }}>
-          <div className="progress-border" style={borderStyle}>
-            <div
-              className="progress-bar"
-              role="progressbar"
-              style={progressStyle}
-              aria-valuenow={percentage}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              {percentage}%
-            </div>
-          </div>
-        </div>
-      );
-    };
   }
 
   React.useLayoutEffect(() => {
@@ -439,13 +444,15 @@ function ProfilerModuleDetails({
     });
   }, []);
 
-  const showSelected = (row) => {
+  const showSelected = (row: ModuleDetails) => {
     onRowSelect(row);
     filterTables(row);
   };
 
-  function filterTables(row) {
-    if (!row) return;
+  function filterTables(row: ModuleDetails) {
+    if (!row) {
+      return;
+    }
     setSelectedCallingRows(
       callingRows.filter((element) => element.calleeID === row.moduleID)
     );
@@ -470,7 +477,7 @@ function ProfilerModuleDetails({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    const moduleName = moduleRow.moduleName;
+    const moduleName = moduleRow?.moduleName;
 
     vscode.postMessage({
       type: "MODULE_NAME",
