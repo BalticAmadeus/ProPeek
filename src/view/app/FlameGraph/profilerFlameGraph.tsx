@@ -52,8 +52,9 @@ function ProfilerFlameGraph({
     React.useState<FlameGraphNodeRoot>(
       convertToNestedStructure(callTree, Mode.Length, searchPhrase)
     );
+
   const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
-    callTree[0]?.cumulativeTime ?? 1
+    callTree[0]?.cumulativeTime ?? 0
   );
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -207,7 +208,7 @@ function ProfilerFlameGraph({
 
       <div>
         <div className="grid-name">Flame Graph</div>
-        <TimeRibbon endValue={timeRibbonEndValue} />
+        {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
         <Box className={"flame-graph-container"}>
           <FlameGraph
             data={nestedStructure}
@@ -241,7 +242,7 @@ function convertToNestedStructure(
     name: "root",
     value: 100,
     left: 0,
-    cumulativeTime: rootNode.cumulativeTime,
+    cumulativeTime: rootNode?.cumulativeTime ?? 0,
     children: [],
   };
 
