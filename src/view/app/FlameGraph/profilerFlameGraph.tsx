@@ -4,11 +4,14 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
+import TimeRibbon from "./TimeRibbon";
+import { Box } from "@mui/material";
 
 interface FlameGraphNodeRoot {
   name: "root";
   value: number;
   left: number;
+  cumulativeTime: number;
   children: Array<FlameGraphNode>;
 }
 
@@ -49,6 +52,10 @@ function ProfilerFlameGraph({
     React.useState<FlameGraphNodeRoot>(
       convertToNestedStructure(callTree, Mode.Length, searchPhrase)
     );
+
+  const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
+    callTree[0]?.cumulativeTime ?? 0
+  );
   const [isLoading, setIsLoading] = React.useState(false);
 
   const windowResize = () => {
@@ -201,14 +208,22 @@ function ProfilerFlameGraph({
 
       <div>
         <div className="grid-name">Flame Graph</div>
-        <FlameGraph
-          data={nestedStructure}
-          height={windowHeight}
-          width={windowWidth - 40}
-          onDoubleClick={(node) => {
-            handleNodeSelection(node.name);
-          }}
-        />
+        {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
+        <Box className={"flame-graph-container"}>
+          <FlameGraph
+            data={nestedStructure}
+            height={windowHeight}
+            width={windowWidth - 63}
+            onDoubleClick={(node) => {
+              handleNodeSelection(node.name);
+            }}
+            onChange={(node) =>
+              setTimeRibbonEndValue(
+                (node.source as FlameGraphNode).cumulativeTime
+              )
+            }
+          />
+        </Box>
       </div>
     </React.Fragment>
   );
@@ -227,6 +242,7 @@ function convertToNestedStructure(
     name: "root",
     value: 100,
     left: 0,
+    cumulativeTime: rootNode?.cumulativeTime ?? 0,
     children: [],
   };
 
@@ -240,6 +256,7 @@ function convertToNestedStructure(
       } Percentage of Session: ${node.pcntOfSession.toFixed(
         2
       )}% Cumulative Time: ${node.cumulativeTime}`,
+      cumulativeTime: node.cumulativeTime,
       children: [],
       left: 0,
     };
