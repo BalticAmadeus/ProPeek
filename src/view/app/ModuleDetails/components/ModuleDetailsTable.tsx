@@ -1,98 +1,141 @@
-import DataGrid, { Column, DataGridProps } from "react-data-grid";
+import DataGrid, {
+  Column,
+  DataGridProps,
+  FormatterProps,
+  HeaderRenderer,
+  HeaderRendererProps,
+} from "react-data-grid";
 import { ModuleDetails } from "../../../../common/PresentationData";
 import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
-import { TextField } from "@mui/material";
+import { Box } from "@mui/material";
+import PercentageFill from "./PercentageFill";
 
-export interface ModuleDetailsTableProps extends DataGridProps<ModuleDetails> {
+interface FilterHeaderProps {
+  onFilterChange?: (value: string) => void;
+  searchValue?: string;
+  setSearchValue?: React.Dispatch<React.SetStateAction<string>>;
+}
+export interface ModuleDetailsTableProps
+  extends DataGridProps<ModuleDetails>,
+    Omit<FilterHeaderProps, "onFilterChange"> {
   sumTotalTime?: number;
 }
 
-const FilterHeader = React.memo(({ onFilterChange }) => {
-  const [value, setValue] = useState("");
+const FilterHeader = React.memo<FilterHeaderProps>(
+  ({ onFilterChange, searchValue, setSearchValue }) => {
+    const [value, setValue] = useState<string>(searchValue ?? "");
 
-  const handleChange = React.useCallback(
-    (event) => {
-      const newValue = event.target.value;
-      setValue(newValue);
-      onFilterChange(newValue); // Pass the column key and new value up to the parent component
-    },
-    [onFilterChange]
-  ); // useCallback will ensure this function is stable across renders
+    React.useEffect(() => {
+      setValue(searchValue);
+      if (onFilterChange) {
+        onFilterChange(searchValue);
+      }
+    }, [searchValue]);
 
-  return (
-    <TextField
-      value={value}
-      onChange={handleChange}
-      variant="outlined"
-      size="small"
-      fullWidth
-    />
-  );
-});
+    const handleChange = React.useCallback(
+      (event) => {
+        const newValue = event.target.value;
+        setValue(newValue);
+        if (onFilterChange) {
+          onFilterChange(newValue);
+        }
+      },
+      [onFilterChange]
+    );
+
+    const handleOnBlur = () => {
+      if (setSearchValue) {
+        setSearchValue(value);
+      }
+    };
+
+    return (
+      <Box>
+        <input
+          className="textInput"
+          style={{
+            inlineSize: "100%",
+            fontSize: "14px",
+            height: "24px",
+          }}
+          value={value}
+          onChange={handleChange}
+          onBlur={handleOnBlur}
+        />
+      </Box>
+    );
+  }
+);
 
 const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
   sumTotalTime,
+  searchValue,
+  setSearchValue,
   ...otherProps
 }) => {
-  const [filterValue, setFilterValue] = useState<string>("");
   const [rows, setRows] = useState(otherProps.rows);
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<string>("");
+
+  React.useEffect(() => {
+    applyFilter(filters);
+  }, [otherProps.rows]);
 
   const vscode = getVSCodeAPI();
 
-  const handleFilterChange = (value: string) => {
-    console.log(value);
-    const columnKey = "moduleName";
-    const newFilters = { ...filters, [columnKey]: value };
-    setFilters(newFilters);
-
+  const applyFilter = (filter: string) => {
     const filteredRows = otherProps.rows.filter((row) => {
-      const rowValue = row[columnKey].toString().toLowerCase();
-      const filterValue = value.toLowerCase();
+      const rowValue = row.moduleName.toString().toLowerCase();
+      const filterValue = filter.toLowerCase();
       return rowValue.includes(filterValue);
     });
 
     setRows(filteredRows);
-    setFilterValue(value);
   };
 
-  // const filteredColumns: CustomColumn[] = otherProps.columns.map(
-  //   (col: CustomColumn) => ({
-  //     ...col,
-  //     filterRenderer: col.filterRenderer
-  //       ? (props) => (
-  //           <col.filterRenderer
-  //             {...props}
-  //             onChange={(value) => handleFilterChange(col.key, value)}
-  //           />
-  //         )
-  //       : undefined,
-  //   })
-  // );
+  const handleFilterChange = (value: string) => {
+    setFilters(value);
+    applyFilter(value);
+  };
 
   const addFilterRendererToColumns = (
     columns: Readonly<Array<Column<ModuleDetails>>>
   ): Array<Column<ModuleDetails>> => {
     return columns.map((col) => {
-      // Assuming you want to add filterRenderer to all columns or specific ones based on some condition
       const hasFilter = col.key === "moduleName";
       if (hasFilter) {
         return {
           ...col,
-          headerRenderer: (props) => (
-            <FilterHeader onFilterChange={handleFilterChange} />
+          headerCellClass: "filter-cell",
+          headerRenderer: (props: HeaderRendererProps<ModuleDetails>) => (
+            <>
+              <Box>{HeaderRenderer<ModuleDetails, unknown>({ ...props })}</Box>
+              <FilterHeader
+                onFilterChange={handleFilterChange}
+                searchValue={searchValue}
+                setSearchValue={setSearchValue}
+              />
+            </>
           ),
         };
       }
-      return col; // Cast is necessary to match the return type
+      if (col.key === "pcntOfSession") {
+        return {
+          ...col,
+          formatter: (props: FormatterProps<ModuleDetails>) => {
+            const percentage = props.row[col.key];
+            return <PercentageFill value={percentage} />;
+          },
+        };
+      }
+      return col;
     });
   };
 
-  const filteredColumns = addFilterRendererToColumns(otherProps.columns);
-
-  console.log("filteredColumns", filteredColumns);
+  const filteredColumns = React.useMemo(() => {
+    return addFilterRendererToColumns(otherProps.columns);
+  }, [otherProps.columns, searchValue]);
 
   const openFileForModuleDetails = (row: ModuleDetails): void => {
     if (!row.hasLink) {
@@ -116,6 +159,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
         }}
         headerRowHeight={70}
         onRowDoubleClick={openFileForModuleDetails}
+        rowKeyGetter={(row) => row.moduleID}
         {...otherProps}
         columns={filteredColumns}
         rows={rows}

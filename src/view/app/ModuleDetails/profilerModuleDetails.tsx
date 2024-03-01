@@ -7,29 +7,29 @@ import {
   LineSummary,
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
-import type { Column, SortColumn } from "react-data-grid";
+import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import * as columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
-import { TextField } from "@mui/material";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
+import PercentageFill from "./components/PercentageFill";
+import { Box } from "@mui/material";
 
-interface ModuleColumn extends Column<any> {
+interface GenericModuleColumn extends Column<any> {
   key: string;
   name: string;
   width: string;
 }
 
+interface ModuleColumn extends GenericModuleColumn {}
+interface CallingColumn extends GenericModuleColumn {}
+interface CalledColumn extends GenericModuleColumn {}
+interface LineColumn extends GenericModuleColumn {}
+
 interface IConfigProps {
   presentationData: PresentationData;
   moduleName: string;
 }
-
-const filterCSS: React.CSSProperties = {
-  inlineSize: "100%",
-  padding: "4px",
-  fontSize: "14px",
-};
 
 const defaultModuleSort: SortColumn = {
   columnKey: "totalTime", // Sort by the "totalTime" column by default
@@ -41,31 +41,38 @@ const defaultLineSort: SortColumn = {
   direction: "ASC", // Use ascending order by default
 };
 
-function moduleRowKeyGetter(row: ModuleDetails) {
-  return row.moduleID;
-}
-
 const addConditionalFormatting = (
-  columns: Array<ModuleColumn>
-): Array<ModuleColumn> => {
+  columns: Array<GenericModuleColumn>
+): Array<GenericModuleColumn> => {
+  const addPercentageFormat = (value: number) => (
+    <PercentageFill value={value} />
+  );
+
+  const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
+    <Box className={row.hasLink ? "link-cell" : ""}>{row[key]}</Box>
+  );
+
   return columns.map((column) => {
     if (column.key === "moduleName" || column.key === "lineNumber") {
       return {
         ...column,
-        formatter: ({ row }: { row: ModuleDetails | LineSummary }) => {
-          const className = row.hasLink ? "link-cell" : "";
-          return <div className={className}>{row[column.key]}</div>;
-        },
+        formatter: (props: FormatterProps<ModuleDetails | LineSummary>) =>
+          addLinkFormat(props.row, column.key),
+      };
+    }
+    if (
+      column.key === "calleePcntOfSession" ||
+      column.key === "callerPcntOfSession"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<CalledModules>) =>
+          addPercentageFormat(props.row[column.key]),
       };
     }
     return column;
   });
 };
-
-type ModuleComparator = (a: ModuleDetails, b: ModuleDetails) => number;
-type CallingComparator = (a: CalledModules, b: CalledModules) => number;
-type CalledComparator = (a: CalledModules, b: CalledModules) => number;
-type LineComparator = (a: LineSummary, b: LineSummary) => number;
 
 function getComparator(sortColumn: string) {
   switch (sortColumn) {
@@ -96,22 +103,6 @@ function getComparator(sortColumn: string) {
   }
 }
 
-function getModuleComparator(sortColumn: string): ModuleComparator {
-  return getComparator(sortColumn);
-}
-
-function getCallingComparator(sortColumn: string): CallingComparator {
-  return getComparator(sortColumn);
-}
-
-function getCalledComparator(sortColumn: string): CalledComparator {
-  return getComparator(sortColumn);
-}
-
-function getLineComparator(sortColumn: string): LineComparator {
-  return getComparator(sortColumn);
-}
-
 function ProfilerModuleDetails({
   presentationData,
   moduleName,
@@ -122,11 +113,7 @@ function ProfilerModuleDetails({
   const [sortModuleColumns, setSortModuleColumns] = useState<
     readonly SortColumn[]
   >([defaultModuleSort]);
-  const [filteredModuleRows, setFilteredModuleRows] = useState(moduleRows);
 
-  const [callingRows, setCallingRows] = useState(
-    presentationData.calledModules
-  );
   const [selectedRow, setSelectedRow] = useState<ModuleDetails>(null);
   const [selectedCallingRows, setSelectedCallingRows] = useState(
     presentationData.calledModules
@@ -135,7 +122,6 @@ function ProfilerModuleDetails({
     readonly SortColumn[]
   >([]);
 
-  const [calledRows, setCalledRows] = useState(presentationData.calledModules);
   const [selectedCalledRows, setSelectedCalledRows] = useState(
     presentationData.calledModules
   );
@@ -143,7 +129,6 @@ function ProfilerModuleDetails({
     readonly SortColumn[]
   >([]);
 
-  const [lineRows, setLineRows] = useState(presentationData.lineSummary);
   const [selectedLineRows, setSelectedLineRows] = useState(
     presentationData.lineSummary
   );
@@ -151,163 +136,62 @@ function ProfilerModuleDetails({
     [defaultLineSort]
   );
 
-  const [formattedModuleColumns] = useState(
-    addConditionalFormatting(columnDefinition.moduleColumns)
-  );
-
-  // const formattedModuleColumns = useMemo(
-  //   () =>
-  //     addConditionalFormatting(columnDefinition.moduleColumns).map((column) => {
-  //       if (column.key === "moduleName") {
-  //         column["filterRenderer"] = function ({
-  //           onSort,
-  //           sortDirection,
-  //           priority,
-  //         }) {
-  //           function handleClick(event) {
-  //             onSort(event.ctrlKey || event.metaKey);
-  //           }
-  //           console.log("IS THIS RERENDERED?!?!?!?");
-
-  //           return (
-  //             <React.Fragment>
-  //               <div className={"filter-cell"}>
-  //                 <span
-  //                   tabIndex={-1}
-  //                   style={{
-  //                     cursor: "pointer",
-  //                     display: "flex",
-  //                   }}
-  //                   className="rdg-header-sort-cell"
-  //                   onClick={handleClick}
-  //                 >
-  //                   <span
-  //                     className="rdg-header-sort-name"
-  //                     style={{
-  //                       flexGrow: "1",
-  //                       overflow: "clip",
-  //                       textOverflow: "ellipsis",
-  //                     }}
-  //                   >
-  //                     {column.name}
-  //                   </span>
-  //                   <span>
-  //                     <svg
-  //                       viewBox="0 0 12 8"
-  //                       width="12"
-  //                       height="8"
-  //                       className="rdg-sort-arrow"
-  //                       style={{
-  //                         fill: "currentcolor",
-  //                       }}
-  //                     >
-  //                       {sortDirection === "ASC" && (
-  //                         <path d="M0 8 6 0 12 8"></path>
-  //                       )}
-  //                       {sortDirection === "DESC" && (
-  //                         <path d="M0 0 6 8 12 0"></path>
-  //                       )}
-  //                     </svg>
-  //                     {priority}
-  //                   </span>
-  //                 </span>
-  //               </div>
-  //               <div className={"filter-cell"}>
-  //                 <TextField
-  //                   className="textInput"
-  //                   style={filterCSS}
-  //                   value={moduleNameFilter}
-  //                   onChange={(e) => {
-  //                     // filterByModuleName(e.target.value);
-  //                     setModuleNameFilter(e.target.value);
-  //                   }}
-  //                 />
-  //               </div>
-  //             </React.Fragment>
-  //           );
-  //         };
-  //       }
-
-  //       if (column.key === "pcntOfSession") {
-  //         addPercentage(column);
-  //       }
-  //       // Other customizations like addPercentage
-  //       return column;
-  //     }),
-  //   [addConditionalFormatting, columnDefinition.moduleColumns]
-  // );
-
-  const [formattedLineColumns] = useState(
-    addConditionalFormatting(columnDefinition.LineColumns)
-  );
-
   const [moduleNameFilter, setModuleNameFilter] =
     React.useState<string>(moduleName);
 
   const vscode = getVSCodeAPI();
 
-  const calledColumns = columnDefinition.CalledColumns;
-  const callingColumns = columnDefinition.CallingColumns;
+  const formattedModuleColumns: ModuleColumn[] = addConditionalFormatting(
+    columnDefinition.moduleColumns
+  );
+  const callingColumns: CallingColumn[] = addConditionalFormatting(
+    columnDefinition.CallingColumns
+  );
+  const calledColumns: CalledColumn[] = addConditionalFormatting(
+    columnDefinition.CalledColumns
+  );
+  const formattedLineColumns: LineColumn[] = addConditionalFormatting(
+    columnDefinition.LineColumns
+  );
 
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
     0
   );
 
-  console.log("COMPLETE COMPONNET RERENDER");
-
-  React.useEffect(() => {
-    console.log("THIS IS LOADED ONCE!!", moduleNameFilter);
-  }, [moduleNameFilter]);
-  // React.useEffect(() => {
-  //   filterByModuleName(moduleName);
-  // }, [moduleName]);
-
-  calledColumns.forEach((column) => {
-    if (column.key === "calleePcntOfSession") {
-      addPercentage(column);
+  const filterTables = (row: ModuleDetails) => {
+    if (!row) {
+      return;
     }
-  });
 
-  callingColumns.forEach((column) => {
-    if (column.key === "callerPcntOfSession") {
-      addPercentage(column);
-    }
-  });
-
-  React.useEffect(() => {
-    console.log("moduleNameFilter", moduleNameFilter);
-  }, [moduleNameFilter]);
-
-  const filterByModuleName = (value: string) => {
-    console.log("filterColumn", value);
-
-    // setModuleNameFilter(value);
-
-    if (value === "") {
-      setFilteredModuleRows(moduleRows);
-    } else {
-      setFilteredModuleRows(
-        moduleRows.filter(
-          (row) =>
-            !row.moduleName
-              .toString()
-              .toLowerCase()
-              .includes(moduleNameFilter.toLowerCase())
-        )
-      );
-    }
-    setSelectedModuleRow(null);
+    setSelectedCallingRows(
+      presentationData.calledModules.filter(
+        (element) => element.calleeID === row.moduleID
+      )
+    );
+    setSelectedCalledRows(
+      presentationData.calledModules.filter(
+        (element) => element.callerID === row.moduleID
+      )
+    );
+    setSelectedLineRows(
+      presentationData.lineSummary.filter(
+        (element) => element.moduleID === row.moduleID
+      )
+    );
   };
 
-  const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
-    if (sortModuleColumns.length === 0) {
-      return filteredModuleRows;
+  const getSortedRows = (
+    columns: readonly SortColumn[],
+    rows: ModuleDetails[] | CalledModules[] | LineSummary[]
+  ) => {
+    if (columns.length === 0) {
+      return rows;
     }
 
-    const sortedRows = [...filteredModuleRows].sort((a, b) => {
-      for (const sort of sortModuleColumns) {
-        const comparator = getModuleComparator(sort.columnKey);
+    return [...rows].sort((a, b) => {
+      for (const sort of columns) {
+        const comparator = getComparator(sort.columnKey);
         const compResult = comparator(a, b);
         if (compResult !== 0) {
           return sort.direction === "ASC" ? compResult : -compResult;
@@ -315,6 +199,13 @@ function ProfilerModuleDetails({
       }
       return 0;
     });
+  };
+
+  const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
+    const sortedRows = getSortedRows(
+      sortModuleColumns,
+      moduleRows
+    ) as ModuleDetails[];
 
     if (sortedRows.length > 0 && selectedModuleRow === null) {
       setSelectedModuleRow(sortedRows[0]);
@@ -322,203 +213,25 @@ function ProfilerModuleDetails({
     }
 
     return sortedRows;
-  }, [filteredModuleRows, sortModuleColumns]);
+  }, [moduleRows, sortModuleColumns]);
 
   const sortedCallingRows = useMemo((): readonly CalledModules[] => {
-    if (sortCallingColumns.length === 0) {
-      return selectedCallingRows;
-    }
-
-    return [...selectedCallingRows].sort((a, b) => {
-      for (const sort of sortCallingColumns) {
-        const comparator = getCallingComparator(sort.columnKey);
-        const compResult = comparator(a, b);
-        if (compResult !== 0) {
-          return sort.direction === "ASC" ? compResult : -compResult;
-        }
-      }
-      return 0;
-    });
+    return getSortedRows(
+      sortCallingColumns,
+      selectedCallingRows
+    ) as CalledModules[];
   }, [selectedCallingRows, sortCallingColumns]);
 
   const sortedCalledRows = useMemo((): readonly CalledModules[] => {
-    if (sortCalledColumns.length === 0) {
-      return selectedCalledRows;
-    }
-
-    return [...selectedCalledRows].sort((a, b) => {
-      for (const sort of sortCalledColumns) {
-        const comparator = getCalledComparator(sort.columnKey);
-        const compResult = comparator(a, b);
-        if (compResult !== 0) {
-          return sort.direction === "ASC" ? compResult : -compResult;
-        }
-      }
-      return 0;
-    });
+    return getSortedRows(
+      sortCalledColumns,
+      selectedCalledRows
+    ) as CalledModules[];
   }, [selectedCalledRows, sortCalledColumns]);
 
   const sortedLineRows = useMemo((): readonly LineSummary[] => {
-    if (sortLineColumns.length === 0) {
-      return selectedLineRows;
-    }
-
-    return [...selectedLineRows].sort((a, b) => {
-      for (const sort of sortLineColumns) {
-        const comparator = getLineComparator(sort.columnKey);
-        const compResult = comparator(a, b);
-        if (compResult !== 0) {
-          return sort.direction === "ASC" ? compResult : -compResult;
-        }
-      }
-      return 0;
-    });
+    return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
   }, [selectedLineRows, sortLineColumns]);
-
-  // formattedModuleColumns.forEach((column) => {
-  //   if (column.key === "moduleName") {
-  //     column["headerRenderer"] = function ({
-  //       onSort,
-  //       sortDirection,
-  //       priority,
-  //     }) {
-  //       function handleClick(event) {
-  //         onSort(event.ctrlKey || event.metaKey);
-  //       }
-  //       console.log("IS THIS RERENDERED?!?!?!?");
-
-  //       return (
-  //         <React.Fragment>
-  //           <div className={"filter-cell"}>
-  //             <span
-  //               tabIndex={-1}
-  //               style={{
-  //                 cursor: "pointer",
-  //                 display: "flex",
-  //               }}
-  //               className="rdg-header-sort-cell"
-  //               onClick={handleClick}
-  //             >
-  //               <span
-  //                 className="rdg-header-sort-name"
-  //                 style={{
-  //                   flexGrow: "1",
-  //                   overflow: "clip",
-  //                   textOverflow: "ellipsis",
-  //                 }}
-  //               >
-  //                 {column.name}
-  //               </span>
-  //               <span>
-  //                 <svg
-  //                   viewBox="0 0 12 8"
-  //                   width="12"
-  //                   height="8"
-  //                   className="rdg-sort-arrow"
-  //                   style={{
-  //                     fill: "currentcolor",
-  //                   }}
-  //                 >
-  //                   {sortDirection === "ASC" && <path d="M0 8 6 0 12 8"></path>}
-  //                   {sortDirection === "DESC" && (
-  //                     <path d="M0 0 6 8 12 0"></path>
-  //                   )}
-  //                 </svg>
-  //                 {priority}
-  //               </span>
-  //             </span>
-  //           </div>
-  //           <div className={"filter-cell"}>
-  //             <TextField
-  //               className="textInput"
-  //               style={filterCSS}
-  //               value={moduleNameFilter}
-  //               onChange={(e) => {
-  //                 // filterByModuleName(e.target.value);
-  //                 setModuleNameFilter(e.target.value);
-  //               }}
-  //             />
-  //           </div>
-  //         </React.Fragment>
-  //       );
-  //     };
-  //   }
-
-  //   if (column.key === "pcntOfSession") {
-  //     addPercentage(column);
-  //   }
-  // });
-
-  function addPercentage(column) {
-    column["headerRenderer"] = function ({}) {
-      return <span>{column.name}</span>;
-    };
-
-    column["formatter"] = function ({ row }) {
-      const percentage = row[column.key];
-      const progressStyle: React.CSSProperties = {
-        width: `${percentage}%`,
-        height: "10px",
-        backgroundColor: "#007bff",
-      };
-
-      const borderStyle: React.CSSProperties = {
-        border: "1px solid #ccc",
-        boxSizing: "border-box",
-      };
-
-      return (
-        <div className="progress" style={{ height: "10px" }}>
-          <div className="progress-border" style={borderStyle}>
-            <div
-              className="progress-bar"
-              role="progressbar"
-              style={progressStyle}
-              aria-valuenow={percentage}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              {percentage}%
-            </div>
-          </div>
-        </div>
-      );
-    };
-  }
-
-  React.useLayoutEffect(() => {
-    window.addEventListener("message", (event) => {
-      const message = event.data as PresentationData;
-
-      setModuleRows(message.moduleDetails);
-      setFilteredModuleRows(message.moduleDetails);
-      setFilters({
-        columns: {},
-      });
-
-      setCallingRows(message.calledModules);
-      setCalledRows(message.calledModules);
-      setLineRows(message.lineSummary);
-    });
-  }, []);
-
-  const showSelected = (row) => {
-    setSelectedRow(row);
-    filterTables(row);
-  };
-
-  function filterTables(row) {
-    if (!row) return;
-    setSelectedCallingRows(
-      callingRows.filter((element) => element.calleeID === row.moduleID)
-    );
-    setSelectedCalledRows(
-      calledRows.filter((element) => element.callerID === row.moduleID)
-    );
-    setSelectedLineRows(
-      lineRows.filter((element) => element.moduleID === row.moduleID)
-    );
-  }
 
   React.useEffect(() => {
     filterTables(selectedRow);
@@ -545,40 +258,17 @@ function ProfilerModuleDetails({
       {moduleRows.length > 0 ? (
         <ModuleDetailsTable
           columns={formattedModuleColumns}
-          // columns={columnDefinition.moduleColumns}
           rows={sortedModuleRows}
-          onRowClick={showSelected}
-          rowKeyGetter={moduleRowKeyGetter}
+          onRowClick={(row) => setSelectedRow(row)}
           onRowsChange={setModuleRows}
           sortColumns={sortModuleColumns}
           onSortColumnsChange={setSortModuleColumns}
           rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
           sumTotalTime={sumTotalTime}
+          searchValue={moduleNameFilter}
+          setSearchValue={setModuleNameFilter}
         />
-      ) : // <div className="details-columns">
-      //   <div className="grid-name">Module Details</div>
-      //   <DataGrid
-      //     columns={formattedModuleColumns}
-      //     // columns={columnDefinition.moduleColumns}
-      //     rows={sortedModuleRows}
-      //     defaultColumnOptions={{
-      //       sortable: true,
-      //       resizable: true,
-      //     }}
-      //     onRowClick={showSelected}
-      //     headerRowHeight={70}
-      //     rowKeyGetter={moduleRowKeyGetter}
-      //     onRowsChange={setModuleRows}
-      //     sortColumns={sortModuleColumns}
-      //     onSortColumnsChange={setSortModuleColumns}
-      //     onRowDoubleClick={openFileForModuleDetails}
-      //     rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-      //   />
-      //   <div className="total-time">
-      //     Total Time: {sumTotalTime.toFixed(6)}s
-      //   </div>
-      // </div>
-      null}
+      ) : null}
       <div className="columns">
         <div className="calling-columns">
           <div className="grid-name">Calling Modules</div>
@@ -594,7 +284,7 @@ function ProfilerModuleDetails({
             sortColumns={sortCallingColumns}
             onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
-              filterByModuleName(row.callerModuleName);
+              setModuleNameFilter(row.callerModuleName);
             }}
           />
         </div>
@@ -613,7 +303,7 @@ function ProfilerModuleDetails({
             sortColumns={sortCalledColumns}
             onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
-              filterByModuleName(row.calleeModuleName);
+              setModuleNameFilter(row.calleeModuleName);
             }}
           />
         </div>
