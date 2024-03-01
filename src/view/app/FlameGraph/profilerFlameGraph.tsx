@@ -4,7 +4,22 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
-import { Input } from "@mui/material";
+import TimeRibbon from "./TimeRibbon";
+import { Box } from "@mui/material";
+
+interface FlameGraphNodeRoot {
+  name: "root";
+  value: number;
+  left: number;
+  cumulativeTime: number;
+  children: Array<FlameGraphNode>;
+}
+
+interface FlameGraphNode extends Omit<FlameGraphNodeRoot, "name"> {
+  name: string;
+  backgroundColor: string;
+  tooltip: string;
+}
 
 interface IConfigProps {
   presentationData: PresentationData;
@@ -33,8 +48,13 @@ function ProfilerFlameGraph({
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-  const [nestedStructure, setNestedStructure] = React.useState<any>(
-    convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+  const [nestedStructure, setNestedStructure] =
+    React.useState<FlameGraphNodeRoot>(
+      convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+    );
+
+  const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
+    callTree[0]?.cumulativeTime ?? 0
   );
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -188,14 +208,22 @@ function ProfilerFlameGraph({
 
       <div>
         <div className="grid-name">Flame Graph</div>
-        <FlameGraph
-          data={nestedStructure}
-          height={windowHeight}
-          width={windowWidth - 40}
-          onDoubleClick={(node) => {
-            handleNodeSelection(node.name);
-          }}
-        />
+        {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
+        <Box className={"flame-graph-container"}>
+          <FlameGraph
+            data={nestedStructure}
+            height={windowHeight}
+            width={windowWidth - 63}
+            onDoubleClick={(node) => {
+              handleNodeSelection(node.name);
+            }}
+            onChange={(node) =>
+              setTimeRibbonEndValue(
+                (node.source as FlameGraphNode).cumulativeTime
+              )
+            }
+          />
+        </Box>
       </div>
     </React.Fragment>
   );
@@ -206,23 +234,20 @@ function convertToNestedStructure(
   data: CallTree[],
   mode: Mode,
   searchPhrase: string
-): any {
-  const nodeMap: { [key: number]: any } = {};
+): FlameGraphNodeRoot {
+  const nodeMap: { [key: number]: FlameGraphNode } = {};
   const rootNode = data[0];
-  let root: any;
 
-  //if there is no call tree data, define and return empty root node
-  if (rootNode === undefined) {
-    root = {
-      name: "root",
-      value: 100,
-      left: 0,
-      children: [],
-    };
-  }
+  const root: FlameGraphNodeRoot = {
+    name: "root",
+    value: 100,
+    left: 0,
+    cumulativeTime: rootNode?.cumulativeTime ?? 0,
+    children: [],
+  };
 
   for (const node of data) {
-    let flameGraphNode = {
+    nodeMap[node.nodeID] = {
       name: node.moduleName,
       value: node.pcntOfSession,
       backgroundColor: giveColor(mode, node, searchPhrase),
@@ -231,25 +256,22 @@ function convertToNestedStructure(
       } Percentage of Session: ${node.pcntOfSession.toFixed(
         2
       )}% Cumulative Time: ${node.cumulativeTime}`,
+      cumulativeTime: node.cumulativeTime,
       children: [],
       left: 0,
     };
 
     if (node.parentID === rootNode.parentID) {
-      root = flameGraphNode;
+      root.children.push(nodeMap[node.nodeID]);
     } else {
-      nodeMap[node.nodeID] = flameGraphNode;
       nodeMap[node.nodeID].left =
         (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
 
-      if (node.parentID === rootNode.nodeID) {
-        root.children.push(nodeMap[node.nodeID]);
-      } else {
-        if (!nodeMap[node.parentID].children) {
-          nodeMap[node.parentID].children = [];
-        }
-        nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
+      if (!nodeMap[node.parentID].children) {
+        nodeMap[node.parentID].children = [];
       }
+
+      nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
     }
   }
 

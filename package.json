@@ -2,7 +2,7 @@
     "name": "pro-peek",
     "displayName": "ProPeek",
     "description": "Profiler app for OpenEdge ABL",
-    "version": "1.1.1",
+    "version": "1.2.1-prerelease",
     "publisher": "BalticAmadeus",
     "engines": {
         "vscode": "^1.78.0"
@@ -28,22 +28,22 @@
     "main": "./out/extension.js",
     "contributes": {
         "languages": [
-			{
-				"id": "abl",
-				"extensions": [
-					".w",
+            {
+                "id": "abl",
+                "extensions": [
+                    ".w",
                     ".p",
                     ".i",
                     ".cls"
-				]
-			}
-		],
-		"snippets": [
-			{
-				"language": "abl",
-				"path": "oe.json"
-			}
-		],
+                ]
+            }
+        ],
+        "snippets": [
+            {
+                "language": "abl",
+                "path": "oe.json"
+            }
+        ],
         "commands": [
             {
                 "command": "vsc-profiler.profiler",
@@ -68,9 +68,9 @@
             ],
             "explorer/context": [
                 {
-                  "command": "vsc-profiler.profiler",
-                  "group": "navigation",
-                  "when": "resourceExtname == .prof || resourceExtname == .out"
+                    "command": "vsc-profiler.profiler",
+                    "group": "navigation",
+                    "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]
         }
@@ -124,6 +124,7 @@
         "react-dom": "^18.1.0",
         "react-flame-graph": "^1.4.0",
         "react-virtualized-auto-sizer": "^1.0.20",
+        "victory-axis": "^36.9.1",
         "webpack-dev-server": "^4.15.1"
     }
 }
