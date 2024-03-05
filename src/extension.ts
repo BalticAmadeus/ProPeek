@@ -36,6 +36,33 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('vsc-profiler.profilerFromTask', async (args) => {
+        console.log(args.length, args.length < 3)
+        if (args.length < 3) {
+            vscode.window.showErrorMessage("ProPeek: Please pass a parameter to the task");
+            return;
+        }
+
+        const path = getPathFromTaskArgs(args);
+
+        new ProfilerViewer(context, path, path);
+    });
+
+    context.subscriptions.push(disposable);
+}
+
+/**
+ * Function that returns the path from a list of arguments
+ * @param args array of strings
+ * @returns single path
+ */
+const getPathFromTaskArgs = (args: Array<string>): string => {
+    // accept only 1 arg, which is the 2nd element in the array
+    const realArg = args[1];
+
+    // transform argument from "${path.prof}" to "path.prof"
+    return realArg.replace(/\${(.*?)}/g, '$1');
 }
 
 // This method is called when your extension is deactivated

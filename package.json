@@ -50,6 +50,10 @@
                 "title": "Show Profiler",
                 "when": "resourceExtname == .prof || resourceExtname == .out",
                 "icon": "$(open-preview)"
+            },
+            {
+                "command": "vsc-profiler.profilerFromTask",
+                "title": "Show Profiler"
             }
         ],
         "menus": {
