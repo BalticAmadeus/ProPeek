@@ -12,9 +12,5 @@ declare global {
   }
 }
 
-const vscode = window.acquireVsCodeApi();
-
 const root = createRoot(document.getElementById("root"));
-root.render(
-  <ProfilerForm presentationData={window.presentationData} vscode={vscode} />
-);
+root.render(<ProfilerForm presentationData={window.presentationData} />);

@@ -55,7 +55,7 @@ body.vscode-dark .rdg-row-even {
     color: var(--rdg-checkbox-focus-color);
     border-radius: 8px;
   }
-  
+
   .button-primary:hover {
     background: var(--vscode-list-activeSelectionBackground);
     color: var(--rdg-checkbox-focus-color);
@@ -94,8 +94,8 @@ body.vscode-dark .rdg-row-even {
 }
 
 .filter-cell {
-    line-height: 35px;
-    padding: 0;
+    line-height: 30px;
+    padding: 4px;
 }
 
 .textInput {
