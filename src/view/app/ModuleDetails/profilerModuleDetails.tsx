@@ -247,7 +247,7 @@ function ProfilerModuleDetails({
     );
 
     vscode.postMessage({
-      type: "MODULE_NAME",
+      type: "OPEN_XREF",
       columns: moduleRow.moduleName,
       lines: row.lineNumber,
     });

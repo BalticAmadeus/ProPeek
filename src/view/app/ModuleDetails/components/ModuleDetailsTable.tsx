@@ -142,10 +142,16 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
       return;
     }
 
+    // vscode.postMessage({
+    //   type: "OPEN_XREF",
+    //   columns: row.moduleName,
+    //   lines: row.startLineNum,
+    // });
+    console.log("OPEN_LISTING", row.listingFile);
     vscode.postMessage({
-      type: "MODULE_NAME",
-      columns: row.moduleName,
-      lines: row.startLineNum,
+      type: "OPEN_LISTING",
+      listingFile: row.listingFile,
+      lineNumber: row.startLineNum,
     });
   };
 

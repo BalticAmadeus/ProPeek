@@ -26,6 +26,7 @@ export interface ModuleDetails {
     avgTimePerCall?: number,
     totalTime: number,
     pcntOfSession?: number,
+    listingFile: string,
     hasLink: boolean
 }
 

@@ -60,6 +60,11 @@ export const getFileAndProcedureName = (
   return fileAndProcedure;
 };
 
+export const getListingFilePath = (listingFileName: string) => {
+  const listingPath = "listing";
+  return `**/${listingPath}/${listingFileName}`;
+};
+
 /**
  * Returns the file name with an OE extension (e.g. .p, .cls)
  * @param fileName file name

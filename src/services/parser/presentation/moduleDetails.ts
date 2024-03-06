@@ -19,6 +19,7 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
       startLineNum : module.LineNum ? module.LineNum : 0,
       timesCalled  : 0,
       totalTime    : 0,
+      listingFile  : module.ListingFile,
       hasLink      : rawData.ModuleData.length < Constants.fileSearchLimit ? await getHasLink(module.ModuleName, profilerTitle) : (getWorkspaceConfig().length > 0 ? true : false)
     };
 
