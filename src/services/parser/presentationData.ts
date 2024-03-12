@@ -25,7 +25,9 @@ export async function transformData(rawData: ProfilerRawData, showStartTime: boo
         calledModules: calculateCalledModules(rawData, moduleDetails),
         lineSummary: await calculateLineSummary(rawData, profilerTitle),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
-        hasTracingData: hasTracingData
+        hasTracingData: hasTracingData,
+        hasXREFs: await hasFiles(`**${Constants.defaultXREFPath}*.xref`),
+        hasListings: await hasFiles(`**${Constants.defaultListingPath}*`),
     };
 
     return presentationData;
@@ -74,4 +76,14 @@ export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetai
     } else {
         return calculateCallTreeByTracingData(rawData, moduleDetails);
     }
+}
+
+/**
+ * Returns true if finds atleast one file in the workspace following a pattern
+ * @param {vscode.GlobPattern} pattern vscode.GlobPattern
+ * @returns true if found, else false
+ */
+const hasFiles = async (pattern: vscode.GlobPattern): Promise<boolean> => {
+    const files = await vscode.workspace.findFiles(pattern, null, 1);
+    return files.length > 0 ? true : false;
 }

@@ -5,6 +5,7 @@ import { PresentationData } from "../common/PresentationData";
 import { IncludeFile } from "../common/XRefData"
 import * as fs from 'fs';
 import { convertToFilePath, getFileAndProcedureName, getListingFilePath, getProPath } from "../services/parser/presentation/common";
+import { Constants } from "../common/Constants";
 
 interface Message {
     showStartTime: any;
@@ -51,10 +52,7 @@ export class ProfilerViewer {
             ),
         };
 
-        this.panel.webview.html = this.getWebviewContent({
-            moduleDetails: [], calledModules: [], lineSummary: [],
-            callTree: [], hasTracingData: false
-        });
+        this.panel.webview.html = this.getWebviewContent();
 
         this.panel.onDidDispose(
             () => {
@@ -96,7 +94,7 @@ export class ProfilerViewer {
         }
     }
 
-    private getWebviewContent(data: PresentationData): string {
+    private getWebviewContent(): string {
         // Local path to main script run in the webview
         const reactAppPathOnDisk = vscode.Uri.file(
             path.join(vscode.Uri.file(this.context.asAbsolutePath(path.join("out/view/app", "profiler.js"))).fsPath)
@@ -118,7 +116,6 @@ export class ProfilerViewer {
                       style-src ${cspSource} 'unsafe-inline';">
 
         <script>
-          window.presentationData = ${JSON.stringify(data)};
         </script>
     </head>
     <body>
@@ -151,8 +148,6 @@ async function openListing(listingFile: string, lineNumber: number): Promise<voi
         return;
     }
 
-    console.log("openListing", list, lineNumber);
-
     await openFile(list[0], lineNumber > 0 ? lineNumber : 1);
 }
 
@@ -166,7 +161,7 @@ async function open(moduleName: string, lineNumber: number, profilerService: Pro
         return;
     }
 
-    const xRefFile = "**/.builder/.pct0/" + fileName + ".xref";
+    const xRefFile = `**${Constants.defaultXREFPath}${fileName}.xref`;
 
     const list = await vscode.workspace.findFiles(xRefFile);
     if (list.length === 0) {

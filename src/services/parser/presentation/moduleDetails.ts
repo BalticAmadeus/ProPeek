@@ -29,13 +29,13 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
       hasLink      : await getHasLink(rawData.ModuleData.length, module.ModuleName, profilerTitle),
     };
 
-    for(const node of rawData.CallGraphData){
+    for(const node of rawData.CallGraphData) {
       if (node.CalleeID === module.ModuleID) {
         moduleDetails.timesCalled = moduleDetails.timesCalled + node.CallCount;
       }
     }
 
-    for(const line of rawData.LineSummaryData){
+    for(const line of rawData.LineSummaryData) {
       if (line.ModuleID === module.ModuleID) {
         moduleDetails.totalTime = moduleDetails.totalTime + line.ActualTime;
       }

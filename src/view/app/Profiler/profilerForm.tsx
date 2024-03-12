@@ -8,9 +8,15 @@ import { Button } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";
 
-interface IConfigProps {
-  presentationData: PresentationData;
-}
+const defaultPresentationData: PresentationData = {
+  moduleDetails: [],
+  calledModules: [],
+  callTree: [],
+  lineSummary: [],
+  hasTracingData: false,
+  hasXREFs: false,
+  hasListings: false,
+};
 
 enum ProfilerTab {
   ModuleDetails = 0,
@@ -18,11 +24,13 @@ enum ProfilerTab {
   FlameGraph = 2,
 }
 
-function ProfilerForm({ presentationData }: IConfigProps) {
+const ProfilerForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ProfilerTab>(
     ProfilerTab.ModuleDetails
   );
-  const [presentationData2, setPresentationData] = useState(presentationData);
+  const [presentationData, setPresentationData] = useState<PresentationData>(
+    defaultPresentationData
+  );
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
 
@@ -38,11 +46,10 @@ function ProfilerForm({ presentationData }: IConfigProps) {
   });
 
   const ModuleDetailsTab: React.FC = () => {
-    console.log("ModuleDetailsTab");
     return (
       <div>
         <ProfilerModuleDetails
-          presentationData={presentationData2}
+          presentationData={presentationData}
           moduleName={moduleName}
         />
       </div>
@@ -53,7 +60,7 @@ function ProfilerForm({ presentationData }: IConfigProps) {
     return (
       <div>
         <ProfilerTreeView
-          presentationData={presentationData2}
+          presentationData={presentationData}
           handleNodeSelection={handleNodeSelection}
         />
       </div>
@@ -64,8 +71,8 @@ function ProfilerForm({ presentationData }: IConfigProps) {
     return (
       <div>
         <ProfilerFlameGraph
-          presentationData={presentationData2}
-          hasTracingData={presentationData2.hasTracingData}
+          presentationData={presentationData}
+          hasTracingData={presentationData.hasTracingData}
           handleNodeSelection={handleNodeSelection}
           vscode={vscode}
         />
@@ -136,6 +143,6 @@ function ProfilerForm({ presentationData }: IConfigProps) {
       </div>
     </React.Fragment>
   );
-}
+};
 
 export default ProfilerForm;

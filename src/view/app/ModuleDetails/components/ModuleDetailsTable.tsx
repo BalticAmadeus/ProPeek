@@ -155,8 +155,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
   };
 
   return (
-    <div className="details-columns">
-      <div className="grid-name">Module Details</div>
+    <Box>
       <DataGrid
         defaultColumnOptions={{
           sortable: true,
@@ -172,7 +171,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
       {sumTotalTime > 0 && (
         <div className="total-time">Total Time: {sumTotalTime.toFixed(6)}s</div>
       )}
-    </div>
+    </Box>
   );
 };
 
