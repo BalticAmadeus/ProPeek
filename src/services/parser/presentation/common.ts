@@ -16,12 +16,12 @@ let foundFileCache = new Map<string, vscode.Uri | string>();
 let notFoundFileCache = new Map<string, string>();
 
 /**
- * returns true if file exists
+ * returns true if file for module exists
  * @param moduleName Module name
  * @param profilerTitle Profiler file name
  * @returns
  */
-export const getHasLink = async (
+export const checkModuleFileExists = async (
   moduleName: string,
   profilerTitle: string
 ): Promise<boolean> => {

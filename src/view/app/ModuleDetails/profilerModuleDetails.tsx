@@ -246,10 +246,15 @@ function ProfilerModuleDetails({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
+    // vscode.postMessage({
+    //   type: "OPEN_XREF",
+    //   columns: moduleRow.moduleName,
+    //   lines: row.lineNumber,
+    // });
     vscode.postMessage({
-      type: "OPEN_XREF",
-      columns: moduleRow.moduleName,
-      lines: row.lineNumber,
+      type: "OPEN_LISTING",
+      listingFile: moduleRow.listingFile,
+      lineNumber: row.lineNumber,
     });
   };
 

@@ -147,7 +147,6 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
     //   columns: row.moduleName,
     //   lines: row.startLineNum,
     // });
-    console.log("OPEN_LISTING", row.listingFile);
     vscode.postMessage({
       type: "OPEN_LISTING",
       listingFile: row.listingFile,

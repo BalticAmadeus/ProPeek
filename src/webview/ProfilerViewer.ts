@@ -151,9 +151,9 @@ async function openListing(listingFile: string, lineNumber: number): Promise<voi
         return;
     }
 
-    console.log("openListing", list);
+    console.log("openListing", list, lineNumber);
 
-    await openFile(list[0], lineNumber);
+    await openFile(list[0], lineNumber > 0 ? lineNumber : 1);
 }
 
 async function open(moduleName: string, lineNumber: number, profilerService: ProfilerService) {
@@ -161,7 +161,7 @@ async function open(moduleName: string, lineNumber: number, profilerService: Pro
     const proPath = getProPath();
 
     if (!procedureName || lineNumber < 1) {
-        const filePath = await getFilePath(proPath, fileName)
+        const filePath = await getFilePath(proPath, fileName);
         await openFile(filePath, 1);
         return;
     }

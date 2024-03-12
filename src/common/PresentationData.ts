@@ -15,7 +15,7 @@ export interface LineSummary {
     timesCalled: number,
     avgTime: number,
     totalTime: number,
-    hasLink: boolean
+    hasLink: boolean,
 }
 
 export interface ModuleDetails {
