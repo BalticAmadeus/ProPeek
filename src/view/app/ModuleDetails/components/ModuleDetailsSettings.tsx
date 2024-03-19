@@ -23,7 +23,7 @@ const OpenFileTypeSetting: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ marginBottom: "4px" }}>
       <Tooltip title="Sets the file type to open on module double click">
         <ToggleButtonGroup
           size="small"
@@ -31,8 +31,10 @@ const OpenFileTypeSetting: React.FC = () => {
           onChange={onChange}
           exclusive
         >
-          <ProToggleButton value={OpenFileTypeEnum.XREF}>XREF</ProToggleButton>
-          <ProToggleButton value={OpenFileTypeEnum.LISTING}>
+          <ProToggleButton variant="secondary" value={OpenFileTypeEnum.XREF}>
+            XREF
+          </ProToggleButton>
+          <ProToggleButton variant="secondary" value={OpenFileTypeEnum.LISTING}>
             LISTING
           </ProToggleButton>
         </ToggleButtonGroup>

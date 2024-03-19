@@ -4,10 +4,11 @@ import { PresentationData } from "../../../common/PresentationData";
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
-import { Button } from "@mui/material";
+import { ToggleButtonGroup } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";
 import ModuleDetailsSettingsContextProvider from "../ModuleDetails/components/ModuleDetailsSettingsContext";
+import ProToggleButton from "../Components/Buttons/ProToggleButton";
 
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
@@ -20,9 +21,9 @@ const defaultPresentationData: PresentationData = {
 };
 
 enum ProfilerTab {
-  ModuleDetails = 0,
-  TreeView = 1,
-  FlameGraph = 2,
+  ModuleDetails = "ModuleDetails",
+  TreeView = "TreeView",
+  FlameGraph = "FlameGraph",
 }
 
 const ProfilerForm: React.FC = () => {
@@ -85,18 +86,29 @@ const ProfilerForm: React.FC = () => {
 
   let content: JSX.Element | null = null;
 
-  const handleTabClick = (tab: ProfilerTab) => {
-    setActiveTab(tab);
+  const onTabChange = (
+    event: React.MouseEvent<HTMLElement>,
+    tab: ProfilerTab | null
+  ) => {
+    console.log(tab);
 
-    if (activeTab !== ProfilerTab.ModuleDetails) {
-      setModuleName("");
+    if (!tab) {
+      return;
     }
+
+    setActiveTab(tab);
   };
 
   const handleNodeSelection = (moduleName: string) => {
     setModuleName(moduleName);
     setActiveTab(ProfilerTab.ModuleDetails);
   };
+
+  React.useEffect(() => {
+    if (activeTab !== ProfilerTab.ModuleDetails) {
+      setModuleName("");
+    }
+  }, [activeTab]);
 
   switch (activeTab) {
     case ProfilerTab.ModuleDetails:
@@ -114,32 +126,18 @@ const ProfilerForm: React.FC = () => {
     <React.Fragment>
       {isLoading && <LoadingOverlay />}
       <div>
-        <div className="tabs">
-          <Button
-            className={`tab ${
-              activeTab === ProfilerTab.ModuleDetails ? "active" : ""
-            } buttonProfilerForm button-primary`}
-            onClick={() => handleTabClick(ProfilerTab.ModuleDetails)}
-            variant="contained"
-          >
-            Module Details
-          </Button>
-          <Button
-            className={`tab ${
-              activeTab === ProfilerTab.TreeView ? "active" : ""
-            } buttonProfilerForm button-primary`}
-            onClick={() => handleTabClick(ProfilerTab.TreeView)}
-          >
-            Tree View
-          </Button>
-          <Button
-            className={`tab ${
-              activeTab === ProfilerTab.FlameGraph ? "active" : ""
-            } buttonProfilerForm button-primary`}
-            onClick={() => handleTabClick(ProfilerTab.FlameGraph)}
-          >
-            Flame Graph
-          </Button>
+        <div>
+          <ToggleButtonGroup value={activeTab} onChange={onTabChange} exclusive>
+            <ProToggleButton value={ProfilerTab.ModuleDetails}>
+              Module Details
+            </ProToggleButton>
+            <ProToggleButton value={ProfilerTab.TreeView}>
+              Tree View
+            </ProToggleButton>
+            <ProToggleButton value={ProfilerTab.FlameGraph}>
+              Flame Graph
+            </ProToggleButton>
+          </ToggleButtonGroup>
         </div>
         <hr></hr>
         <div>{content}</div>

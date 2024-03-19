@@ -1,47 +1,50 @@
 import * as React from "react";
 import { ToggleButton, ToggleButtonProps } from "@mui/material";
 
-const ProToggleButton: React.FC<ToggleButtonProps> = ({
+interface ProToggleButtonProps extends ToggleButtonProps {
+  variant?: "primary" | "secondary";
+}
+
+const primary = {
+  backgroundColor: "var(--vscode-button-background)",
+  color: "var(--vscode-button-foreground)",
+  borderColor: "var(--vscode-button-border)",
+  "&:hover": {
+    backgroundColor: "var(--vscode-button-hoverBackground)",
+  },
+  "&.Mui-selected": {
+    backgroundColor: "var(--vscode-button-hoverBackground)",
+    color: "var(--vscode-button-foreground)",
+    "&:hover": {
+      backgroundColor: "var(--vscode-button-hoverBackground)",
+    },
+  },
+};
+
+const secondary = {
+  color: "var(--vscode-button-secondaryForeground)",
+  backgroundColor: "var(--vscode-button-secondaryBackground)",
+  borderColor: "var(--vscode-button-border)",
+  "&:hover": {
+    backgroundColor: "var(--vscode-button-secondaryHoverBackground)",
+  },
+  "&.Mui-selected": {
+    color: "var(--vscode-button-secondaryForeground)",
+    backgroundColor: "var(--vscode-button-secondaryHoverBackground)",
+    "&:hover": {
+      backgroundColor: "var(--vscode-button-secondaryHoverBackground)",
+    },
+  },
+};
+
+const ProToggleButton: React.FC<ProToggleButtonProps> = ({
+  variant = "primary",
   children,
   ...props
 }) => {
-  const afterElement = {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    borderRadius: "inherit", // Match the button's border radius
-  };
-
+  const styles = variant === "primary" ? primary : secondary;
   return (
-    <ToggleButton
-      sx={{
-        color: "var(--vscode-button-foreground)",
-        borderColor: "var(--vscode-button-border)",
-        "&:hover": {
-          "&:after": {
-            ...afterElement,
-            backgroundColor: "rgba(255, 255, 255, 0.1)",
-          },
-        },
-        "&.Mui-selected": {
-          color: "var(--vscode-button-foreground)",
-          "&:after": {
-            ...afterElement,
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-          },
-          "&:hover": {
-            "&:after": {
-              ...afterElement,
-              backgroundColor: "rgba(255, 255, 255, 0.25)",
-            },
-          },
-        },
-      }}
-      {...props}
-    >
+    <ToggleButton color={variant} sx={styles} {...props}>
       {children}
     </ToggleButton>
   );
