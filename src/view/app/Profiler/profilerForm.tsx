@@ -7,6 +7,7 @@ import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
 import { Button } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";
+import ModuleDetailsSettingsContextProvider from "../ModuleDetails/components/ModuleDetailsSettingsContext";
 
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
@@ -48,10 +49,12 @@ const ProfilerForm: React.FC = () => {
   const ModuleDetailsTab: React.FC = () => {
     return (
       <div>
-        <ProfilerModuleDetails
-          presentationData={presentationData}
-          moduleName={moduleName}
-        />
+        <ModuleDetailsSettingsContextProvider>
+          <ProfilerModuleDetails
+            presentationData={presentationData}
+            moduleName={moduleName}
+          />
+        </ModuleDetailsSettingsContextProvider>
       </div>
     );
   };

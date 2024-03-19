@@ -6,6 +6,7 @@ import { IncludeFile } from "../common/XRefData"
 import * as fs from 'fs';
 import { convertToFilePath, getFileAndProcedureName, getListingFilePath, getProPath } from "../services/parser/presentation/common";
 import { Constants } from "../common/Constants";
+import { OpenFileTypeEnum } from "../common/openFile";
 
 interface Message {
     showStartTime: any;
@@ -72,10 +73,10 @@ export class ProfilerViewer {
                     case "GRAPH_TYPE_CHANGE":
                         await this.initProfiler(profilerService, filePath, message.showStartTime);
                         break;
-                    case "OPEN_XREF":
+                    case OpenFileTypeEnum.XREF:
                         await open(message.columns, message.lines, profilerService);
                         break;
-                    case "OPEN_LISTING":
+                    case OpenFileTypeEnum.LISTING:
                         await openListing(message.listingFile, message.lineNumber);
                         break;
                     default:

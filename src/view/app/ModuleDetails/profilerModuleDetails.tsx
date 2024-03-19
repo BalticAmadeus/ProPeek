@@ -15,6 +15,8 @@ import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "./components/PercentageFill";
 import { Box } from "@mui/material";
 import ModuleDetailsSettings from "./components/ModuleDetailsSettings";
+import { useModuleDetailsSettingsContext } from "./components/ModuleDetailsSettingsContext";
+import { OpenFileTypeEnum } from "../../../common/openFile";
 
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
@@ -157,6 +159,8 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     columnDefinition.LineColumns
   );
 
+  const settingsContext = useModuleDetailsSettingsContext();
+
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
     0
@@ -240,6 +244,15 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     filterTables(selectedRow);
   }, [selectedRow]);
 
+  React.useEffect(() => {
+    const { hasXREFs, hasListings } = presentationData;
+    if (hasXREFs && !hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.XREF);
+    } else if (!hasXREFs && hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.LISTING);
+    }
+  }, [presentationData.hasXREFs, presentationData.hasListings]);
+
   const openFileForLineSummary = (row: LineSummary): void => {
     if (!row.hasLink) {
       return;
@@ -249,23 +262,33 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    // vscode.postMessage({
-    //   type: "OPEN_XREF",
-    //   columns: moduleRow.moduleName,
-    //   lines: row.lineNumber,
-    // });
-    vscode.postMessage({
-      type: "OPEN_LISTING",
-      listingFile: moduleRow.listingFile,
-      lineNumber: row.lineNumber,
-    });
+    switch (settingsContext.openFileType) {
+      case OpenFileTypeEnum.XREF:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.XREF,
+          columns: moduleRow.moduleName,
+          lines: row.lineNumber,
+        });
+        break;
+      case OpenFileTypeEnum.LISTING:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.LISTING,
+          listingFile: moduleRow.listingFile,
+          lineNumber: row.lineNumber,
+        });
+        break;
+    }
   };
 
   return (
     <div>
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
-        <ModuleDetailsSettings />
+        <ModuleDetailsSettings
+          showOpenFileType={
+            presentationData.hasXREFs && presentationData.hasListings
+          }
+        />
         {moduleRows.length > 0 ? (
           <ModuleDetailsTable
             columns={formattedModuleColumns}
