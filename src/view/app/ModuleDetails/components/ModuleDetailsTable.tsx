@@ -11,6 +11,8 @@ import { useState } from "react";
 import * as React from "react";
 import { Box } from "@mui/material";
 import PercentageFill from "./PercentageFill";
+import { useModuleDetailsSettingsContext } from "./ModuleDetailsSettingsContext";
+import { OpenFileTypeEnum } from "../../../../common/openFile";
 
 interface FilterHeaderProps {
   onFilterChange?: (value: string) => void;
@@ -77,6 +79,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
 }) => {
   const [rows, setRows] = useState(otherProps.rows);
   const [filters, setFilters] = useState<string>("");
+  const settingsContext = useModuleDetailsSettingsContext();
 
   React.useEffect(() => {
     applyFilter(filters);
@@ -142,16 +145,26 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
       return;
     }
 
-    vscode.postMessage({
-      type: "MODULE_NAME",
-      columns: row.moduleName,
-      lines: row.startLineNum,
-    });
+    switch (settingsContext.openFileType) {
+      case OpenFileTypeEnum.XREF:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.XREF,
+          columns: row.moduleName,
+          lines: row.startLineNum,
+        });
+        break;
+      case OpenFileTypeEnum.LISTING:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.LISTING,
+          listingFile: row.listingFile,
+          lineNumber: row.startLineNum,
+        });
+        break;
+    }
   };
 
   return (
-    <div className="details-columns">
-      <div className="grid-name">Module Details</div>
+    <Box>
       <DataGrid
         defaultColumnOptions={{
           sortable: true,
@@ -167,7 +180,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
       {sumTotalTime > 0 && (
         <div className="total-time">Total Time: {sumTotalTime.toFixed(6)}s</div>
       )}
-    </div>
+    </Box>
   );
 };
 
