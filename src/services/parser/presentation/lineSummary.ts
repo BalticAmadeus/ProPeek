@@ -1,7 +1,6 @@
-import { Constants } from "../../../common/Constants";
 import { LineSummary } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
-import { getHasLink, getWorkspaceConfig } from "./common";
+import { getHasLink } from "./moduleDetails";
 
 /**
  * Transforms raw profiler data into presentable Line Summary list
@@ -12,7 +11,7 @@ export async function calculateLineSummary(rawData: ProfilerRawData, profilerTit
 
   for(const module of rawData.ModuleData) {
 
-    const hasLink = rawData.ModuleData.length < Constants.fileSearchLimit ? await getHasLink(module.ModuleName, profilerTitle) : (getWorkspaceConfig().length > 0 ? true : false);
+    const hasLink = await getHasLink(rawData.ModuleData.length, module.ModuleName, profilerTitle);
 
     for(const line of rawData.LineSummaryData) {
 
@@ -24,7 +23,7 @@ export async function calculateLineSummary(rawData: ProfilerRawData, profilerTit
           timesCalled: line.ExecCount,
           avgTime    : Number((line.ActualTime / line.ExecCount).toFixed(6)),
           totalTime  : line.ActualTime,
-          hasLink    : hasLink
+          hasLink    : hasLink,
         };
 
         lineSummaryList.push(lineSummary);

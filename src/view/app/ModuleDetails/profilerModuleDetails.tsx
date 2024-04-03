@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
 import {
-  PresentationData,
   ModuleDetails,
   CalledModules,
   LineSummary,
+  PresentationData,
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
@@ -14,6 +14,14 @@ import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "./components/PercentageFill";
 import { Box } from "@mui/material";
+import ModuleDetailsSettings from "./components/ModuleDetailsSettings";
+import { useModuleDetailsSettingsContext } from "./components/ModuleDetailsSettingsContext";
+import { OpenFileTypeEnum } from "../../../common/openFile";
+
+interface ProfilerModuleDetailsProps {
+  presentationData: PresentationData;
+  moduleName: string;
+}
 
 interface GenericModuleColumn extends Column<any> {
   key: string;
@@ -25,11 +33,6 @@ interface ModuleColumn extends GenericModuleColumn {}
 interface CallingColumn extends GenericModuleColumn {}
 interface CalledColumn extends GenericModuleColumn {}
 interface LineColumn extends GenericModuleColumn {}
-
-interface IConfigProps {
-  presentationData: PresentationData;
-  moduleName: string;
-}
 
 const defaultModuleSort: SortColumn = {
   columnKey: "totalTime", // Sort by the "totalTime" column by default
@@ -103,11 +106,13 @@ function getComparator(sortColumn: string) {
   }
 }
 
-function ProfilerModuleDetails({
+const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   presentationData,
   moduleName,
-}: Readonly<IConfigProps>) {
-  const [moduleRows, setModuleRows] = useState(presentationData.moduleDetails);
+}) => {
+  const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
+    presentationData.moduleDetails
+  );
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
   const [sortModuleColumns, setSortModuleColumns] = useState<
@@ -115,21 +120,21 @@ function ProfilerModuleDetails({
   >([defaultModuleSort]);
 
   const [selectedRow, setSelectedRow] = useState<ModuleDetails>(null);
-  const [selectedCallingRows, setSelectedCallingRows] = useState(
-    presentationData.calledModules
-  );
+  const [selectedCallingRows, setSelectedCallingRows] = useState<
+    CalledModules[]
+  >(presentationData.calledModules);
   const [sortCallingColumns, setSortCallingColumns] = useState<
     readonly SortColumn[]
   >([]);
 
-  const [selectedCalledRows, setSelectedCalledRows] = useState(
+  const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
     presentationData.calledModules
   );
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
   >([]);
 
-  const [selectedLineRows, setSelectedLineRows] = useState(
+  const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
     presentationData.lineSummary
   );
   const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>(
@@ -153,6 +158,8 @@ function ProfilerModuleDetails({
   const formattedLineColumns: LineColumn[] = addConditionalFormatting(
     columnDefinition.LineColumns
   );
+
+  const settingsContext = useModuleDetailsSettingsContext();
 
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
@@ -237,6 +244,15 @@ function ProfilerModuleDetails({
     filterTables(selectedRow);
   }, [selectedRow]);
 
+  React.useEffect(() => {
+    const { hasXREFs, hasListings } = presentationData;
+    if (hasXREFs && !hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.XREF);
+    } else if (!hasXREFs && hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.LISTING);
+    }
+  }, [presentationData.hasXREFs, presentationData.hasListings]);
+
   const openFileForLineSummary = (row: LineSummary): void => {
     if (!row.hasLink) {
       return;
@@ -246,29 +262,48 @@ function ProfilerModuleDetails({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    vscode.postMessage({
-      type: "MODULE_NAME",
-      columns: moduleRow.moduleName,
-      lines: row.lineNumber,
-    });
+    switch (settingsContext.openFileType) {
+      case OpenFileTypeEnum.XREF:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.XREF,
+          columns: moduleRow.moduleName,
+          lines: row.lineNumber,
+        });
+        break;
+      case OpenFileTypeEnum.LISTING:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.LISTING,
+          listingFile: moduleRow.listingFile,
+          lineNumber: row.lineNumber,
+        });
+        break;
+    }
   };
 
   return (
     <div>
-      {moduleRows.length > 0 ? (
-        <ModuleDetailsTable
-          columns={formattedModuleColumns}
-          rows={sortedModuleRows}
-          onRowClick={(row) => setSelectedRow(row)}
-          onRowsChange={setModuleRows}
-          sortColumns={sortModuleColumns}
-          onSortColumnsChange={setSortModuleColumns}
-          rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-          sumTotalTime={sumTotalTime}
-          searchValue={moduleNameFilter}
-          setSearchValue={setModuleNameFilter}
+      <div className="details-columns">
+        <div className="grid-name">Module Details</div>
+        <ModuleDetailsSettings
+          showOpenFileType={
+            presentationData.hasXREFs && presentationData.hasListings
+          }
         />
-      ) : null}
+        {moduleRows.length > 0 ? (
+          <ModuleDetailsTable
+            columns={formattedModuleColumns}
+            rows={sortedModuleRows}
+            onRowClick={(row) => setSelectedRow(row)}
+            onRowsChange={setModuleRows}
+            sortColumns={sortModuleColumns}
+            onSortColumnsChange={setSortModuleColumns}
+            rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
+            sumTotalTime={sumTotalTime}
+            searchValue={moduleNameFilter}
+            setSearchValue={setModuleNameFilter}
+          />
+        ) : null}
+      </div>
       <div className="columns">
         <div className="calling-columns">
           <div className="grid-name">Calling Modules</div>
@@ -326,6 +361,6 @@ function ProfilerModuleDetails({
       </div>
     </div>
   );
-}
+};
 
 export default ProfilerModuleDetails;

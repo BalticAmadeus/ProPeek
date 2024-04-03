@@ -15,7 +15,7 @@ export interface LineSummary {
     timesCalled: number,
     avgTime: number,
     totalTime: number,
-    hasLink: boolean
+    hasLink: boolean,
 }
 
 export interface ModuleDetails {
@@ -26,6 +26,7 @@ export interface ModuleDetails {
     avgTimePerCall?: number,
     totalTime: number,
     pcntOfSession?: number,
+    listingFile: string,
     hasLink: boolean
 }
 
@@ -46,5 +47,7 @@ export interface PresentationData {
     calledModules: CalledModules[],
     lineSummary: LineSummary[],
     callTree: CallTree[],
-    hasTracingData: boolean
+    hasTracingData: boolean,
+    hasXREFs: boolean,
+    hasListings: boolean,
 }
