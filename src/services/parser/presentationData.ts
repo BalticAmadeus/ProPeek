@@ -16,18 +16,21 @@ export async function transformData(rawData: ProfilerRawData, showStartTime: boo
         vscode.window.showWarningMessage('Skipping workspace module pre-search. (ProPeek)');
     }
 
+    const hasXREFs = await hasFiles(`**${Constants.defaultXREFPath}*.xref`);
+    const hasListings = await hasFiles(`**${Constants.defaultListingPath}*`);
+
     const totalSessionTime: number = getTotalSessionTime(rawData);
-    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle);
+    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle, hasListings);
     const hasTracingData: boolean = rawData.TracingData.length > 0;
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
-        lineSummary: await calculateLineSummary(rawData, profilerTitle),
+        lineSummary: await calculateLineSummary(rawData, profilerTitle, hasListings),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
         hasTracingData: hasTracingData,
-        hasXREFs: await hasFiles(`**${Constants.defaultXREFPath}*.xref`),
-        hasListings: await hasFiles(`**${Constants.defaultListingPath}*`),
+        hasXREFs: hasXREFs,
+        hasListings: hasListings,
     };
 
     return presentationData;
