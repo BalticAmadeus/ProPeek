@@ -12,21 +12,24 @@ interface ListingFileFilter {
 /**
  * Transforms raw profiler data into presentable Module Details list
  */
-export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string): Promise<ModuleDetails[]> {
+export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string, hasListings: boolean): Promise<ModuleDetails[]> {
 
   const moduleDetailsList = [getSessionModuleDetails()] as ModuleDetails[];
 
   const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
 
   for(const module of rawData.ModuleData) {
+    const listingFile = getListingFile(module, listingFileFilterList);
+    const hasListing = hasListings && listingFile.length > 0;
+
     const moduleDetails: ModuleDetails = {
       moduleID     : module.ModuleID,
       moduleName   : module.ModuleName,
       startLineNum : module.LineNum ? module.LineNum : 0,
       timesCalled  : 0,
       totalTime    : 0,
-      listingFile  : getListingFile(module, listingFileFilterList),
-      hasLink      : await getHasLink(rawData.ModuleData.length, module.ModuleName, profilerTitle),
+      listingFile  : listingFile,
+      hasLink      : await getHasLink(rawData.ModuleData.length, module.ModuleName, profilerTitle, hasListing),
     };
 
     for(const node of rawData.CallGraphData) {
@@ -79,7 +82,7 @@ const getSessionModuleDetails = (): ModuleDetails => {
  * @param {ListingFileFilter[]} listingFileFilterList listing file filter array 
  * @returns {string} listing file name
  */
-const getListingFile = (moduleData: ModuleData, listingFileFilterList: ListingFileFilter[]): string => {
+export const getListingFile = (moduleData: ModuleData, listingFileFilterList: ListingFileFilter[]): string => {
   if (!moduleData.ListingFile) {
     const { fileName } = getFileAndProcedureName(moduleData.ModuleName);
     
@@ -98,7 +101,7 @@ const getListingFile = (moduleData: ModuleData, listingFileFilterList: ListingFi
  * @param {ModuleData[]} moduleDataList module data list 
  * @returns {ListingFileFilter[]} listing file filter array
  */
-const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingFileFilter[] => {
+export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingFileFilter[] => {
   return moduleDataList
   .filter((moduleData) => moduleData.ListingFile)
   .map((moduleData) => { 
@@ -111,13 +114,14 @@ const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingFileFilt
 
 /**
  * Returns the boolean value for the hasLink attribute
+ * @param hasListing has listing file associated
  * @param moduleDataLength module data length
  * @param moduleName module name
  * @param profilerTitle profiler title
  * @returns {boolean} value for hasLink attribute
  */
-export const getHasLink = async (moduleDataLength: number, moduleName: string, profilerTitle: string): Promise<boolean> => {
+export const getHasLink = async (moduleDataLength: number, moduleName: string, profilerTitle: string, hasListing: boolean): Promise<boolean> => {
   return moduleDataLength < Constants.fileSearchLimit 
-    ? await checkModuleFileExists(moduleName, profilerTitle) 
+    ? (await checkModuleFileExists(moduleName, profilerTitle) ? true : hasListing)
     : (getWorkspaceConfig().length > 0 ? true : false);
 };
