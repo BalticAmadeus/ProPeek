@@ -1,3 +1,15 @@
+## 1.3.0 (2024-04-08)
+
+### Changed
+
+- Fixed various small bugs.
+
+### Added
+
+- Open listing files.
+- Time ribbon in flame graph.
+- Commad to open profiler file.
+
 ## 1.2.0 (2024-02-07)
 
 ### Changed

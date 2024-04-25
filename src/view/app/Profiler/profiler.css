@@ -23,12 +23,6 @@ body.vscode-dark .rdg-row-even {
     --rdg-background-color: rgba(0, 0, 0, 0.4);
 }
 
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    background-color: var(--vscode-editorWidget-background);
-}
-
 .tab.active {
     background-color: var(--vscode-list-activeSelectionBackground);
   }
@@ -55,7 +49,7 @@ body.vscode-dark .rdg-row-even {
     color: var(--rdg-checkbox-focus-color);
     border-radius: 8px;
   }
-  
+
   .button-primary:hover {
     background: var(--vscode-list-activeSelectionBackground);
     color: var(--rdg-checkbox-focus-color);
@@ -94,8 +88,8 @@ body.vscode-dark .rdg-row-even {
 }
 
 .filter-cell {
-    line-height: 35px;
-    padding: 0;
+    line-height: 30px;
+    padding: 4px;
 }
 
 .textInput {

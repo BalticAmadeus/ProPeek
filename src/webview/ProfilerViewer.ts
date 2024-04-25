@@ -4,7 +4,9 @@ import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
 import { IncludeFile } from "../common/XRefData"
 import * as fs from 'fs';
-import { convertToFilePath, getFileAndProcedureName, getProPath } from "../services/parser/presentation/common";
+import { convertToFilePath, getFileAndProcedureName, getListingFilePath, getProPath } from "../services/parser/presentation/common";
+import { Constants } from "../common/Constants";
+import { OpenFileTypeEnum } from "../common/openFile";
 
 interface Message {
     showStartTime: any;
@@ -51,10 +53,7 @@ export class ProfilerViewer {
             ),
         };
 
-        this.panel.webview.html = this.getWebviewContent({
-            moduleDetails: [], calledModules: [], lineSummary: [],
-            callTree: [], hasTracingData: false
-        });
+        this.panel.webview.html = this.getWebviewContent();
 
         this.panel.onDidDispose(
             () => {
@@ -65,17 +64,20 @@ export class ProfilerViewer {
         );
 
         const profilerService = new ProfilerService(action);
-        
+
         this.initProfiler(profilerService, filePath);
 
         this.panel.webview.onDidReceiveMessage(
             async message => {
                 switch(message.type) {
                     case "GRAPH_TYPE_CHANGE":
-                        this.initProfiler(profilerService, filePath, message.showStartTime);
+                        await this.initProfiler(profilerService, filePath, message.showStartTime);
                         break;
-                    case "MODULE_NAME":
-                        open(message.columns, message.lines, profilerService);
+                    case OpenFileTypeEnum.XREF:
+                        await open(message.columns, message.lines, profilerService);
+                        break;
+                    case OpenFileTypeEnum.LISTING:
+                        await openListing(message.listingFile, message.lineNumber);
                         break;
                     default:
                 }
@@ -93,7 +95,7 @@ export class ProfilerViewer {
         }
     }
 
-    private getWebviewContent(data: PresentationData): string {
+    private getWebviewContent(): string {
         // Local path to main script run in the webview
         const reactAppPathOnDisk = vscode.Uri.file(
             path.join(vscode.Uri.file(this.context.asAbsolutePath(path.join("out/view/app", "profiler.js"))).fsPath)
@@ -115,7 +117,6 @@ export class ProfilerViewer {
                       style-src ${cspSource} 'unsafe-inline';">
 
         <script>
-          window.presentationData = ${JSON.stringify(data)};
         </script>
     </head>
     <body>
@@ -135,34 +136,49 @@ function handleErrors(errors: string[]) {
     }
 }
 
-function open(moduleName: string, lineNumber: number, profilerService: ProfilerService) {
+async function openListing(listingFile: string, lineNumber: number): Promise<void> {
+    if (!listingFile) {
+        return;
+    }
+
+    const listingFilePath = getListingFilePath(listingFile);
+
+    const list = await vscode.workspace.findFiles(listingFilePath);
+    if (list.length === 0) {
+        vscode.window.showWarningMessage(`Listing file not found: ${listingFilePath}\n`);
+        return;
+    }
+
+    await openFile(list[0], lineNumber > 0 ? lineNumber : 1);
+}
+
+async function open(moduleName: string, lineNumber: number, profilerService: ProfilerService) {
     let { fileName, procedureName } = getFileAndProcedureName(moduleName);
     const proPath = getProPath();
 
     if (!procedureName || lineNumber < 1) {
-        openFile(proPath, fileName, 1);
+        const filePath = await getFilePath(proPath, fileName);
+        await openFile(filePath, 1);
         return;
     }
 
-    const xRefFile = "**/.builder/.pct0/" + fileName + ".xref";
+    const xRefFile = `**${Constants.defaultXREFPath}${fileName}.xref`;
 
-    vscode.workspace.findFiles(xRefFile).then(async (list) => {
-        if (list.length === 0) {
-            vscode.window.showWarningMessage(`xRef file not found: ${xRefFile}\nLine position might be incorrect`);
-        } else {
-            const xRefPath = list[0].path.slice(1);
-            const includeFiles = profilerService.getIncludeFilesFromXref(xRefPath);
+    const list = await vscode.workspace.findFiles(xRefFile);
+    if (list.length === 0) {
+        vscode.window.showWarningMessage(`xRef file not found: ${xRefFile}\nLine position might be incorrect`);
+    } else {
+        const xRefPath = list[0].path.slice(1);
+        const includeFiles = profilerService.getIncludeFilesFromXref(xRefPath);
 
-            ({ fileName, lineNumber } = await getAdjustedInfo(includeFiles, proPath, fileName, lineNumber));
-        }
+        ({ fileName, lineNumber } = await getAdjustedInfo(includeFiles, proPath, fileName, lineNumber));
+    }
 
-        openFile(proPath, fileName, lineNumber);
-    });
+    const filePath = await getFilePath(proPath, fileName);
+    await openFile(filePath, lineNumber);
 }
 
-async function openFile(proPath: string[], fileName: string, lineNumber: number) {
-    const filePath = await getFilePath(proPath, fileName);
-
+async function openFile(filePath: vscode.Uri, lineNumber: number) {
     const doc = await vscode.workspace.openTextDocument(filePath);
 
     vscode.window.showTextDocument(doc, { selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0) });

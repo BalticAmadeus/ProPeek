@@ -1,18 +1,21 @@
-import { Constants } from "../../../common/Constants";
 import { LineSummary } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
-import { getHasLink, getWorkspaceConfig } from "./common";
+import { getHasLink, getListingFile, getListingFileFilterList } from "./moduleDetails";
 
 /**
  * Transforms raw profiler data into presentable Line Summary list
  */
-export async function calculateLineSummary(rawData: ProfilerRawData, profilerTitle: string): Promise<LineSummary[]> {
+export async function calculateLineSummary(rawData: ProfilerRawData, profilerTitle: string, hasListings: boolean): Promise<LineSummary[]> {
 
   const lineSummaryList = [] as LineSummary[];
 
-  for(const module of rawData.ModuleData) {
+  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
 
-    const hasLink = rawData.ModuleData.length < Constants.fileSearchLimit ? await getHasLink(module.ModuleName, profilerTitle) : (getWorkspaceConfig().length > 0 ? true : false);
+  for(const module of rawData.ModuleData) {
+    const listingFile = getListingFile(module, listingFileFilterList);
+    const hasListing = hasListings && listingFile.length > 0;
+
+    const hasLink = await getHasLink(rawData.ModuleData.length, module.ModuleName, profilerTitle, hasListing);
 
     for(const line of rawData.LineSummaryData) {
 
@@ -24,7 +27,7 @@ export async function calculateLineSummary(rawData: ProfilerRawData, profilerTit
           timesCalled: line.ExecCount,
           avgTime    : Number((line.ActualTime / line.ExecCount).toFixed(6)),
           totalTime  : line.ActualTime,
-          hasLink    : hasLink
+          hasLink    : hasLink,
         };
 
         lineSummaryList.push(lineSummary);

@@ -16,16 +16,21 @@ export async function transformData(rawData: ProfilerRawData, showStartTime: boo
         vscode.window.showWarningMessage('Skipping workspace module pre-search. (ProPeek)');
     }
 
+    const hasXREFs = await hasFiles(`**${Constants.defaultXREFPath}*.xref`);
+    const hasListings = await hasFiles(`**${Constants.defaultListingPath}*`);
+
     const totalSessionTime: number = getTotalSessionTime(rawData);
-    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle);
+    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle, hasListings);
     const hasTracingData: boolean = rawData.TracingData.length > 0;
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
-        lineSummary: await calculateLineSummary(rawData, profilerTitle),
+        lineSummary: await calculateLineSummary(rawData, profilerTitle, hasListings),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
-        hasTracingData: hasTracingData
+        hasTracingData: hasTracingData,
+        hasXREFs: hasXREFs,
+        hasListings: hasListings,
     };
 
     return presentationData;
@@ -74,4 +79,14 @@ export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetai
     } else {
         return calculateCallTreeByTracingData(rawData, moduleDetails);
     }
+}
+
+/**
+ * Returns true if finds atleast one file in the workspace following a pattern
+ * @param {vscode.GlobPattern} pattern vscode.GlobPattern
+ * @returns true if found, else false
+ */
+const hasFiles = async (pattern: vscode.GlobPattern): Promise<boolean> => {
+    const files = await vscode.workspace.findFiles(pattern, null, 1);
+    return files.length > 0 ? true : false;
 }
