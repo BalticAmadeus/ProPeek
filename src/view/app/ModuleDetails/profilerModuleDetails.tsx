@@ -39,6 +39,16 @@ const defaultModuleSort: SortColumn = {
   direction: "DESC", // Use descending order by default
 };
 
+const defaultCallerSort: SortColumn = {
+  columnKey: "callerPcntOfSession",
+  direction: "DESC",
+};
+
+const defaultCalleeSort: SortColumn = {
+  columnKey: "calleePcntOfSession",
+  direction: "DESC",
+};
+
 const defaultLineSort: SortColumn = {
   columnKey: "lineNumber", // Sort by the "lineNumber" column by default
   direction: "ASC", // Use ascending order by default
@@ -91,6 +101,9 @@ function getComparator(sortColumn: string) {
     case "totalTime":
     case "pcntOfSession":
     case "callerPcntOfSession":
+      return (a, b) => {
+        return a[sortColumn] - b[sortColumn];
+      };
     case "calleePcntOfSession":
       return (a, b) => {
         return a[sortColumn] - b[sortColumn];
@@ -125,14 +138,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   >(presentationData.calledModules);
   const [sortCallingColumns, setSortCallingColumns] = useState<
     readonly SortColumn[]
-  >([]);
+  >([defaultCallerSort]);
 
   const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
     presentationData.calledModules
   );
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
-  >([]);
+  >([defaultCalleeSort]);
 
   const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
     presentationData.lineSummary
@@ -186,6 +199,21 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
         (element) => element.moduleID === row.moduleID
       )
     );
+  };
+
+  const setMatchingRow = (
+    selectedRow, 
+    matchKeys, 
+    targetRows, 
+    setSelectedRow
+  ) => {
+    const matchingRow = targetRows.find( (row) => 
+      matchKeys.some((key) => row.moduleID === selectedRow[key])
+    );
+    
+    if (matchingRow) {
+      setSelectedRow(matchingRow);
+    }
   };
 
   const getSortedRows = (
@@ -320,6 +348,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
+              setMatchingRow(row, ["callerID"], sortedModuleRows, setSelectedRow);
             }}
           />
         </div>
@@ -339,6 +368,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
+              setMatchingRow(row, ["calleeID"], sortedModuleRows, setSelectedRow);
             }}
           />
         </div>
