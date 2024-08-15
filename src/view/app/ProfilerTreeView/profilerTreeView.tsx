@@ -143,14 +143,22 @@ const TreeView: React.FC<{
   const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
     const marginLeft = row.level * 20;
     return (
-      <div style={{ marginLeft }}>
-        <button onClick={() => toggleExpansion(row)}>
+      <div style={{ marginLeft, background: "none" }}>
+        <button
+          className="expansionButton"
+          onClick={() => toggleExpansion(row)}
+          style={{
+            color: row.expanded ? "#007bff" : "#fff",
+            border: `1px solid ${row.expanded ? "#007bff73" : "#ffffffa6"}`,
+            backgroundColor: row.expanded ? "none" : "#007bff73",
+          }}
+        >
           {row.expanded ? "-" : "+"}
         </button>
         {row.level === 0 ? (
-          <strong>{row.moduleName}</strong>
+          <strong className="moduleName">{row.moduleName}</strong>
         ) : (
-          <span>{row.moduleName}</span>
+          <span className="moduleName">{row.moduleName}</span>
         )}
       </div>
     );

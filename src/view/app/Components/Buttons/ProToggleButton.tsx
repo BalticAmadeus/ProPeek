@@ -6,15 +6,17 @@ interface ProToggleButtonProps extends ToggleButtonProps {
 }
 
 const primary = {
-  backgroundColor: "var(--vscode-button-background)",
-  color: "var(--vscode-button-foreground)",
-  borderColor: "var(--vscode-button-border)",
+  color: "var(--vscode-button-background)",
+  backgroundColor: "transparent",
+  borderColor: "var(--vscode-button-background)",
   "&:hover": {
-    backgroundColor: "var(--vscode-button-hoverBackground)",
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    color: "var(--vscode-button-foreground)",
   },
   "&.Mui-selected": {
-    backgroundColor: "var(--vscode-button-hoverBackground)",
+    backgroundColor: "var(--vscode-button-background)",
     color: "var(--vscode-button-foreground)",
+    borderColor: "var(--vscode-button-border)",
     "&:hover": {
       backgroundColor: "var(--vscode-button-hoverBackground)",
     },
@@ -22,15 +24,16 @@ const primary = {
 };
 
 const secondary = {
-  color: "var(--vscode-button-secondaryForeground)",
-  backgroundColor: "var(--vscode-button-secondaryBackground)",
-  borderColor: "var(--vscode-button-border)",
+  color: "var(--vscode-button-secondaryBackground)",
+  backgroundColor: "transparent",
+  borderColor: "var(--vscode-button-secondaryBackground)",
   "&:hover": {
-    backgroundColor: "var(--vscode-button-secondaryHoverBackground)",
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
   },
   "&.Mui-selected": {
+    backgroundColor: "var(--vscode-button-secondaryBackground)",
     color: "var(--vscode-button-secondaryForeground)",
-    backgroundColor: "var(--vscode-button-secondaryHoverBackground)",
+    borderColor: "var(--vscode-button-border)",
     "&:hover": {
       backgroundColor: "var(--vscode-button-secondaryHoverBackground)",
     },

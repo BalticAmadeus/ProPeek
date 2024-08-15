@@ -127,7 +127,13 @@ const ProfilerForm: React.FC = () => {
       {isLoading && <LoadingOverlay />}
       <div>
         <div>
-          <ToggleButtonGroup value={activeTab} onChange={onTabChange} exclusive>
+          <ToggleButtonGroup
+            sx={{ mt: 2 }}
+            size="small"
+            value={activeTab}
+            onChange={onTabChange}
+            exclusive
+          >
             <ProToggleButton value={ProfilerTab.ModuleDetails}>
               Module Details
             </ProToggleButton>

@@ -1,0 +1,30 @@
+.progressBox {
+  position: relative;
+  height: 20px;
+}
+
+.progressWrapper {
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  border-radius: 5px;
+  height: 100%;
+  margin-top: 7.5px;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: #007bff;
+  border-radius: 4px;
+}
+
+.progressBarText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
