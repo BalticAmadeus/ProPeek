@@ -19,6 +19,7 @@ interface FlameGraphNode extends Omit<FlameGraphNodeRoot, "name"> {
   name: string;
   backgroundColor: string;
   tooltip: string;
+  moduleID: number;
 }
 
 interface IConfigProps {
@@ -215,7 +216,7 @@ function ProfilerFlameGraph({
             height={windowHeight}
             width={windowWidth - 63}
             onDoubleClick={(node) => {
-              handleNodeSelection(node.name);
+              handleNodeSelection(node.name, (node.source as FlameGraphNode).moduleID);
             }}
             onChange={(node) =>
               setTimeRibbonEndValue(
@@ -256,6 +257,7 @@ function convertToNestedStructure(
       } Percentage of Session: ${node.pcntOfSession.toFixed(
         2
       )}% Cumulative Time: ${node.cumulativeTime}`,
+      moduleID: node.moduleID,
       cumulativeTime: node.cumulativeTime,
       children: [],
       left: 0,

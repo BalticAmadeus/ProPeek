@@ -21,6 +21,7 @@ import { OpenFileTypeEnum } from "../../../common/openFile";
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
   moduleName: string;
+  selectedModuleId: number;
 }
 
 interface GenericModuleColumn extends Column<any> {
@@ -37,6 +38,16 @@ interface LineColumn extends GenericModuleColumn {}
 const defaultModuleSort: SortColumn = {
   columnKey: "totalTime", // Sort by the "totalTime" column by default
   direction: "DESC", // Use descending order by default
+};
+
+const defaultCallerSort: SortColumn = {
+  columnKey: "callerPcntOfSession",
+  direction: "DESC",
+};
+
+const defaultCalleeSort: SortColumn = {
+  columnKey: "calleePcntOfSession",
+  direction: "DESC",
 };
 
 const defaultLineSort: SortColumn = {
@@ -109,6 +120,7 @@ function getComparator(sortColumn: string) {
 const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   presentationData,
   moduleName,
+  selectedModuleId,
 }) => {
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
@@ -119,20 +131,22 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     readonly SortColumn[]
   >([defaultModuleSort]);
 
-  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(null);
+  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(
+    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) || null
+  );
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
   >(presentationData.calledModules);
   const [sortCallingColumns, setSortCallingColumns] = useState<
     readonly SortColumn[]
-  >([]);
+  >([defaultCallerSort]);
 
   const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
     presentationData.calledModules
   );
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
-  >([]);
+  >([defaultCalleeSort]);
 
   const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
     presentationData.lineSummary
@@ -186,6 +200,21 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
         (element) => element.moduleID === row.moduleID
       )
     );
+  };
+
+  const setMatchingRow = (
+    selectedRow, 
+    matchKeys, 
+    targetRows, 
+    setSelectedRow
+  ) => {
+    const matchingRow = targetRows.find( (row) => 
+      matchKeys.some((key) => row.moduleID === selectedRow[key])
+    );
+    
+    if (matchingRow) {
+      setSelectedRow(matchingRow);
+    }
   };
 
   const getSortedRows = (
@@ -320,6 +349,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
+              setMatchingRow(row, ["callerID"], sortedModuleRows, setSelectedRow);
             }}
           />
         </div>
@@ -339,6 +369,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
+              setMatchingRow(row, ["calleeID"], sortedModuleRows, setSelectedRow);
             }}
           />
         </div>
