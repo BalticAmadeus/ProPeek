@@ -21,6 +21,7 @@ import { OpenFileTypeEnum } from "../../../common/openFile";
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
   moduleName: string;
+  selectedModuleId: number;
 }
 
 interface GenericModuleColumn extends Column<any> {
@@ -122,6 +123,7 @@ function getComparator(sortColumn: string) {
 const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   presentationData,
   moduleName,
+  selectedModuleId,
 }) => {
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
@@ -132,7 +134,9 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     readonly SortColumn[]
   >([defaultModuleSort]);
 
-  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(null);
+  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(
+    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) || null
+  );
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
   >(presentationData.calledModules);
