@@ -102,9 +102,6 @@ function getComparator(sortColumn: string) {
     case "totalTime":
     case "pcntOfSession":
     case "callerPcntOfSession":
-      return (a, b) => {
-        return a[sortColumn] - b[sortColumn];
-      };
     case "calleePcntOfSession":
       return (a, b) => {
         return a[sortColumn] - b[sortColumn];
