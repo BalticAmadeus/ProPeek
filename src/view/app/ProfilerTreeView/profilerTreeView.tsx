@@ -11,6 +11,7 @@ interface IConfigProps {
 
 interface TreeNode {
   id: number;
+  moduleID: number;
   moduleName: string;
   lineNum: number;
   numCalls: number;
@@ -30,6 +31,7 @@ function buildTreeView(data: CallTree[]): TreeNode[] {
   data.forEach(
     ({
       nodeID,
+      moduleID,
       moduleName,
       lineNum,
       numCalls,
@@ -38,6 +40,7 @@ function buildTreeView(data: CallTree[]): TreeNode[] {
     }) => {
       map[nodeID] = {
         id: nodeID,
+        moduleID,
         moduleName,
         lineNum,
         numCalls,
@@ -138,7 +141,7 @@ function ProfilerTreeView({
 const TreeView: React.FC<{
   rows: TreeRow[];
   toggleExpansion: (node: TreeNode) => void;
-  handleNodeSelection: (moduleName: string) => void;
+  handleNodeSelection: (moduleName: string, selectedModuleId: number) => void;
 }> = React.memo(({ rows, toggleExpansion, handleNodeSelection }) => {
   const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
     const marginLeft = row.level * 20;
@@ -206,7 +209,7 @@ const TreeView: React.FC<{
           columns={columns}
           rows={rows}
           onRowDoubleClick={(row) => {
-            handleNodeSelection(row.moduleName);
+            handleNodeSelection(row.moduleName, row.moduleID);
           }}
         />
       </div>

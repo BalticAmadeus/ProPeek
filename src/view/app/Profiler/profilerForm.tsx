@@ -35,6 +35,7 @@ const ProfilerForm: React.FC = () => {
   );
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
+  const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
 
   const vscode = getVSCodeAPI();
 
@@ -54,6 +55,7 @@ const ProfilerForm: React.FC = () => {
           <ProfilerModuleDetails
             presentationData={presentationData}
             moduleName={moduleName}
+            selectedModuleId={selectedModuleId}
           />
         </ModuleDetailsSettingsContextProvider>
       </div>
@@ -99,14 +101,16 @@ const ProfilerForm: React.FC = () => {
     setActiveTab(tab);
   };
 
-  const handleNodeSelection = (moduleName: string) => {
+  const handleNodeSelection = (moduleName: string, selectedModuleId: number) => {
     setModuleName(moduleName);
+    setSelectedModuleId(selectedModuleId);
     setActiveTab(ProfilerTab.ModuleDetails);
   };
 
   React.useEffect(() => {
     if (activeTab !== ProfilerTab.ModuleDetails) {
       setModuleName("");
+      setSelectedModuleId(null);
     }
   }, [activeTab]);
 
