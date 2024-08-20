@@ -148,9 +148,13 @@ const TreeView: React.FC<{
           className="expansionButton"
           onClick={() => toggleExpansion(row)}
           style={{
-            color: row.expanded ? "#007bff" : "#fff",
-            border: `1px solid ${row.expanded ? "#007bff73" : "#ffffffa6"}`,
-            backgroundColor: row.expanded ? "none" : "#007bff73",
+            color: row.expanded
+              ? "var(--vscode-button-background)"
+              : "var(--vscode-button-foreground)",
+            border: `1px solid var(--vscode-button-hoverBackground)`,
+            backgroundColor: row.expanded
+              ? "transparent"
+              : "var(--vscode-button-hoverBackground)",
           }}
         >
           {row.expanded ? "-" : "+"}

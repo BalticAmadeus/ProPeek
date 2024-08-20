@@ -10,8 +10,8 @@ const primary = {
   backgroundColor: "transparent",
   borderColor: "var(--vscode-button-background)",
   "&:hover": {
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    color: "var(--vscode-button-foreground)",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    color: "var(--vscode-button-background)",
   },
   "&.Mui-selected": {
     backgroundColor: "var(--vscode-button-background)",
@@ -28,7 +28,8 @@ const secondary = {
   backgroundColor: "transparent",
   borderColor: "var(--vscode-button-secondaryBackground)",
   "&:hover": {
-    backgroundColor: "rgba(0, 0, 0, 0.04)",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    color: "var(--vscode-button-secondaryBackground)",
   },
   "&.Mui-selected": {
     backgroundColor: "var(--vscode-button-secondaryBackground)",
