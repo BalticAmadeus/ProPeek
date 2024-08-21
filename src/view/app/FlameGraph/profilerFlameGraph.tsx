@@ -6,6 +6,9 @@ import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
 import { Box } from "@mui/material";
+import { OpenFileTypeEnum } from "../../../common/openFile";
+import ModuleDetailsSettings from "../ModuleDetails/components/ModuleDetailsSettings";
+import { useModuleDetailsSettingsContext } from "../ModuleDetails/components/ModuleDetailsSettingsContext";
 
 interface FlameGraphNodeRoot {
   name: "root";
@@ -58,6 +61,8 @@ function ProfilerFlameGraph({
     callTree[0]?.cumulativeTime ?? 0
   );
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
+  const settingsContext = useModuleDetailsSettingsContext();
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -82,6 +87,35 @@ function ProfilerFlameGraph({
 
     return () => {
       window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const { hasXREFs, hasListings } = presentationData;
+    if (hasXREFs && !hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.XREF);
+    } else if (!hasXREFs && hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.LISTING);
+    }
+  }, [presentationData.hasXREFs, presentationData.hasListings]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        setIsCtrlPressed(true);
+      }
+    };
+
+    const handleKeyUp = () => {
+      setIsCtrlPressed(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
 
@@ -125,6 +159,34 @@ function ProfilerFlameGraph({
       type: "GRAPH_TYPE_CHANGE",
       showStartTime: showStartTime,
     });
+  };
+
+  const openFileForFlameGraph = (node: FlameGraphNode): void => {
+    const foundModule = presentationData.moduleDetails.find(
+      (moduleRow) => moduleRow.moduleID === node.moduleID
+    )
+    
+    if(!foundModule)
+      return;
+    if (!foundModule.hasLink)
+      return;
+
+    switch (settingsContext.openFileType) {
+      case OpenFileTypeEnum.XREF:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.XREF,
+          columns: foundModule.moduleName,
+          lines: foundModule.startLineNum,
+        });
+        break;
+      case OpenFileTypeEnum.LISTING:
+        vscode.postMessage({
+          type: OpenFileTypeEnum.LISTING,
+          listingFile: foundModule.listingFile,
+          lineNumber: foundModule.startLineNum,
+        });
+        break;
+      }
   };
 
   return (
@@ -211,6 +273,11 @@ function ProfilerFlameGraph({
         <div className="grid-name">Flame Graph</div>
         {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
         <Box className={"flame-graph-container"}>
+          <ModuleDetailsSettings
+            showOpenFileType={
+              presentationData.hasXREFs && presentationData.hasListings
+            }
+          />
           <FlameGraph
             data={nestedStructure}
             height={windowHeight}
@@ -218,11 +285,10 @@ function ProfilerFlameGraph({
             onDoubleClick={(node) => {
               handleNodeSelection(node.name, (node.source as FlameGraphNode).moduleID);
             }}
-            onChange={(node) =>
-              setTimeRibbonEndValue(
-                (node.source as FlameGraphNode).cumulativeTime
-              )
-            }
+            onChange={(node) => {
+              setTimeRibbonEndValue((node.source as FlameGraphNode).cumulativeTime)
+              isCtrlPressed && openFileForFlameGraph(node.source as FlameGraphNode);
+            }}
           />
         </Box>
       </div>

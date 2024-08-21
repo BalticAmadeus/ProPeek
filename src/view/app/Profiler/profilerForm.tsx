@@ -76,12 +76,14 @@ const ProfilerForm: React.FC = () => {
   const FlameGraphTab: React.FC = () => {
     return (
       <div>
+        <ModuleDetailsSettingsContextProvider>
         <ProfilerFlameGraph
           presentationData={presentationData}
           hasTracingData={presentationData.hasTracingData}
           handleNodeSelection={handleNodeSelection}
           vscode={vscode}
         />
+        </ModuleDetailsSettingsContextProvider>
       </div>
     );
   };
