@@ -17,9 +17,8 @@
     --rdg-row-hover-background-color: rgba(0, 0, 0, 0.2);
     --rdg-row-selected-background-color: var(--vscode-list-inactiveSelectionBackground);
     --rdg-checkbox-color: inherit;
-    --rdg-checkbox-focus-color: inherit;
-    --rdg-border-color: var(--vscode-editorWidget-border);
-  }
+    --rdg-border-color: none;
+}
 
 .c1wupbe700-beta13 {
     padding-inline: 4px;
@@ -35,12 +34,12 @@ body.vscode-dark .rdg-row-even {
 
 .tab.active {
     background-color: var(--vscode-list-activeSelectionBackground);
-  }
+}
 
 
 .buttonProfilerForm {
     appearance: none;
-      -webkit-appearance: none;
+    -webkit-appearance: none;
     font-family: sans-serif;
     cursor: pointer;
     padding: 8px;
@@ -49,21 +48,21 @@ body.vscode-dark .rdg-row-even {
     margin-top: 3px;
     margin-bottom: 10px;
     border: 0px;
-      -webkit-transition: background-color 100ms linear;
-      -ms-transition: background-color 100ms linear;
-       transition: background-color 100ms linear;
-  }
+    -webkit-transition: background-color 100ms linear;
+    -ms-transition: background-color 100ms linear;
+    transition: background-color 100ms linear;
+}
 
-  .button-primary {
+.button-primary {
     background: var(--vscode-list-inactiveSelectionBackground);
     color: var(--rdg-checkbox-focus-color);
     border-radius: 8px;
-  }
+}
 
-  .button-primary:hover {
+.button-primary:hover {
     background: var(--vscode-list-activeSelectionBackground);
     color: var(--rdg-checkbox-focus-color);
-  }
+}
 
 
 .details-columns {
