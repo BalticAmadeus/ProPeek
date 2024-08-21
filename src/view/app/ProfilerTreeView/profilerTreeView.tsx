@@ -1,8 +1,9 @@
 import * as React from "react";
 import DataGrid, { FormatterProps } from "react-data-grid";
+import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
-import "./profilerTreeView.css";
 import { Button } from "@mui/material";
+import "./profilerTreeView.css";
 
 interface IConfigProps {
   presentationData: PresentationData;
@@ -185,17 +186,11 @@ const TreeView: React.FC<{
       name: "% of Session",
       formatter: ({ row }: FormatterProps<TreeRow>) => {
         const progress = row.pcntOfSession;
-        return (
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ flex: 1 }}>
-              <progress value={progress} max={100} style={{ width: "100%" }} />
-            </div>
-            <div style={{ marginLeft: 5 }}>{`${progress.toFixed(2)}%`}</div>
-          </div>
-        );
+        return <PercentageFill value={progress} />;
       },
     },
   ];
+
 
   return (
     <React.Fragment>
