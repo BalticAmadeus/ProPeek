@@ -17,6 +17,10 @@
   border-radius: 4px;
 }
 
+body.vscode-high-contrast .progressBar {
+  background-color: #dccfcf;
+}
+
 .progressBarText {
   position: absolute;
   top: 0;

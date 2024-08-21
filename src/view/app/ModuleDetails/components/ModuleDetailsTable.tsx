@@ -10,7 +10,7 @@ import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
 import { Box } from "@mui/material";
-import PercentageFill from "./PercentageFill";
+import PercentageFill from "../../Components/PercentageBar/PercentageFill";
 import { useModuleDetailsSettingsContext } from "./ModuleDetailsSettingsContext";
 import { OpenFileTypeEnum } from "../../../../common/openFile";
 
