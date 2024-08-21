@@ -8,6 +8,7 @@
     --rdg-font-size: inherit;
     color: inherit;
     --rdg-selection-color: var(--vscode-focusBorder);
+    --rdg-border-color: none;
 }
 
 .r104f42s700-beta13:not(.rdg-light) {
@@ -17,6 +18,7 @@
     --rdg-row-selected-background-color: var(--vscode-list-inactiveSelectionBackground);
     --rdg-checkbox-color: inherit;
     --rdg-checkbox-focus-color: inherit;
+    --rdg-border-color: var(--vscode-editorWidget-border);
   }
 
 .c1wupbe700-beta13 {
