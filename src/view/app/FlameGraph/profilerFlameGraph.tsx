@@ -7,8 +7,8 @@ import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
 import { Box } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
-import ModuleDetailsSettings from "../ModuleDetails/components/ModuleDetailsSettings";
-import { useModuleDetailsSettingsContext } from "../ModuleDetails/components/ModuleDetailsSettingsContext";
+import FileTypeSettings from "../Components/FileTypeSettings";
+import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 
 interface FlameGraphNodeRoot {
   name: "root";
@@ -62,7 +62,7 @@ function ProfilerFlameGraph({
   );
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
-  const settingsContext = useModuleDetailsSettingsContext();
+  const settingsContext = useFileTypeSettingsContext();
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -110,12 +110,18 @@ function ProfilerFlameGraph({
       setIsCtrlPressed(false);
     };
 
+    const handleFocus = () => {
+      setIsCtrlPressed(false);
+    };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 
@@ -165,7 +171,7 @@ function ProfilerFlameGraph({
     const foundModule = presentationData.moduleDetails.find(
       (moduleRow) => moduleRow.moduleID === node.moduleID
     )
-    
+
     if(!foundModule)
       return;
     if (!foundModule.hasLink)
@@ -273,7 +279,7 @@ function ProfilerFlameGraph({
         <div className="grid-name">Flame Graph</div>
         {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
         <Box className={"flame-graph-container"}>
-          <ModuleDetailsSettings
+          <FileTypeSettings
             showOpenFileType={
               presentationData.hasXREFs && presentationData.hasListings
             }

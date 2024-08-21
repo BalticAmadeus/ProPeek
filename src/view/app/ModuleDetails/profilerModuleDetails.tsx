@@ -14,8 +14,8 @@ import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "./components/PercentageFill";
 import { Box } from "@mui/material";
-import ModuleDetailsSettings from "./components/ModuleDetailsSettings";
-import { useModuleDetailsSettingsContext } from "./components/ModuleDetailsSettingsContext";
+import FileTypeSettings from "../Components/FileTypeSettings";
+import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 
 interface ProfilerModuleDetailsProps {
@@ -173,7 +173,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     columnDefinition.LineColumns
   );
 
-  const settingsContext = useModuleDetailsSettingsContext();
+  const settingsContext = useFileTypeSettingsContext();
 
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
@@ -313,7 +313,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     <div>
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
-        <ModuleDetailsSettings
+        <FileTypeSettings
           showOpenFileType={
             presentationData.hasXREFs && presentationData.hasListings
           }

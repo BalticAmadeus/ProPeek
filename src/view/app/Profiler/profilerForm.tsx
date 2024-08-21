@@ -7,7 +7,7 @@ import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
 import { ToggleButtonGroup } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";
-import ModuleDetailsSettingsContextProvider from "../ModuleDetails/components/ModuleDetailsSettingsContext";
+import FileTypeSettingsContextProvider from "../Components/FileTypeSettingsContext";
 import ProToggleButton from "../Components/Buttons/ProToggleButton";
 
 const defaultPresentationData: PresentationData = {
@@ -51,13 +51,13 @@ const ProfilerForm: React.FC = () => {
   const ModuleDetailsTab: React.FC = () => {
     return (
       <div>
-        <ModuleDetailsSettingsContextProvider>
+        <FileTypeSettingsContextProvider>
           <ProfilerModuleDetails
             presentationData={presentationData}
             moduleName={moduleName}
             selectedModuleId={selectedModuleId}
           />
-        </ModuleDetailsSettingsContextProvider>
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };
@@ -76,14 +76,14 @@ const ProfilerForm: React.FC = () => {
   const FlameGraphTab: React.FC = () => {
     return (
       <div>
-        <ModuleDetailsSettingsContextProvider>
-        <ProfilerFlameGraph
-          presentationData={presentationData}
-          hasTracingData={presentationData.hasTracingData}
-          handleNodeSelection={handleNodeSelection}
-          vscode={vscode}
-        />
-        </ModuleDetailsSettingsContextProvider>
+        <FileTypeSettingsContextProvider>
+          <ProfilerFlameGraph
+            presentationData={presentationData}
+            hasTracingData={presentationData.hasTracingData}
+            handleNodeSelection={handleNodeSelection}
+            vscode={vscode}
+          />
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };

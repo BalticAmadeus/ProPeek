@@ -11,7 +11,7 @@ import { useState } from "react";
 import * as React from "react";
 import { Box } from "@mui/material";
 import PercentageFill from "./PercentageFill";
-import { useModuleDetailsSettingsContext } from "./ModuleDetailsSettingsContext";
+import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../../common/openFile";
 
 interface FilterHeaderProps {
@@ -79,7 +79,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
 }) => {
   const [rows, setRows] = useState(otherProps.rows);
   const [filters, setFilters] = useState<string>("");
-  const settingsContext = useModuleDetailsSettingsContext();
+  const settingsContext = useFileTypeSettingsContext();
 
   React.useEffect(() => {
     applyFilter(filters);
