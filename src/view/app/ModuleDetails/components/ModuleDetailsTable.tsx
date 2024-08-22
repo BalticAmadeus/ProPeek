@@ -10,8 +10,8 @@ import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
 import { Box } from "@mui/material";
-import PercentageFill from "./PercentageFill";
 import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
+import PercentageFill from "../../Components/PercentageBar/PercentageFill";
 import { OpenFileTypeEnum } from "../../../../common/openFile";
 
 interface FilterHeaderProps {

@@ -12,7 +12,7 @@ import * as columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
-import PercentageFill from "./components/PercentageFill";
+import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { Box } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";

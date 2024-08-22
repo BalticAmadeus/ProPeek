@@ -1,13 +1,40 @@
 .grid-name {
-    font-size: 18px;
-    padding-bottom: 5px;
-    font-weight: bold;
+  font-size: 18px;
+  padding-bottom: 5px;
+  font-weight: bold;
+  margin-top: 5px;
 }
 
 .treeview {
-    position: relative;
-    padding-bottom: 40px;
+  position: relative;
+  padding-bottom: 40px;
 }
-.treeHeight{
-    height: fit-content;
+
+.treeHeight {
+  height: fit-content;
+}
+
+.expansionButton {
+  margin-right: 10px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-radius: 2px;
+  width: 20px;
+  height: 18px;
+}
+
+.expansionButton:hover {
+  background: #8dbbec73;
+}
+
+.moduleName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.moduleName:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }

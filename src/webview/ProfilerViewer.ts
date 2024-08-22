@@ -18,6 +18,11 @@ export class ProfilerViewer {
     private readonly configuration = vscode.workspace.getConfiguration("");
     private readonly extensionPath: string;
 
+    private async reloadProfilerData(filePath: string): Promise<void> {
+      const profilerService = new ProfilerService(filePath);
+      await this.initProfiler(profilerService, filePath);
+    }
+
     constructor(private context: vscode.ExtensionContext, action: string, filePath: string,) {
 
         this.extensionPath = context.asAbsolutePath("");
@@ -55,6 +60,14 @@ export class ProfilerViewer {
 
         this.panel.webview.html = this.getWebviewContent();
 
+        vscode.window.onDidChangeActiveTextEditor(() => {
+          this.reloadProfilerData(filePath);
+        });
+    
+        vscode.window.onDidChangeVisibleTextEditors(() => {
+          this.reloadProfilerData(filePath);
+        });
+
         this.panel.onDidDispose(
             () => {
                 // When the panel is closed, cancel any future updates to the webview content
@@ -68,8 +81,8 @@ export class ProfilerViewer {
         this.initProfiler(profilerService, filePath);
 
         this.panel.webview.onDidReceiveMessage(
-            async message => {
-                switch(message.type) {
+          async message => {
+                switch (message.type) {
                     case "GRAPH_TYPE_CHANGE":
                         await this.initProfiler(profilerService, filePath, message.showStartTime);
                         break;
