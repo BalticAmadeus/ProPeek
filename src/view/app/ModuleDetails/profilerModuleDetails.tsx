@@ -40,16 +40,6 @@ const defaultModuleSort: SortColumn = {
   direction: "DESC", // Use descending order by default
 };
 
-const defaultCallerSort: SortColumn = {
-  columnKey: "callerPcntOfSession",
-  direction: "DESC",
-};
-
-const defaultCalleeSort: SortColumn = {
-  columnKey: "calleePcntOfSession",
-  direction: "DESC",
-};
-
 const defaultLineSort: SortColumn = {
   columnKey: "lineNumber", // Sort by the "lineNumber" column by default
   direction: "ASC", // Use ascending order by default
@@ -139,14 +129,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   >(presentationData.calledModules);
   const [sortCallingColumns, setSortCallingColumns] = useState<
     readonly SortColumn[]
-  >([defaultCallerSort]);
+  >([]);
 
   const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
     presentationData.calledModules
   );
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
-  >([defaultCalleeSort]);
+  >([]);
 
   const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
     presentationData.lineSummary
