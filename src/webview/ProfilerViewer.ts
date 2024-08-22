@@ -2,7 +2,7 @@ import path = require("path");
 import * as vscode from "vscode";
 import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
-import { IncludeFile } from "../common/XRefData"
+import { IncludeFile } from "../common/XRefData";
 import * as fs from 'fs';
 import { convertToFilePath, getFileAndProcedureName, getListingFilePath, getProPath } from "../services/parser/presentation/common";
 import { Constants } from "../common/Constants";
@@ -17,6 +17,7 @@ export class ProfilerViewer {
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
     private readonly extensionPath: string;
+    private previousViewColumn: vscode.ViewColumn | undefined;
 
     private async reloadProfilerData(filePath: string): Promise<void> {
       const profilerService = new ProfilerService(filePath);
@@ -26,6 +27,8 @@ export class ProfilerViewer {
     constructor(private context: vscode.ExtensionContext, action: string, filePath: string,) {
 
         this.extensionPath = context.asAbsolutePath("");
+        this.previousViewColumn = vscode.ViewColumn.One;
+
         this.panel = vscode.window.createWebviewPanel(
             "OEProfilerViewer",
             action,
@@ -60,12 +63,20 @@ export class ProfilerViewer {
 
         this.panel.webview.html = this.getWebviewContent();
 
-        vscode.window.onDidChangeActiveTextEditor(() => {
-          this.reloadProfilerData(filePath);
-        });
-    
-        vscode.window.onDidChangeVisibleTextEditors(() => {
-          this.reloadProfilerData(filePath);
+        const profilerService = new ProfilerService(action);
+
+        this.initProfiler(profilerService, filePath);
+
+        this.panel.onDidChangeViewState((event) => {
+
+            const currentViewColumn = event.webviewPanel.viewColumn;
+            if (currentViewColumn !== this.previousViewColumn) {
+
+                this.reloadProfilerData(filePath);
+
+                this.previousViewColumn = currentViewColumn;
+
+            }
         });
 
         this.panel.onDidDispose(
@@ -75,10 +86,6 @@ export class ProfilerViewer {
             null,
             context.subscriptions
         );
-
-        const profilerService = new ProfilerService(action);
-
-        this.initProfiler(profilerService, filePath);
 
         this.panel.webview.onDidReceiveMessage(
           async message => {
