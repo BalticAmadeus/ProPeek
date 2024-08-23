@@ -8,7 +8,7 @@ import {
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
-import * as columnDefinition from "./column.json";
+import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
