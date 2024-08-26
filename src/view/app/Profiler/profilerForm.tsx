@@ -4,12 +4,12 @@ import { PresentationData } from "../../../common/PresentationData";
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
+import CompareModuleDetails from "../Compare/compareModuleDetails";
 import { ToggleButtonGroup } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";
 import ModuleDetailsSettingsContextProvider from "../ModuleDetails/components/ModuleDetailsSettingsContext";
 import ProToggleButton from "../Components/Buttons/ProToggleButton";
-
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
   calledModules: [],
@@ -19,13 +19,12 @@ const defaultPresentationData: PresentationData = {
   hasXREFs: false,
   hasListings: false,
 };
-
 enum ProfilerTab {
   ModuleDetails = "ModuleDetails",
   TreeView = "TreeView",
   FlameGraph = "FlameGraph",
+  Compare = "Compare",
 }
-
 const ProfilerForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ProfilerTab>(
     ProfilerTab.ModuleDetails
@@ -36,18 +35,14 @@ const ProfilerForm: React.FC = () => {
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
-
   const vscode = getVSCodeAPI();
-
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
       const message = event.data as PresentationData;
-
       setPresentationData(message);
       setLoading(false);
     });
   });
-
   const ModuleDetailsTab: React.FC = () => {
     return (
       <div>
@@ -61,7 +56,6 @@ const ProfilerForm: React.FC = () => {
       </div>
     );
   };
-
   const TreeViewTab: React.FC = () => {
     return (
       <div>
@@ -72,7 +66,6 @@ const ProfilerForm: React.FC = () => {
       </div>
     );
   };
-
   const FlameGraphTab: React.FC = () => {
     return (
       <div>
@@ -85,35 +78,39 @@ const ProfilerForm: React.FC = () => {
       </div>
     );
   };
-
+  const Compare: React.FC = () => {
+    return (
+      <div>
+        <CompareModuleDetails
+          presentationData={presentationData}
+          moduleName={moduleName}
+          selectedModuleId={selectedModuleId}
+        />
+      </div>
+    );
+  };
   let content: JSX.Element | null = null;
-
   const onTabChange = (
     event: React.MouseEvent<HTMLElement>,
     tab: ProfilerTab | null
   ) => {
     console.log(tab);
-
     if (!tab) {
       return;
     }
-
     setActiveTab(tab);
   };
-
   const handleNodeSelection = (moduleName: string, selectedModuleId: number) => {
     setModuleName(moduleName);
     setSelectedModuleId(selectedModuleId);
     setActiveTab(ProfilerTab.ModuleDetails);
   };
-
   React.useEffect(() => {
     if (activeTab !== ProfilerTab.ModuleDetails) {
       setModuleName("");
       setSelectedModuleId(null);
     }
   }, [activeTab]);
-
   switch (activeTab) {
     case ProfilerTab.ModuleDetails:
       content = <ModuleDetailsTab />;
@@ -124,8 +121,10 @@ const ProfilerForm: React.FC = () => {
     case ProfilerTab.FlameGraph:
       content = <FlameGraphTab />;
       break;
+    case ProfilerTab.Compare:
+      content = <Compare />;
+      break;
   }
-
   return (
     <React.Fragment>
       {isLoading && <LoadingOverlay />}
@@ -147,6 +146,9 @@ const ProfilerForm: React.FC = () => {
             <ProToggleButton value={ProfilerTab.FlameGraph}>
               Flame Graph
             </ProToggleButton>
+            <ProToggleButton value={ProfilerTab.Compare}>
+              Compare
+            </ProToggleButton>
           </ToggleButtonGroup>
         </div>
         <hr></hr>
@@ -155,5 +157,4 @@ const ProfilerForm: React.FC = () => {
     </React.Fragment>
   );
 };
-
 export default ProfilerForm;

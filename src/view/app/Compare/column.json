@@ -1,0 +1,90 @@
+{
+    "moduleColumns": [
+        {
+            "key": "moduleName",
+            "name": "Module Name",
+            "width": "auto"
+        },
+        {
+            "key": "pcntOfSession",
+            "name": "% Of Session",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "totalTime",
+            "name": "Total Time",
+            "width": "auto"
+        },
+        {
+            "key": "avgTimePerCall",
+            "name": "Avg Time Per Call",
+            "width": "auto"
+        }
+    ],
+    "CallingColumns": [
+        {
+            "key": "callerModuleName",
+            "name": "Calling Module Name",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Calling",
+            "width": "auto"
+        },
+        {
+            "key": "callerPcntOfSession",
+            "name": "% Of Session",
+            "width": "auto"
+        }
+    ],
+    "CalledColumns": [
+        {
+            "key": "calleeModuleName",
+            "name": "Called Module Name",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "calleeTotalTimesCalled",
+            "name": "Total Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "calleePcntOfSession",
+            "name": "% Of Session",
+            "width": "auto"
+        }
+    ],
+    "LineColumns": [
+        {
+            "key": "lineNumber",
+            "name": "Line Number",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "avgTime",
+            "name": "Avg Time",
+            "width": "auto"
+        },
+        {
+            "key": "totalTime",
+            "name": "Total Time",
+            "width": "auto"
+        }
+    ]
+}
