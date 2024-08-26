@@ -162,8 +162,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   const [moduleNameFilter, setModuleNameFilter] =
     React.useState<string>(moduleName);
 
-  const [fileData, setFileData] = useState<string | null>(null);
-
   const vscode = getVSCodeAPI();
 
   const formattedModuleColumns: ModuleColumn[] = addConditionalFormatting(
