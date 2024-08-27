@@ -6,8 +6,7 @@ const FileUpload = () => {
     const [fileName, setFileName] = useState<string | null>(null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file: File = event.target.files?.[0];
-            console.log('File selected:', file.path);
+        const file: any = event.target.files?.[0];
             setFileName(file.path);
     };
 
