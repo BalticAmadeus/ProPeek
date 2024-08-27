@@ -19,8 +19,8 @@ export class ProfilerViewer {
     private readonly extensionPath: string;
 
     private async reloadProfilerData(filePath: string): Promise<void> {
-      const profilerService = new ProfilerService(filePath);
-      await this.initProfiler(profilerService, filePath);
+        const profilerService = new ProfilerService(filePath);
+        await this.initProfiler(profilerService, filePath);
     }
 
     constructor(private context: vscode.ExtensionContext, action: string, filePath: string,) {
@@ -61,11 +61,11 @@ export class ProfilerViewer {
         this.panel.webview.html = this.getWebviewContent();
 
         vscode.window.onDidChangeActiveTextEditor(() => {
-          this.reloadProfilerData(filePath);
+            this.reloadProfilerData(filePath);
         });
-    
+
         vscode.window.onDidChangeVisibleTextEditors(() => {
-          this.reloadProfilerData(filePath);
+            this.reloadProfilerData(filePath);
         });
 
         this.panel.onDidDispose(
@@ -81,7 +81,7 @@ export class ProfilerViewer {
         this.initProfiler(profilerService, filePath);
 
         this.panel.webview.onDidReceiveMessage(
-          async message => {
+            async message => {
                 switch (message.type) {
                     case "GRAPH_TYPE_CHANGE":
                         await this.initProfiler(profilerService, filePath, message.showStartTime);
@@ -91,6 +91,19 @@ export class ProfilerViewer {
                         break;
                     case OpenFileTypeEnum.LISTING:
                         await openListing(message.listingFile, message.lineNumber);
+                        break;
+                    case "Compare":
+                        try {
+                            const dataString = await profilerService.compare(message.presentationData);
+                            handleErrors(profilerService.getErrors());
+                            console.log(dataString);
+                            this.panel?.webview.postMessage({
+                                data: dataString,
+                                type: "Compare Data",
+                            });
+                        } catch (error) {
+                            handleErrors(["Failed to Compare ProPeek Profiler"]);
+                        }
                         break;
                     default:
                 }

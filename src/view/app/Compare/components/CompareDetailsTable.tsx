@@ -79,7 +79,6 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
 
   React.useEffect(() => {
     applyFilter(filters);
-    console.log(otherProps);
   }, [otherProps.rows]);
 
   const applyFilter = (filter: string) => {
@@ -130,18 +129,10 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
       return col;
     });
   };
-  const newColumn: Column<ModuleDetails> = {
-    key: "newColumnKey",
-    name: "New Column",
-    formatter: () => <div>-</div>,
-    width: "auto",
-  }
 
   const filteredColumns = React.useMemo(() => {
-    const updatedColumn = addFilterRendererToColumns(otherProps.columns);
-    return [...updatedColumn, newColumn];
+    return addFilterRendererToColumns(otherProps.columns);
   }, [otherProps.columns, searchValue]);
-
 
   return (
     <Box>

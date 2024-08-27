@@ -51,3 +51,10 @@ export interface PresentationData {
     hasXREFs: boolean,
     hasListings: boolean,
 }
+
+export interface ComparedData {
+    moduleId: number,
+    timesCalledChange: number,
+    avgTimePerCallChange: number,
+    totalTimeChange: number,
+}

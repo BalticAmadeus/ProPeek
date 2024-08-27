@@ -1,8 +1,9 @@
-.columns{
+.columns {
     height: auto;
     max-height: 300px;
 }
-.total-time{
+
+.total-time {
     margin-top: 5px;
     font-weight: bold;
 }
@@ -12,4 +13,12 @@
     font-size: 1.1em;
     font-weight: 900;
     background-color: rgba(0, 0, 0, 0.3);
+}
+
+.link-cell.green {
+    color: green;
+}
+
+.link-cell.red {
+    color: red;
 }

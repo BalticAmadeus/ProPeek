@@ -5,6 +5,7 @@ import {
   CalledModules,
   LineSummary,
   PresentationData,
+  ComparedData,
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
@@ -14,13 +15,11 @@ import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { Box } from "@mui/material";
-import { testData } from "./components/TestData";
 import FileUpload from "./components/FileUpload";
 
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
-  moduleName: string;
-  selectedModuleId: number;
+  comparedData: ComparedData[];
 }
 
 interface GenericModuleColumn extends Column<any> {
@@ -29,6 +28,13 @@ interface GenericModuleColumn extends Column<any> {
   width: string;
 }
 
+interface ExtendedModuleDetails extends ModuleDetails{
+  timesCalledChange: number;
+  avgTimePerCallChange: number;
+  totalTimeChange: number;
+}
+
+interface ExtendedColumn extends GenericModuleColumn {}
 interface ModuleColumn extends GenericModuleColumn {}
 interface CallingColumn extends GenericModuleColumn {}
 interface CalledColumn extends GenericModuleColumn {}
@@ -65,6 +71,10 @@ const addConditionalFormatting = (
     <Box className={row.hasLink ? "link-cell" : ""}>{row[key]}</Box>
   );
 
+  const addNegativeChangeFormat = (row: ExtendedModuleDetails, key: string) => (
+    <Box className={row.totalTimeChange > 0 ? "link-cell.red": ""}>{row[key]}</Box>
+  );
+
   return columns.map((column) => {
     if (column.key === "moduleName" || column.key === "lineNumber") {
       return {
@@ -81,6 +91,13 @@ const addConditionalFormatting = (
         ...column,
         formatter: (props: FormatterProps<CalledModules>) =>
           addPercentageFormat(props.row[column.key]),
+      };
+    }
+    if (column.key === "totalTimeChange"){
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ExtendedModuleDetails>) =>
+          addNegativeChangeFormat(props.row, column.key),
       };
     }
     return column;
@@ -114,30 +131,43 @@ function getComparator(sortColumn: string) {
     default:
       throw new Error(`unsupported sortColumn: "${sortColumn}"`);
   }
-}
+};
+
+function mergeModuleDetailsWithComparison(
+  moduleDetails: ModuleDetails[],
+  comparedData: ComparedData[]
+): ExtendedModuleDetails[] {
+  console.log("Mod: ",moduleDetails)
+  console.log("comp: ",comparedData);
+  return moduleDetails.map((module) => {
+    const comparison = comparedData.find(
+      (comp) => comp.moduleId === module.moduleID
+    );
+
+    return {
+      ...module,
+      timesCalledChange: comparison?.timesCalledChange || 0,
+      avgTimePerCallChange: comparison?.avgTimePerCallChange || 0,
+      totalTimeChange: comparison?.totalTimeChange || 0,
+    };
+  });
+};
 
 const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   presentationData,
-  moduleName,
-  selectedModuleId,
+  comparedData,
 }) => {
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
   );
-
-  const [compareModuleRows, setCompareModuleRows] = useState<ModuleDetails[]>(
-    testData
-  );
-
+  const [comparedModule, setComparedModule] = useState<ComparedData[]>(comparedData || []);
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
   const [sortModuleColumns, setSortModuleColumns] = useState<
     readonly SortColumn[]
   >([defaultModuleSort]);
 
-  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(
-    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) || null
-  );
+  const [selectedRow, setSelectedRow] = useState<ModuleDetails>();
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
   >(presentationData.calledModules);
@@ -159,11 +189,17 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     [defaultLineSort]
   );
 
-  const [moduleNameFilter, setModuleNameFilter] =
-    React.useState<string>(moduleName);
+  const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
 
   const vscode = getVSCodeAPI();
 
+  const mergedData: ExtendedModuleDetails[] = mergeModuleDetailsWithComparison(
+    presentationData.moduleDetails,
+    comparedModule
+  );
+  const formattedMergedColumns: ExtendedColumn[] = addConditionalFormatting(
+    columnDefinition.moduleColumns
+  )
   const formattedModuleColumns: ModuleColumn[] = addConditionalFormatting(
     columnDefinition.moduleColumns
   );
@@ -283,9 +319,13 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (
           <CompareDetailsTable
-            columns={formattedModuleColumns}
-            rows={sortedModuleRows}
-            onRowClick={(row) => {setSelectedRow(row); /*console.log(JSON.stringify(presentationData.moduleDetails))*/;}}
+            columns={formattedMergedColumns}
+            rows={mergedData}
+            onRowClick={(row) => {
+              setSelectedRow(row); 
+              console.log(JSON.stringify(presentationData));
+              console.log(comparedModule);
+            }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
