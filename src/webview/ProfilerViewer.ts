@@ -15,10 +15,10 @@ interface Message {
 
 export class ProfilerViewer {
     private isAlternate = false;
-    private action2?: string;
-    private filePath2?: string;
     private action: string;
     private filePath: string;
+    private action2?: string;
+    private filePath2?: string;
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
     private readonly extensionPath: string;
@@ -131,6 +131,19 @@ export class ProfilerViewer {
                         break;
                     case "TOGGLE_PROFILER":
                         await this.toggleProfilerData();
+                        break;
+                    case "Compare":
+                        try {
+                            const dataString = await profilerService.compare(message.presentationData);
+                            handleErrors(profilerService.getErrors());
+                            console.log(dataString);
+                            this.panel?.webview.postMessage({
+                                data: dataString,
+                                type: "Compare Data",
+                            });
+                        } catch (error) {
+                            handleErrors(["Failed to Compare ProPeek Profiler"]);
+                        }
                         break;
                     default:
                 }

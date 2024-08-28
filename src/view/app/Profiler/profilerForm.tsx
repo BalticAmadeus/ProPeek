@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { PresentationData } from "../../../common/PresentationData";
+import { PresentationData, ComparedData } from "../../../common/PresentationData";
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
@@ -32,15 +32,22 @@ const ProfilerForm: React.FC = () => {
   const [presentationData, setPresentationData] = useState<PresentationData>(
     defaultPresentationData
   );
+  const [comparedData, setComparedData] = useState<ComparedData[]>(null);
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
   const vscode = getVSCodeAPI();
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
-      const message = event.data as PresentationData;
-      setPresentationData(message);
+    if(event.data.type){
+      console.log(event.data);
+      setComparedData(event.data.data as ComparedData[]);
+    }
+    else{
+      console.log(event.data)
+      setPresentationData(event.data as PresentationData);
       setLoading(false);
+    }
     });
   });
   const ModuleDetailsTab: React.FC = () => {
@@ -83,12 +90,12 @@ const ProfilerForm: React.FC = () => {
       <div>
         <CompareModuleDetails
           presentationData={presentationData}
-          moduleName={moduleName}
-          selectedModuleId={selectedModuleId}
+          comparedData={comparedData}
         />
       </div>
     );
   };
+
   let content: JSX.Element | null = null;
   const onTabChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -100,6 +107,7 @@ const ProfilerForm: React.FC = () => {
     }
     setActiveTab(tab);
   };
+
   const handleNodeSelection = (moduleName: string, selectedModuleId: number) => {
     setModuleName(moduleName);
     setSelectedModuleId(selectedModuleId);
@@ -110,7 +118,14 @@ const ProfilerForm: React.FC = () => {
       setModuleName("");
       setSelectedModuleId(null);
     }
+    if(activeTab === ProfilerTab.Compare){
+      vscode.postMessage({
+        type: "Compare",
+        presentationData: presentationData,
+      });
+    }
   }, [activeTab]);
+
   switch (activeTab) {
     case ProfilerTab.ModuleDetails:
       content = <ModuleDetailsTab />;
