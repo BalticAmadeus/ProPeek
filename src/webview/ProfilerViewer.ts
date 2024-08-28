@@ -14,16 +14,53 @@ interface Message {
 }
 
 export class ProfilerViewer {
+    private isAlternate = false;
+    private action2?: string;
+    private filePath2?: string;
+    private action: string;
+    private filePath: string;
     private readonly panel: vscode.WebviewPanel | undefined;
     private readonly configuration = vscode.workspace.getConfiguration("");
     private readonly extensionPath: string;
 
-    private async reloadProfilerData(filePath: string): Promise<void> {
-      const profilerService = new ProfilerService(filePath);
-      await this.initProfiler(profilerService, filePath);
+    private async reloadProfilerData(action: string, filePath: string): Promise<void> {
+        const profilerService = new ProfilerService(action);
+        await this.initProfiler(profilerService, filePath);
     }
 
-    constructor(private context: vscode.ExtensionContext, action: string, filePath: string,) {
+    private async loadTwoProfilerData(action: string, filePath: string, action2: string, filePath2: string, showStartTime = false): Promise<void> {
+
+        const profilerService = new ProfilerService(action);
+        const dataString = await profilerService.parse(filePath, showStartTime);
+
+        const profilerService2 = new ProfilerService(action2);
+        const dataString2 = await profilerService2.parse(filePath2, showStartTime);
+
+       console.log(dataString);
+
+       console.log(dataString2);
+       
+       
+    }
+
+    constructor(private context: vscode.ExtensionContext, action: string, filePath: string, action2?: string, filePath2?: string) {
+
+        this.action = action;
+        this.filePath = filePath;
+        this.action2 = action2;
+        this.filePath2 = filePath2;
+
+        if (filePath2 && action2){            
+
+            this.loadTwoProfilerData(action, filePath, action2, filePath2);
+            this.toggleProfilerData();
+
+
+        } else {
+
+            console.log("File Path:", filePath);
+
+        }
 
         this.extensionPath = context.asAbsolutePath("");
         this.panel = vscode.window.createWebviewPanel(
@@ -61,11 +98,11 @@ export class ProfilerViewer {
         this.panel.webview.html = this.getWebviewContent();
 
         vscode.window.onDidChangeActiveTextEditor(() => {
-          this.reloadProfilerData(filePath);
+            this.reloadProfilerData(action, filePath);
         });
-    
+
         vscode.window.onDidChangeVisibleTextEditors(() => {
-          this.reloadProfilerData(filePath);
+            this.reloadProfilerData(action, filePath);
         });
 
         this.panel.onDidDispose(
@@ -81,7 +118,7 @@ export class ProfilerViewer {
         this.initProfiler(profilerService, filePath);
 
         this.panel.webview.onDidReceiveMessage(
-          async message => {
+            async message => {
                 switch (message.type) {
                     case "GRAPH_TYPE_CHANGE":
                         await this.initProfiler(profilerService, filePath, message.showStartTime);
@@ -92,15 +129,28 @@ export class ProfilerViewer {
                     case OpenFileTypeEnum.LISTING:
                         await openListing(message.listingFile, message.lineNumber);
                         break;
+                    case "TOGGLE_PROFILER":
+                        await this.toggleProfilerData();
+                        break;
                     default:
                 }
             },
         );
     }
+    public async toggleProfilerData(): Promise<void> {
+        if (this.isAlternate) {
+            await this.reloadProfilerData(this.action, this.filePath);
+        } else {
+            await this.reloadProfilerData(this.action2 || "", this.filePath2 || "");
+        }
+        this.isAlternate = !this.isAlternate;
+    }
+    
 
     private async initProfiler(profilerService: ProfilerService, filePath: string, showStartTime = false): Promise<void> {
         try {
             const dataString = await profilerService.parse(filePath, showStartTime);
+
             handleErrors(profilerService.getErrors());
             this.panel?.webview.postMessage(dataString);
         } catch (error) {

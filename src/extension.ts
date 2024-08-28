@@ -4,11 +4,44 @@ import * as vscode from 'vscode';
 import { ProfilerViewer } from './webview/ProfilerViewer';
 import { getBuildPaths, readFile } from "./common/OpenEdgeJsonReader";
 import { Constants } from './common/Constants';
+import * as path from 'path';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     Constants.context = context;
+
+    let compareDisposable = vscode.commands.registerCommand('vsc-profiler.compareProfilerFiles', async () => {
+
+        const selectedFiles = await vscode.window.showOpenDialog({
+            canSelectMany: true,
+            openLabel: 'Select Profiler Files',
+            filters: {
+                'Profiler Files': ['prof', 'out']
+            }
+        });
+
+        if (!selectedFiles || selectedFiles.length !== 2) {
+            vscode.window.showErrorMessage("Please select exactly two profiler files.");
+            return;
+        }
+
+        const file1 = selectedFiles[0].fsPath;
+        const file2 = selectedFiles[1].fsPath;
+
+        const updatedPath1 = file1.replace(/\\/g, '/');
+        const updatedPath2 = file2.replace(/\\/g, '/');
+    
+        const relativePath1 = vscode.workspace.asRelativePath(updatedPath1);
+        const relativePath2 = vscode.workspace.asRelativePath(updatedPath2);
+
+        new ProfilerViewer(context, relativePath1, updatedPath1, relativePath2, updatedPath2);
+
+    });
+
+
+
+    context.subscriptions.push(compareDisposable);
 
     vscode.workspace.findFiles("**/openedge-project.json").then((list) => {
         list.forEach((uri) => updatePropath(uri));

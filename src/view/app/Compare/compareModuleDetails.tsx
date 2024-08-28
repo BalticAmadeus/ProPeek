@@ -276,9 +276,16 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   }, [selectedRow]);
 
 
+  const handleToggleProfile = () => {
+    vscode.postMessage({
+      type: "TOGGLE_PROFILER"
+    });
+  };
+
   return (
     <div>
       <FileUpload/>
+      <button onClick={handleToggleProfile}>Change</button>
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (

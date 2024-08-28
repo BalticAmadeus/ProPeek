@@ -54,6 +54,11 @@
             {
                 "command": "vsc-profiler.profilerFromTask",
                 "title": "Show Profiler"
+            },
+            {
+                "command": "vsc-profiler.compareProfilerFiles",
+                "title": "Compare Profilers",
+                "icon": "$(diff)"
             }
         ],
         "menus": {
@@ -74,6 +79,12 @@
                 {
                     "command": "vsc-profiler.profiler",
                     "group": "navigation",
+                    "when": "resourceExtname == .prof || resourceExtname == .out"
+                },
+                {
+                    "command": "vsc-profiler.compareProfilerFiles",
+                    "group": "navigation",
+                    
                     "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]
