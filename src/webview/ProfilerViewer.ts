@@ -2,185 +2,207 @@ import path = require("path");
 import * as vscode from "vscode";
 import { ProfilerService } from "../services/profilerService";
 import { PresentationData } from "../common/PresentationData";
-import { IncludeFile } from "../common/XRefData"
-import * as fs from 'fs';
-import { convertToFilePath, getFileAndProcedureName, getListingFilePath, getProPath } from "../services/parser/presentation/common";
+import { IncludeFile } from "../common/XRefData";
+import * as fs from "fs";
+import {
+  convertToFilePath,
+  getFileAndProcedureName,
+  getListingFilePath,
+  getProPath,
+} from "../services/parser/presentation/common";
 import { Constants } from "../common/Constants";
 import { OpenFileTypeEnum } from "../common/openFile";
 
 interface Message {
-    showStartTime: any;
-    moduleName: string;
+  showStartTime: any;
+  moduleName: string;
 }
 
 export class ProfilerViewer {
-    private isAlternate = false;
-    private action: string;
-    private filePath: string;
-    private action2?: string;
-    private filePath2?: string;
-    private readonly panel: vscode.WebviewPanel | undefined;
-    private readonly configuration = vscode.workspace.getConfiguration("");
-    private readonly extensionPath: string;
+  private isAlternate = false;
+  private action: string;
+  private filePath: string;
+  private action2?: string;
+  private filePath2?: string;
+  private readonly panel: vscode.WebviewPanel | undefined;
+  private readonly configuration = vscode.workspace.getConfiguration("");
+  private readonly extensionPath: string;
 
-    private async reloadProfilerData(action: string, filePath: string): Promise<void> {
-        const profilerService = new ProfilerService(action);
-        await this.initProfiler(profilerService, filePath);
+  private async reloadProfilerData(
+    action: string,
+    filePath: string
+  ): Promise<void> {
+    const profilerService = new ProfilerService(action);
+    await this.initProfiler(profilerService, filePath);
+  }
+
+  private async loadTwoProfilerData(
+    action: string,
+    filePath: string,
+    action2: string,
+    filePath2: string,
+    showStartTime = false
+  ): Promise<void> {
+    const profilerService = new ProfilerService(action);
+    const firstProfilerData = await profilerService.parse(
+      filePath,
+      showStartTime
+    );
+
+    const profilerService2 = new ProfilerService(action2);
+    const secondProfilerData = await profilerService2.parse(
+      filePath2,
+      showStartTime
+    );
+    try {
+      const dataString = await profilerService.compare(
+        firstProfilerData,
+        secondProfilerData
+      );
+      handleErrors(profilerService.getErrors());
+      this.panel?.webview.postMessage({
+        data: dataString,
+        type: "Compare Data",
+      });
+    } catch (error) {
+      handleErrors(["Failed to Compare ProPeek Profiler"]);
+    }
+  }
+
+  constructor(
+    private context: vscode.ExtensionContext,
+    action: string,
+    filePath: string,
+    action2?: string,
+    filePath2?: string
+  ) {
+    this.action = action;
+    this.filePath = filePath;
+    this.action2 = action2;
+    this.filePath2 = filePath2;
+
+    if (filePath2 && action2) {
+      this.loadTwoProfilerData(action, filePath, action2, filePath2);
+      this.toggleProfilerData();
+    } else {
+      console.log("File Path:", filePath);
     }
 
-    private async loadTwoProfilerData(action: string, filePath: string, action2: string, filePath2: string, showStartTime = false): Promise<void> {
+    this.extensionPath = context.asAbsolutePath("");
+    this.panel = vscode.window.createWebviewPanel(
+      "OEProfilerViewer",
+      action,
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.asAbsolutePath(""), "out")),
+        ],
+      }
+    );
 
-        const profilerService = new ProfilerService(action);
-        const dataString = await profilerService.parse(filePath, showStartTime);
+    this.panel.iconPath = {
+      dark: vscode.Uri.file(
+        path.join(
+          this.extensionPath,
+          "resources",
+          "icon",
+          "query-icon-dark.svg"
+        )
+      ),
+      light: vscode.Uri.file(
+        path.join(
+          this.extensionPath,
+          "resources",
+          "icon",
+          "query-icon-light.svg"
+        )
+      ),
+    };
 
-        const profilerService2 = new ProfilerService(action2);
-        const dataString2 = await profilerService2.parse(filePath2, showStartTime);
+    this.panel.webview.html = this.getWebviewContent();
 
-       console.log(dataString);
+    vscode.window.onDidChangeActiveTextEditor(() => {
+      this.reloadProfilerData(action, filePath);
+    });
 
-       console.log(dataString2);
-       
-       
+    vscode.window.onDidChangeVisibleTextEditors(() => {
+      this.reloadProfilerData(action, filePath);
+    });
+
+    this.panel.onDidDispose(
+      () => {
+        // When the panel is closed, cancel any future updates to the webview content
+      },
+      null,
+      context.subscriptions
+    );
+
+    const profilerService = new ProfilerService(action);
+
+    this.initProfiler(profilerService, filePath);
+
+    this.panel.webview.onDidReceiveMessage(async (message) => {
+      switch (message.type) {
+        case "GRAPH_TYPE_CHANGE":
+          await this.initProfiler(
+            profilerService,
+            filePath,
+            message.showStartTime
+          );
+          break;
+        case OpenFileTypeEnum.XREF:
+          await open(message.columns, message.lines, profilerService);
+          break;
+        case OpenFileTypeEnum.LISTING:
+          await openListing(message.listingFile, message.lineNumber);
+          break;
+        case "TOGGLE_PROFILER":
+          await this.toggleProfilerData();
+          break;
+        default:
+      }
+    });
+  }
+  public async toggleProfilerData(): Promise<void> {
+    if (this.isAlternate) {
+      await this.reloadProfilerData(this.action, this.filePath);
+    } else {
+      await this.reloadProfilerData(this.action2 || "", this.filePath2 || "");
     }
+    this.isAlternate = !this.isAlternate;
+  }
 
-    constructor(private context: vscode.ExtensionContext, action: string, filePath: string, action2?: string, filePath2?: string) {
+  private async initProfiler(
+    profilerService: ProfilerService,
+    filePath: string,
+    showStartTime = false
+  ): Promise<void> {
+    try {
+      const dataString = await profilerService.parse(filePath, showStartTime);
 
-        this.action = action;
-        this.filePath = filePath;
-        this.action2 = action2;
-        this.filePath2 = filePath2;
-
-        if (filePath2 && action2){            
-
-            this.loadTwoProfilerData(action, filePath, action2, filePath2);
-            this.toggleProfilerData();
-
-
-        } else {
-
-            console.log("File Path:", filePath);
-
-        }
-
-        this.extensionPath = context.asAbsolutePath("");
-        this.panel = vscode.window.createWebviewPanel(
-            "OEProfilerViewer",
-            action,
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.file(path.join(context.asAbsolutePath(""), "out"))
-                ]
-            }
-        );
-
-        this.panel.iconPath = {
-            dark: vscode.Uri.file(
-                path.join(
-                    this.extensionPath,
-                    "resources",
-                    "icon",
-                    "query-icon-dark.svg"
-                )
-            ),
-            light: vscode.Uri.file(
-                path.join(
-                    this.extensionPath,
-                    "resources",
-                    "icon",
-                    "query-icon-light.svg"
-                )
-            ),
-        };
-
-        this.panel.webview.html = this.getWebviewContent();
-
-        vscode.window.onDidChangeActiveTextEditor(() => {
-            this.reloadProfilerData(action, filePath);
-        });
-
-        vscode.window.onDidChangeVisibleTextEditors(() => {
-            this.reloadProfilerData(action, filePath);
-        });
-
-        this.panel.onDidDispose(
-            () => {
-                // When the panel is closed, cancel any future updates to the webview content
-            },
-            null,
-            context.subscriptions
-        );
-
-        const profilerService = new ProfilerService(action);
-
-        this.initProfiler(profilerService, filePath);
-
-        this.panel.webview.onDidReceiveMessage(
-            async message => {
-                switch (message.type) {
-                    case "GRAPH_TYPE_CHANGE":
-                        await this.initProfiler(profilerService, filePath, message.showStartTime);
-                        break;
-                    case OpenFileTypeEnum.XREF:
-                        await open(message.columns, message.lines, profilerService);
-                        break;
-                    case OpenFileTypeEnum.LISTING:
-                        await openListing(message.listingFile, message.lineNumber);
-                        break;
-                    case "TOGGLE_PROFILER":
-                        await this.toggleProfilerData();
-                        break;
-                    case "Compare":
-                        try {
-                            const dataString = await profilerService.compare(message.presentationData);
-                            handleErrors(profilerService.getErrors());
-                            console.log(dataString);
-                            this.panel?.webview.postMessage({
-                                data: dataString,
-                                type: "Compare Data",
-                            });
-                        } catch (error) {
-                            handleErrors(["Failed to Compare ProPeek Profiler"]);
-                        }
-                        break;
-                    default:
-                }
-            },
-        );
+      handleErrors(profilerService.getErrors());
+      this.panel?.webview.postMessage(dataString);
+    } catch (error) {
+      handleErrors(["Failed to initialize ProPeek Profiler"]);
     }
-    public async toggleProfilerData(): Promise<void> {
-        if (this.isAlternate) {
-            await this.reloadProfilerData(this.action, this.filePath);
-        } else {
-            await this.reloadProfilerData(this.action2 || "", this.filePath2 || "");
-        }
-        this.isAlternate = !this.isAlternate;
-    }
-    
+  }
 
-    private async initProfiler(profilerService: ProfilerService, filePath: string, showStartTime = false): Promise<void> {
-        try {
-            const dataString = await profilerService.parse(filePath, showStartTime);
+  private getWebviewContent(): string {
+    // Local path to main script run in the webview
+    const reactAppPathOnDisk = vscode.Uri.file(
+      path.join(
+        vscode.Uri.file(
+          this.context.asAbsolutePath(path.join("out/view/app", "profiler.js"))
+        ).fsPath
+      )
+    );
 
-            handleErrors(profilerService.getErrors());
-            this.panel?.webview.postMessage(dataString);
-        } catch (error) {
-            handleErrors(["Failed to initialize ProPeek Profiler"]);
-        }
-    }
+    const reactAppUri = this.panel?.webview.asWebviewUri(reactAppPathOnDisk);
+    const cspSource = this.panel?.webview.cspSource;
 
-    private getWebviewContent(): string {
-        // Local path to main script run in the webview
-        const reactAppPathOnDisk = vscode.Uri.file(
-            path.join(vscode.Uri.file(this.context.asAbsolutePath(path.join("out/view/app", "profiler.js"))).fsPath)
-        );
-
-        const reactAppUri = this.panel?.webview.asWebviewUri(reactAppPathOnDisk);
-        const cspSource = this.panel?.webview.cspSource;
-
-        return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -200,113 +222,142 @@ export class ProfilerViewer {
         <script src="${reactAppUri}"></script>
     </body>
     </html>`;
-    }
-
+  }
 }
 
 function handleErrors(errors: string[]) {
-    if (errors.length > 0) {
-        errors.forEach((error) => {
-            vscode.window.showErrorMessage(error);
-        });
-    }
+  if (errors.length > 0) {
+    errors.forEach((error) => {
+      vscode.window.showErrorMessage(error);
+    });
+  }
 }
 
-async function openListing(listingFile: string, lineNumber: number): Promise<void> {
-    if (!listingFile) {
-        return;
-    }
+async function openListing(
+  listingFile: string,
+  lineNumber: number
+): Promise<void> {
+  if (!listingFile) {
+    return;
+  }
 
-    const listingFilePath = getListingFilePath(listingFile);
+  const listingFilePath = getListingFilePath(listingFile);
 
-    const list = await vscode.workspace.findFiles(listingFilePath);
-    if (list.length === 0) {
-        vscode.window.showWarningMessage(`Listing file not found: ${listingFilePath}\n`);
-        return;
-    }
+  const list = await vscode.workspace.findFiles(listingFilePath);
+  if (list.length === 0) {
+    vscode.window.showWarningMessage(
+      `Listing file not found: ${listingFilePath}\n`
+    );
+    return;
+  }
 
-    await openFile(list[0], lineNumber > 0 ? lineNumber : 1);
+  await openFile(list[0], lineNumber > 0 ? lineNumber : 1);
 }
 
-async function open(moduleName: string, lineNumber: number, profilerService: ProfilerService) {
-    let { fileName, procedureName } = getFileAndProcedureName(moduleName);
-    const proPath = getProPath();
+async function open(
+  moduleName: string,
+  lineNumber: number,
+  profilerService: ProfilerService
+) {
+  let { fileName, procedureName } = getFileAndProcedureName(moduleName);
+  const proPath = getProPath();
 
-    if (!procedureName || lineNumber < 1) {
-        const filePath = await getFilePath(proPath, fileName);
-        await openFile(filePath, 1);
-        return;
-    }
-
-    const xRefFile = `**${Constants.defaultXREFPath}${fileName}.xref`;
-
-    const list = await vscode.workspace.findFiles(xRefFile);
-    if (list.length === 0) {
-        vscode.window.showWarningMessage(`xRef file not found: ${xRefFile}\nLine position might be incorrect`);
-    } else {
-        const xRefPath = list[0].path.slice(1);
-        const includeFiles = profilerService.getIncludeFilesFromXref(xRefPath);
-
-        ({ fileName, lineNumber } = await getAdjustedInfo(includeFiles, proPath, fileName, lineNumber));
-    }
-
+  if (!procedureName || lineNumber < 1) {
     const filePath = await getFilePath(proPath, fileName);
-    await openFile(filePath, lineNumber);
+    await openFile(filePath, 1);
+    return;
+  }
+
+  const xRefFile = `**${Constants.defaultXREFPath}${fileName}.xref`;
+
+  const list = await vscode.workspace.findFiles(xRefFile);
+  if (list.length === 0) {
+    vscode.window.showWarningMessage(
+      `xRef file not found: ${xRefFile}\nLine position might be incorrect`
+    );
+  } else {
+    const xRefPath = list[0].path.slice(1);
+    const includeFiles = profilerService.getIncludeFilesFromXref(xRefPath);
+
+    ({ fileName, lineNumber } = await getAdjustedInfo(
+      includeFiles,
+      proPath,
+      fileName,
+      lineNumber
+    ));
+  }
+
+  const filePath = await getFilePath(proPath, fileName);
+  await openFile(filePath, lineNumber);
 }
 
 async function openFile(filePath: vscode.Uri, lineNumber: number) {
-    const doc = await vscode.workspace.openTextDocument(filePath);
+  const doc = await vscode.workspace.openTextDocument(filePath);
 
-    vscode.window.showTextDocument(doc, { selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0) });
+  vscode.window.showTextDocument(doc, {
+    selection: new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 0),
+  });
 }
 
-async function getAdjustedInfo(includeFiles: IncludeFile[], proPath: string[], fileName: string, lineNumber: number): Promise<{ fileName: string, lineNumber: number }> {
+async function getAdjustedInfo(
+  includeFiles: IncludeFile[],
+  proPath: string[],
+  fileName: string,
+  lineNumber: number
+): Promise<{ fileName: string; lineNumber: number }> {
+  for (const includeFile of includeFiles) {
+    if (lineNumber < includeFile.includeLine) {
+      break;
+    } else {
+      let includeFilePath = await getFilePath(
+        proPath,
+        includeFile.includeFileName
+      );
+      let includeLineCount = countLinesInFile(includeFilePath.path.slice(1));
 
-    for (const includeFile of includeFiles) {
-        if (lineNumber < includeFile.includeLine) {
-            break;
-        } else {
-            let includeFilePath = await getFilePath(proPath, includeFile.includeFileName);
-            let includeLineCount = countLinesInFile(includeFilePath.path.slice(1));
+      let includeEndLine = includeLineCount + includeFile.includeLine;
 
-            let includeEndLine = includeLineCount + includeFile.includeLine;
-
-            if (lineNumber < includeEndLine) {
-                fileName = includeFile.includeFileName;
-                lineNumber = lineNumber - includeFile.includeLine;
-                break;
-            } else {
-                lineNumber -= includeLineCount;
-            }
-        }
+      if (lineNumber < includeEndLine) {
+        fileName = includeFile.includeFileName;
+        lineNumber = lineNumber - includeFile.includeLine;
+        break;
+      } else {
+        lineNumber -= includeLineCount;
+      }
     }
+  }
 
-    return { fileName, lineNumber };
+  return { fileName, lineNumber };
 }
 
 function countLinesInFile(filePath: string): number {
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const lines = fileContent.split('\n');
-    let lineCount = lines.length;
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  const lines = fileContent.split("\n");
+  let lineCount = lines.length;
 
-    if (lines[lineCount - 1] !== "") lineCount++;
+  if (lines[lineCount - 1] !== "") lineCount++;
 
-    return lineCount;
+  return lineCount;
 }
 
-async function getFilePath(proPath: string[], fileName: string): Promise<vscode.Uri> {
-    if (fs.existsSync(fileName)) {
-        return Promise.resolve(vscode.Uri.file(fileName));
-    }
+async function getFilePath(
+  proPath: string[],
+  fileName: string
+): Promise<vscode.Uri> {
+  if (fs.existsSync(fileName)) {
+    return Promise.resolve(vscode.Uri.file(fileName));
+  }
 
-    if (proPath) {
-        for (const path of proPath) {
-            const files = await vscode.workspace.findFiles(convertToFilePath(fileName, path));
-            if (files.length > 0) {
-                return files[0];
-            }
-        }
-        vscode.window.showErrorMessage("File not found: " + fileName);
+  if (proPath) {
+    for (const path of proPath) {
+      const files = await vscode.workspace.findFiles(
+        convertToFilePath(fileName, path)
+      );
+      if (files.length > 0) {
+        return files[0];
+      }
     }
-    return Promise.resolve(vscode.Uri.file(""));
+    vscode.window.showErrorMessage("File not found: " + fileName);
+  }
+  return Promise.resolve(vscode.Uri.file(""));
 }

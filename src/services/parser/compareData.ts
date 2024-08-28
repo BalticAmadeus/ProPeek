@@ -1,36 +1,42 @@
-import { PresentationData, ModuleDetails, ComparedData } from "../../common/PresentationData";
+import {
+  PresentationData,
+  ModuleDetails,
+  ComparedData,
+} from "../../common/PresentationData";
 
 export async function compareData(
-    presentationData: PresentationData,
-    compareData: PresentationData
+  presentationData: PresentationData,
+  compareData: PresentationData
 ): Promise<ComparedData[]> {
-    const comparedData: ComparedData[] = [];
-    console.log(compareData);
-    const compareModuleMap = new Map<number, ModuleDetails>();
-    compareData.moduleDetails.forEach(module => {
-        compareModuleMap.set(module.moduleID, module);
-    });
+  const comparedData: ComparedData[] = [];
+  const compareModuleMap = new Map<number, ModuleDetails>();
+  compareData.moduleDetails.forEach((module) => {
+    compareModuleMap.set(module.moduleID, module);
+  });
 
-    presentationData.moduleDetails.forEach(module => {
-        const comparedModule = compareModuleMap.get(module.moduleID);
+  presentationData.moduleDetails.forEach((module) => {
+    const comparedModule = compareModuleMap.get(module.moduleID);
 
-        console.log("Compare: ", comparedModule);
-        console.log("Module: ", module);
-        if (comparedModule?.moduleName === module.moduleName) {
-            const timesCalledChange = module.timesCalled - comparedModule.timesCalled;
-            const avgTimePerCallChange = (module.avgTimePerCall || 0) - (comparedModule.avgTimePerCall || 0);
-            const totalTimeChange = module.totalTime - comparedModule.totalTime;
+    if (comparedModule?.moduleName === module.moduleName) {
+      const timesCalledChange = module.timesCalled - comparedModule.timesCalled;
+      const avgTimePerCallChange =
+        (module.avgTimePerCall || 0) - (comparedModule.avgTimePerCall || 0);
+      const totalTimeChange = module.totalTime - comparedModule.totalTime;
 
-            if (timesCalledChange !== 0 || avgTimePerCallChange !== 0 || totalTimeChange !== 0) {
-                comparedData.push({
-                    moduleId: module.moduleID,
-                    timesCalledChange,
-                    avgTimePerCallChange,
-                    totalTimeChange,
-                });
-            }
-        }
-    });
+      if (
+        timesCalledChange !== 0 ||
+        avgTimePerCallChange !== 0 ||
+        totalTimeChange !== 0
+      ) {
+        comparedData.push({
+          moduleId: module.moduleID,
+          timesCalledChange,
+          avgTimePerCallChange,
+          totalTimeChange,
+        });
+      }
+    }
+  });
 
-    return comparedData;
+  return comparedData;
 }

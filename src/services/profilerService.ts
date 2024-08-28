@@ -5,7 +5,6 @@ import { ComparedData, PresentationData } from '../common/PresentationData';
 import { getIncludeFiles } from './helper/xRefParser';
 import { ParserLogger } from './parser/ParserLogger';
 import { compareData } from './parser/compareData';
-import { testData } from './TestData';
 
 export class ProfilerService {
     private profilerTitle: string = "";
@@ -23,8 +22,8 @@ export class ProfilerService {
         return transformedData;
     }
 
-    public async compare(presentationData: PresentationData): Promise<ComparedData[]> {
-        const comparedData = await compareData(presentationData, testData as PresentationData);
+    public async compare(presentationData: PresentationData, secondPresentationData: PresentationData): Promise<ComparedData[]> {
+        const comparedData = await compareData(presentationData, secondPresentationData);
         return comparedData;
     }
 
