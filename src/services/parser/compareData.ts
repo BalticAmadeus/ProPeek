@@ -17,9 +17,9 @@ export async function compareData(
         console.log("Compare: ", comparedModule);
         console.log("Module: ", module);
         if (comparedModule?.moduleName === module.moduleName) {
-            const timesCalledChange = module.timesCalled - comparedModule.timesCalled;
-            const avgTimePerCallChange = (module.avgTimePerCall || 0) - (comparedModule.avgTimePerCall || 0);
-            const totalTimeChange = module.totalTime - comparedModule.totalTime;
+            const timesCalledChange = Number((module.timesCalled - comparedModule.timesCalled).toFixed(6));
+            const avgTimePerCallChange = Number(((module.avgTimePerCall || 0) - (comparedModule.avgTimePerCall || 0)).toFixed(6));
+            const totalTimeChange = Number((module.totalTime - comparedModule.totalTime).toFixed(6));
 
             if (timesCalledChange !== 0 || avgTimePerCallChange !== 0 || totalTimeChange !== 0) {
                 comparedData.push({

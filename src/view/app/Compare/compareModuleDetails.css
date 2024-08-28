@@ -15,10 +15,12 @@
     background-color: rgba(0, 0, 0, 0.3);
 }
 
-.link-cell.green {
+.cellPositiveChange {
     color: green;
+    /* background-color: rgba(0, 255, 0, 0.1); */
 }
 
-.link-cell.red {
+.cellNegativeChange {
     color: red;
+    /* background-color: rgba(255, 0, 0, 0.1); */
 }

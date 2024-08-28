@@ -16,8 +16,14 @@ interface FilterHeaderProps {
   searchValue?: string;
   setSearchValue?: React.Dispatch<React.SetStateAction<string>>;
 }
+interface ExtendedModuleDetails extends ModuleDetails{
+  timesCalledChange: number;
+  avgTimePerCallChange: number;
+  totalTimeChange: number;
+}
+
 export interface CompareDetailsTableProps
-  extends DataGridProps<ModuleDetails>,
+  extends DataGridProps<ExtendedModuleDetails>,
     Omit<FilterHeaderProps, "onFilterChange"> {
   sumTotalTime?: number;
 }
@@ -97,17 +103,17 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
   };
 
   const addFilterRendererToColumns = (
-    columns: Readonly<Array<Column<ModuleDetails>>>
-  ): Array<Column<ModuleDetails>> => {
+    columns: Readonly<Array<Column<ExtendedModuleDetails>>>
+  ): Array<Column<ExtendedModuleDetails>> => {
     return columns.map((col) => {
       const hasFilter = col.key === "moduleName";
       if (hasFilter) {
         return {
           ...col,
           headerCellClass: "filter-cell",
-          headerRenderer: (props: HeaderRendererProps<ModuleDetails>) => (
+          headerRenderer: (props: HeaderRendererProps<ExtendedModuleDetails>) => (
             <>
-              <Box>{HeaderRenderer<ModuleDetails, unknown>({ ...props })}</Box>
+              <Box>{HeaderRenderer<ExtendedModuleDetails, unknown>({ ...props })}</Box>
               <FilterHeader
                 onFilterChange={handleFilterChange}
                 searchValue={searchValue}
@@ -120,7 +126,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
       if (col.key === "pcntOfSession") {
         return {
           ...col,
-          formatter: (props: FormatterProps<ModuleDetails>) => {
+          formatter: (props: FormatterProps<ExtendedModuleDetails>) => {
             const percentage = props.row[col.key];
             return <PercentageFill value={percentage} />;
           },
