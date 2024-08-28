@@ -9,6 +9,7 @@ export async function compareData(
   compareData: PresentationData
 ): Promise<ComparedData[]> {
   const comparedData: ComparedData[] = [];
+  console.log(compareData);
   const compareModuleMap = new Map<number, ModuleDetails>();
   compareData.moduleDetails.forEach((module) => {
     compareModuleMap.set(module.moduleID, module);
@@ -18,10 +19,17 @@ export async function compareData(
     const comparedModule = compareModuleMap.get(module.moduleID);
 
     if (comparedModule?.moduleName === module.moduleName) {
-      const timesCalledChange = module.timesCalled - comparedModule.timesCalled;
-      const avgTimePerCallChange =
-        (module.avgTimePerCall || 0) - (comparedModule.avgTimePerCall || 0);
-      const totalTimeChange = module.totalTime - comparedModule.totalTime;
+      const timesCalledChange = Number(
+        (module.timesCalled - comparedModule.timesCalled).toFixed(6)
+      );
+      const avgTimePerCallChange = Number(
+        (
+          (module.avgTimePerCall || 0) - (comparedModule.avgTimePerCall || 0)
+        ).toFixed(6)
+      );
+      const totalTimeChange = Number(
+        (module.totalTime - comparedModule.totalTime).toFixed(6)
+      );
 
       if (
         timesCalledChange !== 0 ||
