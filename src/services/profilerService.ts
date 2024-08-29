@@ -1,41 +1,53 @@
-import { readFile } from './helper/fileReader';
-import { parseProfilerData } from './parser/profilerRawData';
-import { transformData } from './parser/presentationData';
-import { ComparedData, PresentationData } from '../common/PresentationData';
-import { getIncludeFiles } from './helper/xRefParser';
-import { ParserLogger } from './parser/ParserLogger';
-import { compareData } from './parser/compareData';
+import { readFile } from "./helper/fileReader";
+import { parseProfilerData } from "./parser/profilerRawData";
+import { transformData } from "./parser/presentationData";
+import { ComparedData, PresentationData } from "../common/PresentationData";
+import { getIncludeFiles } from "./helper/xRefParser";
+import { ParserLogger } from "./parser/ParserLogger";
+import { compareData } from "./parser/compareData";
 
 export class ProfilerService {
-    private profilerTitle: string = "";
+  private profilerTitle: string = "";
 
-    constructor(title: string) {
-        this.profilerTitle = title;
-    }
+  constructor(title: string) {
+    this.profilerTitle = title;
+  }
 
-    public async parse(fileName: string, showStartTime: boolean): Promise<PresentationData> {
-        ParserLogger.resetErrors();
+  public async parse(
+    fileName: string,
+    showStartTime: boolean
+  ): Promise<PresentationData> {
+    ParserLogger.resetErrors();
 
-        const readData = readFile(fileName);
-        const rawData = parseProfilerData(readData);
-        const transformedData = await transformData(rawData, showStartTime, this.profilerTitle);
-        return transformedData;
-    }
+    const readData = readFile(fileName);
+    const rawData = parseProfilerData(readData);
+    const transformedData = await transformData(
+      rawData,
+      showStartTime,
+      this.profilerTitle
+    );
+    return transformedData;
+  }
 
-    public async compare(presentationData: PresentationData, secondPresentationData: PresentationData): Promise<ComparedData[]> {
-        const comparedData = await compareData(presentationData, secondPresentationData);
-        return comparedData;
-    }
+  public async compare(
+    presentationData: PresentationData,
+    secondPresentationData: PresentationData
+  ): Promise<ComparedData[]> {
+    const comparedData = await compareData(
+      presentationData,
+      secondPresentationData
+    );
+    return comparedData;
+  }
 
-    public getErrors(): string[] {
-        return ParserLogger.getErrors();
-    }
+  public getErrors(): string[] {
+    return ParserLogger.getErrors();
+  }
 
-    public getIncludeFilesFromXref(fileName: string) {
-        const readData = readFile(fileName);
-        const includeFiles = getIncludeFiles(readData);
+  public getIncludeFilesFromXref(fileName: string) {
+    const readData = readFile(fileName);
+    const includeFiles = getIncludeFiles(readData);
 
-        return includeFiles;
-    }
-
+    return includeFiles;
+  }
 }

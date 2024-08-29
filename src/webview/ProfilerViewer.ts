@@ -28,47 +28,6 @@ export class ProfilerViewer {
   private readonly configuration = vscode.workspace.getConfiguration("");
   private readonly extensionPath: string;
 
-  private async reloadProfilerData(
-    action: string,
-    filePath: string
-  ): Promise<void> {
-    const profilerService = new ProfilerService(action);
-    await this.initProfiler(profilerService, filePath);
-  }
-
-  private async loadTwoProfilerData(
-    action: string,
-    filePath: string,
-    action2: string,
-    filePath2: string,
-    showStartTime = false
-  ): Promise<void> {
-    const profilerService = new ProfilerService(action);
-    const firstProfilerData = await profilerService.parse(
-      filePath,
-      showStartTime
-    );
-
-    const profilerService2 = new ProfilerService(action2);
-    const secondProfilerData = await profilerService2.parse(
-      filePath2,
-      showStartTime
-    );
-    try {
-      const dataString = await profilerService.compare(
-        firstProfilerData,
-        secondProfilerData
-      );
-      handleErrors(profilerService.getErrors());
-      this.panel?.webview.postMessage({
-        data: dataString,
-        type: "Compare Data",
-      });
-    } catch (error) {
-      handleErrors(["Failed to Compare ProPeek Profiler"]);
-    }
-  }
-
   constructor(
     private context: vscode.ExtensionContext,
     action: string,
@@ -84,8 +43,6 @@ export class ProfilerViewer {
     if (filePath2 && action2) {
       this.loadTwoProfilerData(action, filePath, action2, filePath2);
       this.toggleProfilerData();
-    } else {
-      console.log("File Path:", filePath);
     }
 
     this.extensionPath = context.asAbsolutePath("");
@@ -165,12 +122,61 @@ export class ProfilerViewer {
       }
     });
   }
+
+  private async reloadProfilerData(
+    action: string,
+    filePath: string
+  ): Promise<void> {
+    const profilerService = new ProfilerService(action);
+    await this.initProfiler(profilerService, filePath);
+  }
+
+  private async loadTwoProfilerData(
+    action: string,
+    filePath: string,
+    action2: string,
+    filePath2: string,
+    showStartTime = false
+  ): Promise<void> {
+    const profilerService = new ProfilerService(action);
+    const firstProfilerData = await profilerService.parse(filePath, showStartTime);
+
+    const profilerService2 = new ProfilerService(action2);
+    const secondProfilerData = await profilerService2.parse(filePath2, showStartTime);
+    try {
+      const dataString = await profilerService.compare(firstProfilerData,secondProfilerData);
+      handleErrors(profilerService.getErrors());
+      this.panel?.webview.postMessage({
+        data: dataString,
+        type: "Compare Data",
+      });
+    } catch (error) {
+      handleErrors(["Failed to Compare ProPeek Profiler"]);
+    }
+  }
   public async toggleProfilerData(): Promise<void> {
     if (this.isAlternate) {
       await this.reloadProfilerData(this.action, this.filePath);
+      if (this.action2 && this.filePath2) {
+        await this.loadTwoProfilerData(
+          this.action,
+          this.filePath,
+          this.action2,
+          this.filePath2
+        );
+      }
     } else {
-      await this.reloadProfilerData(this.action2 || "", this.filePath2 || "");
+      if (this.action2 && this.filePath2) {
+        await this.reloadProfilerData(this.action2, this.filePath2);
+        await this.loadTwoProfilerData(
+          this.action2,
+          this.filePath2,
+          this.action,
+          this.filePath
+        );
+      }
     }
+
     this.isAlternate = !this.isAlternate;
   }
 

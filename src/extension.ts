@@ -4,13 +4,12 @@ import * as vscode from 'vscode';
 import { ProfilerViewer } from './webview/ProfilerViewer';
 import { getBuildPaths, readFile } from "./common/OpenEdgeJsonReader";
 import { Constants } from './common/Constants';
-import * as path from 'path';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     Constants.context = context;
-
+    
     let compareDisposable = vscode.commands.registerCommand('vsc-profiler.compareProfilerFiles', async () => {
 
         const selectedFiles = await vscode.window.showOpenDialog({
@@ -19,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
             filters: {
                 'Profiler Files': ['prof', 'out']
             }
-        });
+        });        
 
         if (!selectedFiles || selectedFiles.length !== 2) {
             vscode.window.showErrorMessage("Please select exactly two profiler files.");
@@ -38,8 +37,6 @@ export function activate(context: vscode.ExtensionContext) {
         new ProfilerViewer(context, relativePath1, updatedPath1, relativePath2, updatedPath2);
 
     });
-
-
 
     context.subscriptions.push(compareDisposable);
 
@@ -71,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('vsc-profiler.profilerFromTask', async (args) => {
-        console.log(args.length, args.length < 3)
+        console.log(args.length, args.length < 3);
         if (args.length < 3) {
             vscode.window.showErrorMessage("ProPeek: Please pass a parameter to the task");
             return;
@@ -96,7 +93,7 @@ const getPathFromTaskArgs = (args: Array<string>): string => {
 
     // transform argument from "${path.prof}" to "path.prof"
     return realArg.replace(/\${(.*?)}/g, '$1');
-}
+};
 
 // This method is called when your extension is deactivated
 export function deactivate() { }

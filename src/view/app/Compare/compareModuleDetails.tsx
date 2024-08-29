@@ -14,8 +14,9 @@ import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import FileUpload from "./components/FileUpload";
+import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
@@ -226,6 +227,10 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     columnDefinition.LineColumns
   );
 
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const [selectedFilePaths, setSelectedFilePaths] = useState<string[]>([]);
+
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
     0
@@ -326,16 +331,24 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     filterTables(selectedRow);
   }, [selectedRow]);
 
-  const handleToggleProfile = () => {
-    vscode.postMessage({
-      type: "TOGGLE_PROFILER",
-    });
+  const handleFilesSelected = (paths: string[]) => {
+    setSelectedFilePaths(paths);
+  };
+  const handleToggleProfile = async () => {
+
+      setIsLoading(true);
+
+      vscode.postMessage({
+        type: "TOGGLE_PROFILER",
+      });
   };
 
   return (
     <div>
-      <FileUpload />
-      <button onClick={handleToggleProfile}>Change</button>
+      {/* Component for further functionality to use two profiler files for comparison */}
+      {/* <FileUpload onFilesSelected={handleFilesSelected} /> */}
+      <Button variant="outlined" onClick={handleToggleProfile}>Swap Profilers</Button>
+      {isLoading && <LoadingOverlay></LoadingOverlay>}
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (
