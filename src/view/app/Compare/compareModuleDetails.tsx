@@ -68,10 +68,18 @@ const addConditionalFormatting = (
       icon = <span style={{ width: 16, display: "inline-block" }} />;
     }
     if (row.status === "added") {
-      icon = <AddCircleIcon style={{ color: "green", fontSize: 16 }} />;
+      icon = (
+        <AddCircleIcon
+          style={{ color: "green", fontSize: 16, position: "relative", top: 3 }}
+        />
+      );
     }
     if (row.status === "removed") {
-      icon = <RemoveCircleIcon style={{ color: "red", fontSize: 16 }} />;
+      icon = (
+        <RemoveCircleIcon
+          style={{ color: "red", fontSize: 16, position: "relative", top: 3 }}
+        />
+      );
     }
 
     return (

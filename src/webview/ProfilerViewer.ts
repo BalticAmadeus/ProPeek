@@ -132,16 +132,16 @@ export class ProfilerViewer {
           const file1 = selectedFiles[0].fsPath;
           const file2 = selectedFiles[1].fsPath;
 
-          const updatedPath1 = file1.replace(/\\/g, "/");
+          const updatedPath = file1.replace(/\\/g, "/");
           const updatedPath2 = file2.replace(/\\/g, "/");
 
-          const relativePath1 = vscode.workspace.asRelativePath(updatedPath1);
+          const relativePath = vscode.workspace.asRelativePath(updatedPath);
           const relativePath2 = vscode.workspace.asRelativePath(updatedPath2);
 
           const profilerViewer = new ProfilerViewer(
             this.context,
-            relativePath1,
-            updatedPath1,
+            relativePath,
+            updatedPath,
             relativePath2,
             updatedPath2
           );
@@ -212,7 +212,7 @@ export class ProfilerViewer {
     }
   }
   public async toggleProfilerData(): Promise<void> {
-    if (this.isAlternate) {
+    if (!this.isAlternate) {
       try {
         await this.reloadProfilerData(this.action, this.filePath);
         if (this.action2 && this.filePath2) {
