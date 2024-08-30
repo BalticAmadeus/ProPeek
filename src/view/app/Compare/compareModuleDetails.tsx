@@ -15,6 +15,8 @@ import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { Box, Button } from "@mui/material";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import FileUpload from "./components/FileUpload";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 
@@ -29,13 +31,7 @@ interface GenericModuleColumn extends Column<any> {
   width: string;
 }
 
-interface ExtendedModuleDetails extends ModuleDetails {
-  timesCalledChange: number;
-  avgTimePerCallChange: number;
-  totalTimeChange: number;
-}
-
-interface ExtendedColumn extends GenericModuleColumn {}
+interface ComparedColumn extends GenericModuleColumn {}
 interface CallingColumn extends GenericModuleColumn {}
 interface CalledColumn extends GenericModuleColumn {}
 interface LineColumn extends GenericModuleColumn {}
@@ -67,12 +63,26 @@ const addConditionalFormatting = (
     <PercentageFill value={value} />
   );
 
-  const addLinkFormat = (
-    row: ExtendedModuleDetails | LineSummary,
-    key: string
-  ) => <Box className={row.hasLink ? "link-cell" : ""}>{row[key]}</Box>;
+  const addModuleChangeFormat = (row: ComparedData, key: string) => {
+    let icon = null;
+    if (!row.status) {
+      icon = <span style={{ width: 16, display: "inline-block" }} />;
+    }
+    if (row.status === "added") {
+      icon = <AddCircleIcon style={{ color: "green", fontSize: 16 }} />;
+    }
+    if (row.status === "removed") {
+      icon = <RemoveCircleIcon style={{ color: "red", fontSize: 16 }} />;
+    }
 
-  const addChangeFormat = (row: ExtendedModuleDetails, key: string) => {
+    return (
+      <Box alignSelf="center">
+        {icon} {row[key]}
+      </Box>
+    );
+  };
+
+  const addChangeFormat = (row: ComparedData, key: string) => {
     const changeValue = row[key];
     const changeType =
       changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
@@ -83,12 +93,11 @@ const addConditionalFormatting = (
   };
 
   return columns.map((column) => {
-    if (column.key === "moduleName" || column.key === "lineNumber") {
+    if (column.key === "moduleName") {
       return {
         ...column,
-        formatter: (
-          props: FormatterProps<ExtendedModuleDetails | LineSummary>
-        ) => addLinkFormat(props.row, column.key),
+        formatter: (props: FormatterProps<ComparedData>) =>
+          addModuleChangeFormat(props.row, column.key),
       };
     }
     if (
@@ -108,7 +117,7 @@ const addConditionalFormatting = (
     ) {
       return {
         ...column,
-        formatter: (props: FormatterProps<ExtendedModuleDetails>) =>
+        formatter: (props: FormatterProps<ComparedData>) =>
           addChangeFormat(props.row, column.key),
       };
     }
@@ -148,46 +157,18 @@ function getComparator(sortColumn: string) {
   }
 }
 
-function mergeModuleDetailsWithComparison(
-  moduleDetails: ModuleDetails[],
-  comparedData: ComparedData[]
-): ExtendedModuleDetails[] {
-  console.log("Mod: ", moduleDetails);
-  console.log("comp: ", comparedData);
-  return moduleDetails.map((module) => {
-    const comparison = comparedData.find(
-      (comp) => comp.moduleId === module.moduleID
-    );
-
-    return {
-      ...module,
-      timesCalledChange: comparison?.timesCalledChange || 0,
-      avgTimePerCallChange: comparison?.avgTimePerCallChange || 0,
-      totalTimeChange: comparison?.totalTimeChange || 0,
-    };
-  });
-}
-
 const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   presentationData,
   comparedData,
 }) => {
-  const [comparedModule, setComparedModule] = useState<ComparedData[]>(
-    comparedData || []
-  );
-  const [moduleRows, setModuleRows] = useState<ExtendedModuleDetails[]>(
-    mergeModuleDetailsWithComparison(
-      presentationData.moduleDetails,
-      comparedModule
-    )
-  );
+  const [moduleRows, setModuleRows] = useState<ComparedData[]>(comparedData);
   const [selectedModuleRow, setSelectedModuleRow] =
-    useState<ExtendedModuleDetails | null>(null);
+    useState<ComparedData | null>(null);
   const [sortModuleColumns, setSortModuleColumns] = useState<
     readonly SortColumn[]
   >([defaultModuleSort]);
 
-  const [selectedRow, setSelectedRow] = useState<ExtendedModuleDetails>();
+  const [selectedRow, setSelectedRow] = useState<ComparedData>();
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
   >(presentationData.calledModules);
@@ -213,7 +194,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
 
-  const formattedMergedColumns: ExtendedColumn[] = addConditionalFormatting(
+  const formattedMergedColumns: ComparedColumn[] = addConditionalFormatting(
     columnDefinition.moduleColumns
   );
 
@@ -238,7 +219,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const vscode = getVSCodeAPI();
 
-  const filterTables = (row: ExtendedModuleDetails) => {
+  const filterTables = (row: ComparedData) => {
     if (!row) {
       return;
     }
@@ -277,7 +258,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const getSortedRows = (
     columns: readonly SortColumn[],
-    rows: ExtendedModuleDetails[] | CalledModules[] | LineSummary[]
+    rows: ComparedData[] | CalledModules[] | LineSummary[]
   ) => {
     if (columns.length === 0) {
       return rows;
@@ -295,11 +276,11 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     });
   };
 
-  const sortedModuleRows = useMemo((): readonly ExtendedModuleDetails[] => {
+  const sortedModuleRows = useMemo((): readonly ComparedData[] => {
     const sortedRows = getSortedRows(
       sortModuleColumns,
       moduleRows
-    ) as ExtendedModuleDetails[];
+    ) as ComparedData[];
 
     if (sortedRows.length > 0 && selectedModuleRow === null) {
       setSelectedModuleRow(sortedRows[0]);
@@ -335,31 +316,28 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     setSelectedFilePaths(paths);
   };
   const handleToggleProfile = async () => {
+    setIsLoading(true);
 
-      setIsLoading(true);
-
-      vscode.postMessage({
-        type: "TOGGLE_PROFILER",
-      });
+    vscode.postMessage({
+      type: "TOGGLE_PROFILER",
+    });
   };
 
   return (
     <div>
       {/* Component for further functionality to use two profiler files for comparison */}
       {/* <FileUpload onFilesSelected={handleFilesSelected} /> */}
-      <Button variant="outlined" onClick={handleToggleProfile}>Swap Profilers</Button>
-      {isLoading && <LoadingOverlay/>}
+      <Button variant="outlined" onClick={handleToggleProfile}>
+        Swap Profilers
+      </Button>
+      {isLoading && <LoadingOverlay />}
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (
           <CompareDetailsTable
             columns={formattedMergedColumns}
             rows={sortedModuleRows}
-            onRowClick={(row) => {
-              setSelectedRow(row);
-              console.log(JSON.stringify(presentationData));
-              console.log(comparedModule);
-            }}
+            onRowClick={(row) => setSelectedRow(row)}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
