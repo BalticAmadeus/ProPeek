@@ -53,8 +53,17 @@ export interface PresentationData {
 }
 
 export interface ComparedData {
-    moduleId: number,
+    moduleID: number,
+    moduleName: string,
+    startLineNum: number,
+    timesCalled: number,
     timesCalledChange: number,
+    avgTimePerCall?: number,
     avgTimePerCallChange: number,
+    totalTime: number,
     totalTimeChange: number,
+    pcntOfSession?: number,
+    listingFile: string,
+    hasLink: boolean,
+    status?: string,
 }
