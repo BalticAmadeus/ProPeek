@@ -26,25 +26,22 @@ enum ProfilerTab {
   Compare = "Compare",
 }
 const ProfilerForm: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ProfilerTab>(
-    ProfilerTab.ModuleDetails
-  );
-  const [presentationData, setPresentationData] = useState<PresentationData>(
-    defaultPresentationData
-  );
+
+  const [activeTab, setActiveTab] = useState<ProfilerTab>(ProfilerTab.ModuleDetails);
+  const [presentationData, setPresentationData] = useState<PresentationData>(defaultPresentationData);
   const [comparedData, setComparedData] = useState<ComparedData[]>(null);
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
   const vscode = getVSCodeAPI();
+
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
-    if(event.data.type){
-      console.log(event.data);
+    if(event.data.type === "Compare Data"){
       setComparedData(event.data.data as ComparedData[]);
+      setActiveTab(ProfilerTab.Compare);
     }
     else{
-      console.log(event.data)
       setPresentationData(event.data as PresentationData);
       setLoading(false);
     }

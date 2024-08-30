@@ -348,7 +348,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       {/* Component for further functionality to use two profiler files for comparison */}
       {/* <FileUpload onFilesSelected={handleFilesSelected} /> */}
       <Button variant="outlined" onClick={handleToggleProfile}>Swap Profilers</Button>
-      {isLoading && <LoadingOverlay></LoadingOverlay>}
+      {isLoading && <LoadingOverlay/>}
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (

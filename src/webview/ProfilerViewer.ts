@@ -27,6 +27,7 @@ export class ProfilerViewer {
   private readonly panel: vscode.WebviewPanel | undefined;
   private readonly configuration = vscode.workspace.getConfiguration("");
   private readonly extensionPath: string;
+  private previousViewColumn: vscode.ViewColumn | undefined;
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -41,11 +42,11 @@ export class ProfilerViewer {
     this.filePath2 = filePath2;
 
     if (filePath2 && action2) {
-      this.loadTwoProfilerData(action, filePath, action2, filePath2);
       this.toggleProfilerData();
     }
 
     this.extensionPath = context.asAbsolutePath("");
+    this.previousViewColumn = vscode.ViewColumn.One;
     this.panel = vscode.window.createWebviewPanel(
       "OEProfilerViewer",
       action,
@@ -80,13 +81,27 @@ export class ProfilerViewer {
 
     this.panel.webview.html = this.getWebviewContent();
 
-    vscode.window.onDidChangeActiveTextEditor(() => {
-      this.reloadProfilerData(action, filePath);
-    });
+    const profilerService = new ProfilerService(action);
 
-    vscode.window.onDidChangeVisibleTextEditors(() => {
-      this.reloadProfilerData(action, filePath);
-    });
+    this.initProfiler(profilerService, filePath);
+
+    this.panel.onDidChangeViewState((event) => {
+
+      const currentViewColumn = event.webviewPanel.viewColumn;
+      if (currentViewColumn !== this.previousViewColumn) {
+
+        if (action2 && filePath2) {
+          this.reloadProfilerData(action, filePath);
+          this.loadTwoProfilerData(action, filePath, action2, filePath2); 
+
+          console.log("load two profiler data", action, action2);
+          
+        }else {
+          this.reloadProfilerData(action, filePath);
+        }
+          this.previousViewColumn = currentViewColumn;
+      }
+  });
 
     this.panel.onDidDispose(
       () => {
@@ -96,9 +111,6 @@ export class ProfilerViewer {
       context.subscriptions
     );
 
-    const profilerService = new ProfilerService(action);
-
-    this.initProfiler(profilerService, filePath);
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
@@ -138,12 +150,13 @@ export class ProfilerViewer {
     filePath2: string,
     showStartTime = false
   ): Promise<void> {
-    const profilerService = new ProfilerService(action);
-    const firstProfilerData = await profilerService.parse(filePath, showStartTime);
-
-    const profilerService2 = new ProfilerService(action2);
-    const secondProfilerData = await profilerService2.parse(filePath2, showStartTime);
     try {
+      const profilerService = new ProfilerService(action);
+      const firstProfilerData = await profilerService.parse(filePath, showStartTime);
+
+      const profilerService2 = new ProfilerService(action2);
+      const secondProfilerData = await profilerService2.parse(filePath2, showStartTime);
+      
       const dataString = await profilerService.compare(firstProfilerData,secondProfilerData);
       handleErrors(profilerService.getErrors());
       this.panel?.webview.postMessage({
