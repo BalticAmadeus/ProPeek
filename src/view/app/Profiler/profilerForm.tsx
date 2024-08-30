@@ -1,6 +1,9 @@
 import * as React from "react";
 import { useState } from "react";
-import { PresentationData, ComparedData } from "../../../common/PresentationData";
+import {
+  PresentationData,
+  ComparedData,
+} from "../../../common/PresentationData";
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
@@ -26,9 +29,12 @@ enum ProfilerTab {
   Compare = "Compare",
 }
 const ProfilerForm: React.FC = () => {
-
-  const [activeTab, setActiveTab] = useState<ProfilerTab>(ProfilerTab.ModuleDetails);
-  const [presentationData, setPresentationData] = useState<PresentationData>(defaultPresentationData);
+  const [activeTab, setActiveTab] = useState<ProfilerTab>(
+    ProfilerTab.ModuleDetails
+  );
+  const [presentationData, setPresentationData] = useState<PresentationData>(
+    defaultPresentationData
+  );
   const [comparedData, setComparedData] = useState<ComparedData[]>(null);
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
@@ -37,14 +43,13 @@ const ProfilerForm: React.FC = () => {
 
   React.useLayoutEffect(() => {
     window.addEventListener("message", (event) => {
-    if(event.data.type === "Compare Data"){
-      setComparedData(event.data.data as ComparedData[]);
-      setActiveTab(ProfilerTab.Compare);
-    }
-    else{
-      setPresentationData(event.data as PresentationData);
-      setLoading(false);
-    }
+      if (event.data.type === "Compare Data") {
+        setComparedData(event.data.data as ComparedData[]);
+        setActiveTab(ProfilerTab.Compare);
+      } else {
+        setPresentationData(event.data as PresentationData);
+        setLoading(false);
+      }
     });
   });
   const ModuleDetailsTab: React.FC = () => {
@@ -94,28 +99,43 @@ const ProfilerForm: React.FC = () => {
   };
 
   let content: JSX.Element | null = null;
-  const onTabChange = (
+  const onTabChange = async (
     event: React.MouseEvent<HTMLElement>,
     tab: ProfilerTab | null
   ) => {
-    console.log(tab);
-    if (!tab) {
-      return;
+    if (!tab) return;
+
+    if (tab === ProfilerTab.Compare && !comparedData) {
+      const userWantsToCompare: any = await vscode.postMessage({
+        type: "requestCompareFiles",
+        presentationData,
+      });
+
+      if (userWantsToCompare) {
+        setActiveTab(ProfilerTab.Compare);
+      } else {
+        setActiveTab(ProfilerTab.ModuleDetails);
+      }
+    } else {
+      setActiveTab(tab);
     }
-    setActiveTab(tab);
   };
 
-  const handleNodeSelection = (moduleName: string, selectedModuleId: number) => {
+  const handleNodeSelection = (
+    moduleName: string,
+    selectedModuleId: number
+  ) => {
     setModuleName(moduleName);
     setSelectedModuleId(selectedModuleId);
     setActiveTab(ProfilerTab.ModuleDetails);
   };
+
   React.useEffect(() => {
     if (activeTab !== ProfilerTab.ModuleDetails) {
       setModuleName("");
       setSelectedModuleId(null);
     }
-    if(activeTab === ProfilerTab.Compare){
+    if (activeTab === ProfilerTab.Compare) {
       vscode.postMessage({
         type: "Compare",
         presentationData: presentationData,

@@ -84,7 +84,6 @@
                 {
                     "command": "vsc-profiler.compareProfilerFiles",
                     "group": "navigation",
-                    
                     "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]

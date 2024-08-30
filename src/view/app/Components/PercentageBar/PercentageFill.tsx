@@ -7,6 +7,9 @@ interface PercentageFillProps {
 }
 
 const PercentageFill: React.FC<PercentageFillProps> = ({ value }) => {
+
+  const fixedValue = value.toFixed(2);
+
   return (
     <Box className="progressBox">
       <Box className="progressWrapper">
@@ -18,7 +21,7 @@ const PercentageFill: React.FC<PercentageFillProps> = ({ value }) => {
           aria-valuemin={0}
           aria-valuemax={100}
         />
-        <Box className="progressBarText">{value}%</Box>
+        <Box className="progressBarText">{fixedValue}%</Box>
       </Box>
     </Box>
   );

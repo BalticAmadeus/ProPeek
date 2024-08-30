@@ -86,22 +86,19 @@ export class ProfilerViewer {
     this.initProfiler(profilerService, filePath);
 
     this.panel.onDidChangeViewState((event) => {
-
       const currentViewColumn = event.webviewPanel.viewColumn;
       if (currentViewColumn !== this.previousViewColumn) {
-
         if (action2 && filePath2) {
           this.reloadProfilerData(action, filePath);
-          this.loadTwoProfilerData(action, filePath, action2, filePath2); 
+          this.loadTwoProfilerData(action, filePath, action2, filePath2);
 
           console.log("load two profiler data", action, action2);
-          
-        }else {
+        } else {
           this.reloadProfilerData(action, filePath);
         }
-          this.previousViewColumn = currentViewColumn;
+        this.previousViewColumn = currentViewColumn;
       }
-  });
+    });
 
     this.panel.onDidDispose(
       () => {
@@ -111,9 +108,47 @@ export class ProfilerViewer {
       context.subscriptions
     );
 
-
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
+        case "requestCompareFiles":
+          const selectedFiles = await vscode.window.showOpenDialog({
+            canSelectMany: true,
+            openLabel: "Select Profiler Files",
+            filters: {
+              "Profiler Files": ["prof", "out"],
+            },
+          });
+
+          if (!selectedFiles || selectedFiles.length !== 2) {
+            vscode.window.showErrorMessage(
+              "Please select exactly two profiler files."
+            );
+            this.panel?.webview.postMessage({
+              type: "CompareFileSelectionCanceled",
+            });
+            return;
+          }
+
+          const file1 = selectedFiles[0].fsPath;
+          const file2 = selectedFiles[1].fsPath;
+
+          const updatedPath1 = file1.replace(/\\/g, "/");
+          const updatedPath2 = file2.replace(/\\/g, "/");
+
+          const relativePath1 = vscode.workspace.asRelativePath(updatedPath1);
+          const relativePath2 = vscode.workspace.asRelativePath(updatedPath2);
+
+          const profilerViewer = new ProfilerViewer(
+            this.context,
+            relativePath1,
+            updatedPath1,
+            relativePath2,
+            updatedPath2
+          );
+
+          this.panel?.webview.postMessage({ type: "CompareFilesSelected" });
+          break;
+
         case "GRAPH_TYPE_CHANGE":
           await this.initProfiler(
             profilerService,
@@ -152,12 +187,21 @@ export class ProfilerViewer {
   ): Promise<void> {
     try {
       const profilerService = new ProfilerService(action);
-      const firstProfilerData = await profilerService.parse(filePath, showStartTime);
+      const firstProfilerData = await profilerService.parse(
+        filePath,
+        showStartTime
+      );
 
       const profilerService2 = new ProfilerService(action2);
-      const secondProfilerData = await profilerService2.parse(filePath2, showStartTime);
-      
-      const dataString = await profilerService.compare(firstProfilerData,secondProfilerData);
+      const secondProfilerData = await profilerService2.parse(
+        filePath2,
+        showStartTime
+      );
+
+      const dataString = await profilerService.compare(
+        firstProfilerData,
+        secondProfilerData
+      );
       handleErrors(profilerService.getErrors());
       this.panel?.webview.postMessage({
         data: dataString,
@@ -169,24 +213,32 @@ export class ProfilerViewer {
   }
   public async toggleProfilerData(): Promise<void> {
     if (this.isAlternate) {
-      await this.reloadProfilerData(this.action, this.filePath);
-      if (this.action2 && this.filePath2) {
-        await this.loadTwoProfilerData(
-          this.action,
-          this.filePath,
-          this.action2,
-          this.filePath2
-        );
+      try {
+        await this.reloadProfilerData(this.action, this.filePath);
+        if (this.action2 && this.filePath2) {
+          await this.loadTwoProfilerData(
+            this.action,
+            this.filePath,
+            this.action2,
+            this.filePath2
+          );
+        }
+      } catch (error) {
+        handleErrors(["Failed to reload ProPeek Profiler"]);
       }
     } else {
-      if (this.action2 && this.filePath2) {
-        await this.reloadProfilerData(this.action2, this.filePath2);
-        await this.loadTwoProfilerData(
-          this.action2,
-          this.filePath2,
-          this.action,
-          this.filePath
-        );
+      try {
+        if (this.action2 && this.filePath2) {
+          await this.reloadProfilerData(this.action2, this.filePath2);
+          await this.loadTwoProfilerData(
+            this.action2,
+            this.filePath2,
+            this.action,
+            this.filePath
+          );
+        }
+      } catch (error) {
+        handleErrors(["Failed to reload ProPeek Profiler"]);
       }
     }
 

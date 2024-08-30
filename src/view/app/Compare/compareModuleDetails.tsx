@@ -15,7 +15,6 @@ import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { Box, Button } from "@mui/material";
-import FileUpload from "./components/FileUpload";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 
 interface CompareModuleDetailsProps {
@@ -229,8 +228,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const [selectedFilePaths, setSelectedFilePaths] = useState<string[]>([]);
-
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
     0
@@ -326,14 +323,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   const sortedLineRows = useMemo((): readonly LineSummary[] => {
     return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
   }, [selectedLineRows, sortLineColumns]);
-
-  React.useEffect(() => {
-    filterTables(selectedRow);
-  }, [selectedRow]);
-
-  const handleFilesSelected = (paths: string[]) => {
-    setSelectedFilePaths(paths);
-  };
+  
   const handleToggleProfile = async () => {
 
       setIsLoading(true);
@@ -343,10 +333,14 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       });
   };
 
+  React.useEffect(() => {
+    filterTables(selectedRow);
+    setIsLoading(false);
+  }, [selectedRow]);
+
+
   return (
     <div>
-      {/* Component for further functionality to use two profiler files for comparison */}
-      {/* <FileUpload onFilesSelected={handleFilesSelected} /> */}
       <Button variant="outlined" onClick={handleToggleProfile}>Swap Profilers</Button>
       {isLoading && <LoadingOverlay/>}
       <div className="details-columns">
