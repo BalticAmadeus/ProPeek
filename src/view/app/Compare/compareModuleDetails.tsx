@@ -68,10 +68,18 @@ const addConditionalFormatting = (
       icon = <span style={{ width: 16, display: "inline-block" }} />;
     }
     if (row.status === "added") {
-      icon = <AddCircleIcon style={{ color: "green", fontSize: 16 }} />;
+      icon = (
+        <AddCircleIcon
+          style={{ color: "green", fontSize: 16, position: "relative", top: 3 }}
+        />
+      );
     }
     if (row.status === "removed") {
-      icon = <RemoveCircleIcon style={{ color: "red", fontSize: 16 }} />;
+      icon = (
+        <RemoveCircleIcon
+          style={{ color: "red", fontSize: 16, position: "relative", top: 3 }}
+        />
+      );
     }
 
     return (
@@ -304,7 +312,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   const sortedLineRows = useMemo((): readonly LineSummary[] => {
     return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
   }, [selectedLineRows, sortLineColumns]);
-  
+
   const handleToggleProfile = async () => {
     setIsLoading(true);
 
@@ -318,11 +326,12 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     setIsLoading(false);
   }, [selectedRow]);
 
-
   return (
     <div>
-      <Button variant="outlined" onClick={handleToggleProfile}>Swap Profilers</Button>
-      {isLoading && <LoadingOverlay/>}
+      <Button variant="outlined" onClick={handleToggleProfile}>
+        Swap Profilers
+      </Button>
+      {isLoading && <LoadingOverlay />}
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (
