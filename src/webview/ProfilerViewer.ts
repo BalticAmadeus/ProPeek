@@ -89,8 +89,6 @@ export class ProfilerViewer {
         if (action2 && filePath2) {
           this.reloadProfilerData(action, filePath);
           this.loadTwoProfilerData(action, filePath, action2, filePath2);
-
-          console.log("load two profiler data", action, action2);
         } else {
           this.reloadProfilerData(action, filePath);
         }
@@ -123,7 +121,9 @@ export class ProfilerViewer {
             selectedFiles === undefined
           ) {
             vscode.window.showErrorMessage(
-              `Please select profiler file to compare with your ${path.basename(this.action)}.`
+              `Please select profiler file to compare with your ${path.basename(
+                this.action
+              )}.`
             );
 
             await this.reloadProfilerData(this.action, this.filePath);
@@ -138,10 +138,10 @@ export class ProfilerViewer {
           this.action2 = relativePath;
           this.filePath2 = updatedPath;
 
-
           if (this.action2 && this.filePath2) {
             await this.toggleProfilerData();
           }
+
           break;
         case "GRAPH_TYPE_CHANGE":
           await this.initProfiler(
@@ -200,14 +200,14 @@ export class ProfilerViewer {
       this.panel?.webview.postMessage({
         data: dataString,
         type: "Compare Data",
+        fileName: path.basename(action),
+        fileName2: path.basename(action2),
       });
     } catch (error) {
       handleErrors(["Failed to Compare ProPeek Profiler"]);
     }
   }
   public async toggleProfilerData(): Promise<void> {
-    let fileName = "";
-    let fileName2 = "";
 
     if (!this.isAlternate) {
       try {
@@ -220,8 +220,6 @@ export class ProfilerViewer {
             this.action2,
             this.filePath2
           );
-          fileName = this.action;
-          fileName2 = this.action2;
         }
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
@@ -236,9 +234,6 @@ export class ProfilerViewer {
             this.action,
             this.filePath
           );
-
-          fileName = this.action2;
-          fileName2 = this.action;
         }
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
@@ -247,9 +242,6 @@ export class ProfilerViewer {
 
     this.isAlternate = !this.isAlternate;
 
-    vscode.window.showInformationMessage(
-      `Comparing ${path.basename(fileName)} with ${path.basename(fileName2)}`
-    );
   }
 
   private async initProfiler(

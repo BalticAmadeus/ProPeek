@@ -39,6 +39,8 @@ const ProfilerForm: React.FC = () => {
   const [isLoading, setLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [fileName2, setFileName2] = useState<string>("");
   const vscode = getVSCodeAPI();
 
   React.useLayoutEffect(() => {
@@ -46,6 +48,8 @@ const ProfilerForm: React.FC = () => {
       if (event.data.type === "Compare Data") {
         setComparedData(event.data.data as ComparedData[]);
         setActiveTab(ProfilerTab.Compare);
+        setFileName(event.data.fileName);
+        setFileName2(event.data.fileName2);
       } else {
         setPresentationData(event.data as PresentationData);
         setLoading(false);
@@ -93,6 +97,8 @@ const ProfilerForm: React.FC = () => {
         <CompareModuleDetails
           presentationData={presentationData}
           comparedData={comparedData}
+          fileName={fileName}
+          fileName2={fileName2}
         />
       </div>
     );

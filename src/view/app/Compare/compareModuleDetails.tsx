@@ -1,8 +1,6 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
 import {
-  CalledModules,
-  LineSummary,
   PresentationData,
   ComparedData,
 } from "../../../common/PresentationData";
@@ -11,7 +9,7 @@ import * as columnDefinition from "./column.json";
 import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
@@ -19,6 +17,8 @@ import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
   comparedData: ComparedData[];
+  fileName: string;
+  fileName2: string;
 }
 
 interface GenericModuleColumn extends Column<any> {
@@ -30,14 +30,13 @@ interface GenericModuleColumn extends Column<any> {
 interface ComparedColumn extends GenericModuleColumn {}
 
 const defaultModuleSort: SortColumn = {
-  columnKey: "totalTime", // Sort by the "totalTime" column by default
-  direction: "DESC", // Use descending order by default
+  columnKey: "totalTime",
+  direction: "DESC",
 };
 
 const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>
 ): Array<GenericModuleColumn> => {
-
   const addModuleChangeFormat = (row: ComparedData, key: string) => {
     let icon = null;
     if (!row.status) {
@@ -133,10 +132,14 @@ function getComparator(sortColumn: string) {
 const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   presentationData,
   comparedData,
+  fileName,
+  fileName2
 }) => {
   const [moduleRows, setModuleRows] = useState<ComparedData[]>(comparedData);
+
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ComparedData | null>(null);
+
   const [sortModuleColumns, setSortModuleColumns] = useState<
     readonly SortColumn[]
   >([defaultModuleSort]);
@@ -145,16 +148,11 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
 
-  const formattedMergedColumns: ComparedColumn[] = addConditionalFormatting(
-    columnDefinition.moduleColumns
-  );
+  const formattedMergedColumns: ComparedColumn[] = addConditionalFormatting(columnDefinition.moduleColumns);
 
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const sumTotalTime = presentationData.moduleDetails.reduce(
-    (acc, module) => acc + module.totalTime,
-    0
-  );
+  const sumTotalTime = presentationData.moduleDetails.reduce((acc, module) => acc + module.totalTime, 0);
 
   const vscode = getVSCodeAPI();
 
@@ -163,7 +161,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       return;
     }
   };
-
 
   const getModuleID = (moduleID: number) => {
     const MODULE_ID_MULT = 100000;
@@ -224,11 +221,16 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   }, [selectedRow]);
 
   return (
-      <div>
-        <Button variant="outlined" onClick={handleToggleProfile}>
+    <div>
+      <div style={{ display: "flex", marginTop: "10px", justifyContent: "space-between" }}>
+        <Button variant="outlined" onClick={handleToggleProfile} sx={{ mr: 5 }}>
           Swap Profilers
         </Button>
-      {isLoading && <LoadingOverlay />}
+        <Typography color="-var(--vscode-editor-foreground)" fontSize={24} sx={{ mr: 5 }}>
+          {fileName} &#x2194; {fileName2}
+        </Typography>
+      </div>
+
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
         {moduleRows.length > 0 ? (
@@ -246,6 +248,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
           />
         ) : null}
       </div>
+      {isLoading && <LoadingOverlay />}
     </div>
   );
 };
