@@ -41,10 +41,6 @@ export class ProfilerViewer {
     this.action2 = action2;
     this.filePath2 = filePath2;
 
-    if (filePath2 && action2) {
-      this.toggleProfilerData();
-    }
-
     this.extensionPath = context.asAbsolutePath("");
     this.previousViewColumn = vscode.ViewColumn.One;
     this.panel = vscode.window.createWebviewPanel(
@@ -81,6 +77,8 @@ export class ProfilerViewer {
 
     this.panel.webview.html = this.getWebviewContent();
 
+    if (filePath2 && action2) this.toggleProfilerData();
+
     const profilerService = new ProfilerService(action);
 
     this.initProfiler(profilerService, filePath);
@@ -112,43 +110,39 @@ export class ProfilerViewer {
       switch (message.type) {
         case "requestCompareFiles":
           const selectedFiles = await vscode.window.showOpenDialog({
-            canSelectMany: true,
-            openLabel: "Select Profiler Files",
+            canSelectMany: false,
+            openLabel: "Select Profiler File",
             filters: {
               "Profiler Files": ["prof", "out"],
             },
           });
 
-          if (!selectedFiles || selectedFiles.length !== 2) {
+          if (
+            !selectedFiles ||
+            selectedFiles.length !== 1 ||
+            selectedFiles === undefined
+          ) {
             vscode.window.showErrorMessage(
-              "Please select exactly two profiler files."
+              `Please select profiler file to compare with your ${path.basename(this.action)}.`
             );
-            this.panel?.webview.postMessage({
-              type: "CompareFileSelectionCanceled",
-            });
+
+            await this.reloadProfilerData(this.action, this.filePath);
             return;
           }
+          const file = selectedFiles[0].fsPath;
 
-          const file1 = selectedFiles[0].fsPath;
-          const file2 = selectedFiles[1].fsPath;
-
-          const updatedPath = file1.replace(/\\/g, "/");
-          const updatedPath2 = file2.replace(/\\/g, "/");
+          const updatedPath = file.replace(/\\/g, "/");
 
           const relativePath = vscode.workspace.asRelativePath(updatedPath);
-          const relativePath2 = vscode.workspace.asRelativePath(updatedPath2);
 
-          const profilerViewer = new ProfilerViewer(
-            this.context,
-            relativePath,
-            updatedPath,
-            relativePath2,
-            updatedPath2
-          );
+          this.action2 = relativePath;
+          this.filePath2 = updatedPath;
 
-          this.panel?.webview.postMessage({ type: "CompareFilesSelected" });
+
+          if (this.action2 && this.filePath2) {
+            await this.toggleProfilerData();
+          }
           break;
-
         case "GRAPH_TYPE_CHANGE":
           await this.initProfiler(
             profilerService,
@@ -212,9 +206,13 @@ export class ProfilerViewer {
     }
   }
   public async toggleProfilerData(): Promise<void> {
+    let fileName = "";
+    let fileName2 = "";
+
     if (!this.isAlternate) {
       try {
         await this.reloadProfilerData(this.action, this.filePath);
+
         if (this.action2 && this.filePath2) {
           await this.loadTwoProfilerData(
             this.action,
@@ -222,6 +220,8 @@ export class ProfilerViewer {
             this.action2,
             this.filePath2
           );
+          fileName = this.action;
+          fileName2 = this.action2;
         }
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
@@ -236,6 +236,9 @@ export class ProfilerViewer {
             this.action,
             this.filePath
           );
+
+          fileName = this.action2;
+          fileName2 = this.action;
         }
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
@@ -243,6 +246,10 @@ export class ProfilerViewer {
     }
 
     this.isAlternate = !this.isAlternate;
+
+    vscode.window.showInformationMessage(
+      `Comparing ${path.basename(fileName)} with ${path.basename(fileName2)}`
+    );
   }
 
   private async initProfiler(
