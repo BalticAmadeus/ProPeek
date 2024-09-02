@@ -110,8 +110,8 @@ export class ProfilerViewer {
       switch (message.type) {
         case "requestCompareFiles":
           const selectedFiles = await vscode.window.showOpenDialog({
-            canSelectMany: true,
-            openLabel: "Select Profiler Files",
+            canSelectMany: false,
+            openLabel: "Select Profiler File",
             filters: {
               "Profiler Files": ["prof", "out"],
             },
@@ -119,29 +119,24 @@ export class ProfilerViewer {
 
           if (
             !selectedFiles ||
-            selectedFiles.length !== 2 ||
+            selectedFiles.length !== 1 ||
             selectedFiles === undefined
           ) {
             vscode.window.showErrorMessage(
-              "Please select exactly two profiler files."
+              `Please select profiler file to compare with your ${path.basename(this.action)}.`
             );
 
             await this.reloadProfilerData(this.action, this.filePath);
             return;
           }
-          const file1 = selectedFiles[0].fsPath;
-          const file2 = selectedFiles[1].fsPath;
+          const file = selectedFiles[0].fsPath;
 
-          const updatedPath = file1.replace(/\\/g, "/");
-          const updatedPath2 = file2.replace(/\\/g, "/");
+          const updatedPath = file.replace(/\\/g, "/");
 
           const relativePath = vscode.workspace.asRelativePath(updatedPath);
-          const relativePath2 = vscode.workspace.asRelativePath(updatedPath2);
 
-          this.action = relativePath;
-          this.filePath = updatedPath;
-          this.action2 = relativePath2;
-          this.filePath2 = updatedPath2;
+          this.action2 = relativePath;
+          this.filePath2 = updatedPath;
 
 
           if (this.action2 && this.filePath2) {
