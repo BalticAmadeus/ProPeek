@@ -59,7 +59,7 @@ export interface ComparedData {
     timesCalled: number,
     timesCalledChange: number,
     avgTimePerCall?: number,
-    avgTimePerCallChange: number,
+    avgTimePerCallChange?: number,
     totalTime: number,
     totalTimeChange: number,
     pcntOfSession?: number,
