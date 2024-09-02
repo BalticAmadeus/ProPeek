@@ -135,12 +135,6 @@ const ProfilerForm: React.FC = () => {
       setModuleName("");
       setSelectedModuleId(null);
     }
-    if (activeTab === ProfilerTab.Compare) {
-      vscode.postMessage({
-        type: "Compare",
-        presentationData: presentationData,
-      });
-    }
   }, [activeTab]);
 
   switch (activeTab) {
