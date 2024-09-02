@@ -327,10 +327,10 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   }, [selectedRow]);
 
   return (
-    <div>
-      <Button variant="outlined" onClick={handleToggleProfile}>
-        Swap Profilers
-      </Button>
+      <div>
+        <Button variant="outlined" onClick={handleToggleProfile}>
+          Swap Profilers
+        </Button>
       {isLoading && <LoadingOverlay />}
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
