@@ -231,17 +231,20 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
     setSelectedCallingRows(
       presentationData.calledModules.filter(
-        (element) => element.calleeID === row.moduleID
+        (element) =>
+          element.calleeID === getModuleID(row.moduleID).firstModuleId
       )
     );
     setSelectedCalledRows(
       presentationData.calledModules.filter(
-        (element) => element.callerID === row.moduleID
+        (element) =>
+          element.callerID === getModuleID(row.moduleID).firstModuleId
       )
     );
     setSelectedLineRows(
       presentationData.lineSummary.filter(
-        (element) => element.moduleID === row.moduleID
+        (element) =>
+          element.moduleID === getModuleID(row.moduleID).firstModuleId
       )
     );
   };
@@ -253,12 +256,25 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     setSelectedRow
   ) => {
     const matchingRow = targetRows.find((row) =>
-      matchKeys.some((key) => row.moduleID === selectedRow[key])
+      matchKeys.some(
+        (key) => getModuleID(row.moduleID).firstModuleId === selectedRow[key]
+      )
     );
 
     if (matchingRow) {
       setSelectedRow(matchingRow);
     }
+  };
+
+  const getModuleID = (moduleID: number) => {
+    const MODULE_ID_MULT = 100000;
+    const firstModuleId = Math.floor(moduleID / MODULE_ID_MULT);
+    const secondtModuleId = moduleID % MODULE_ID_MULT;
+
+    return {
+      firstModuleId,
+      secondtModuleId,
+    };
   };
 
   const getSortedRows = (
