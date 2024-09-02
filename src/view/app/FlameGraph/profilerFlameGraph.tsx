@@ -170,29 +170,17 @@ function ProfilerFlameGraph({
   const openFileForFlameGraph = (node: FlameGraphNode): void => {
     const foundModule = presentationData.moduleDetails.find(
       (moduleRow) => moduleRow.moduleID === node.moduleID
-    )
+    );
 
-    if(!foundModule)
-      return;
-    if (!foundModule.hasLink)
+    if (!foundModule || !foundModule?.hasLink) 
       return;
 
-    switch (settingsContext.openFileType) {
-      case OpenFileTypeEnum.XREF:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.XREF,
-          columns: foundModule.moduleName,
-          lines: foundModule.startLineNum,
-        });
-        break;
-      case OpenFileTypeEnum.LISTING:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.LISTING,
-          listingFile: foundModule.listingFile,
-          lineNumber: foundModule.startLineNum,
-        });
-        break;
-      }
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: foundModule.moduleName,
+      listingFile: foundModule?.listingFile,
+      lineNumber: foundModule.startLineNum,
+    });
   };
 
   return (
@@ -289,11 +277,17 @@ function ProfilerFlameGraph({
             height={windowHeight}
             width={windowWidth - 63}
             onDoubleClick={(node) => {
-              handleNodeSelection(node.name, (node.source as FlameGraphNode).moduleID);
+              handleNodeSelection(
+                node.name,
+                (node.source as FlameGraphNode).moduleID
+              );
             }}
             onChange={(node) => {
-              setTimeRibbonEndValue((node.source as FlameGraphNode).cumulativeTime)
-              isCtrlPressed && openFileForFlameGraph(node.source as FlameGraphNode);
+              setTimeRibbonEndValue(
+                (node.source as FlameGraphNode).cumulativeTime
+              );
+              isCtrlPressed &&
+                openFileForFlameGraph(node.source as FlameGraphNode);
             }}
           />
         </Box>

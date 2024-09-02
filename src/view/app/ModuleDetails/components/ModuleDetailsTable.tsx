@@ -144,23 +144,13 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
     if (!row.hasLink) {
       return;
     }
-
-    switch (settingsContext.openFileType) {
-      case OpenFileTypeEnum.XREF:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.XREF,
-          columns: row.moduleName,
-          lines: row.startLineNum,
-        });
-        break;
-      case OpenFileTypeEnum.LISTING:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.LISTING,
-          listingFile: row.listingFile,
-          lineNumber: row.startLineNum,
-        });
-        break;
-    }
+    
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: row.moduleName,
+      listingFile: row?.listingFile,
+      lineNumber: row.startLineNum,
+    });
   };
 
   return (

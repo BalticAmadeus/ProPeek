@@ -283,30 +283,19 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   }, [presentationData.hasXREFs, presentationData.hasListings]);
 
   const openFileForLineSummary = (row: LineSummary): void => {
-    if (!row.hasLink) {
-      return;
-    }
-
-    const moduleRow = sortedModuleRows.find(
+    const foundModule = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    switch (settingsContext.openFileType) {
-      case OpenFileTypeEnum.XREF:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.XREF,
-          columns: moduleRow.moduleName,
-          lines: row.lineNumber,
-        });
-        break;
-      case OpenFileTypeEnum.LISTING:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.LISTING,
-          listingFile: moduleRow.listingFile,
-          lineNumber: row.lineNumber,
-        });
-        break;
-    }
+    if (!foundModule || !foundModule?.hasLink) 
+      return;
+
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: foundModule.moduleName,
+      listingFile: foundModule?.listingFile,
+      lineNumber: row.lineNumber,
+    });
   };
 
   return (

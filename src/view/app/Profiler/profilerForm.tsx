@@ -65,10 +65,13 @@ const ProfilerForm: React.FC = () => {
   const TreeViewTab: React.FC = () => {
     return (
       <div>
-        <ProfilerTreeView
-          presentationData={presentationData}
-          handleNodeSelection={handleNodeSelection}
-        />
+        <FileTypeSettingsContextProvider>
+          <ProfilerTreeView
+            presentationData={presentationData}
+            handleNodeSelection={handleNodeSelection}
+            vscode={vscode}
+          />
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };
@@ -103,7 +106,10 @@ const ProfilerForm: React.FC = () => {
     setActiveTab(tab);
   };
 
-  const handleNodeSelection = (moduleName: string, selectedModuleId: number) => {
+  const handleNodeSelection = (
+    moduleName: string,
+    selectedModuleId: number
+  ) => {
     setModuleName(moduleName);
     setSelectedModuleId(selectedModuleId);
     setActiveTab(ProfilerTab.ModuleDetails);

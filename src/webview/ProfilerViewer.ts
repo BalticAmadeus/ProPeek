@@ -94,7 +94,7 @@ export class ProfilerViewer {
                         await this.initProfiler(profilerService, filePath, message.showStartTime);
                         break;
                     case OpenFileTypeEnum.XREF:
-                        await open(message.columns, message.lines, profilerService);
+                        await open(message.name, message.lineNumber, profilerService);
                         break;
                     case OpenFileTypeEnum.LISTING:
                         await openListing(message.listingFile, message.lineNumber);
