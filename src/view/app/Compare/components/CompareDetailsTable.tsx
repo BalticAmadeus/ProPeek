@@ -123,6 +123,8 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
           ...col,
           formatter: (props: FormatterProps<ComparedData>) => {
             const percentage = props.row[col.key];
+            if (props.row["status"] === "added")
+              return <PercentageFill value={0} />;
             return <PercentageFill value={percentage} />;
           },
         };
