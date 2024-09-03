@@ -1,5 +1,5 @@
 import { ProfilerRawData } from "./profilerRawData";
-import { calculateModuleDetails } from "./presentation/moduleDetails"
+import { calculateModuleDetails, getHasListingFiles } from "./presentation/moduleDetails"
 import { calculateCalledModules } from "./presentation/calledModules";
 import { calculateLineSummary } from "./presentation/lineSummary";
 import { calculateCallTree, calculateCallTreeByTracingData } from "./presentation/callTree";
@@ -17,7 +17,7 @@ export async function transformData(rawData: ProfilerRawData, showStartTime: boo
     }
 
     const hasXREFs = await hasFiles(`**${Constants.defaultXREFPath}*.xref`);
-    const hasListings = await hasFiles(`**${Constants.defaultListingPath}*`);
+    const hasListings = getHasListingFiles(rawData);
 
     const totalSessionTime: number = getTotalSessionTime(rawData);
     const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle, hasListings);
