@@ -11,7 +11,7 @@ import CompareModuleDetails from "../Compare/compareModuleDetails";
 import { ToggleButtonGroup } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";
-import ModuleDetailsSettingsContextProvider from "../ModuleDetails/components/ModuleDetailsSettingsContext";
+import FileTypeSettingsContextProvider from "../Components/FileTypeSettingsContext";
 import ProToggleButton from "../Components/Buttons/ProToggleButton";
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
@@ -59,35 +59,40 @@ const ProfilerForm: React.FC = () => {
   const ModuleDetailsTab: React.FC = () => {
     return (
       <div>
-        <ModuleDetailsSettingsContextProvider>
+        <FileTypeSettingsContextProvider>
           <ProfilerModuleDetails
             presentationData={presentationData}
             moduleName={moduleName}
             selectedModuleId={selectedModuleId}
           />
-        </ModuleDetailsSettingsContextProvider>
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };
   const TreeViewTab: React.FC = () => {
     return (
       <div>
-        <ProfilerTreeView
-          presentationData={presentationData}
-          handleNodeSelection={handleNodeSelection}
-        />
+        <FileTypeSettingsContextProvider>
+          <ProfilerTreeView
+            presentationData={presentationData}
+            handleNodeSelection={handleNodeSelection}
+            vscode={vscode}
+          />
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };
   const FlameGraphTab: React.FC = () => {
     return (
       <div>
-        <ProfilerFlameGraph
-          presentationData={presentationData}
-          hasTracingData={presentationData.hasTracingData}
-          handleNodeSelection={handleNodeSelection}
-          vscode={vscode}
-        />
+        <FileTypeSettingsContextProvider>
+          <ProfilerFlameGraph
+            presentationData={presentationData}
+            hasTracingData={presentationData.hasTracingData}
+            handleNodeSelection={handleNodeSelection}
+            vscode={vscode}
+          />
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };

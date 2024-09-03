@@ -113,6 +113,15 @@ export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingF
 };
 
 /**
+ * Returns boolean value for hasListings
+ * @param {ProfilerRawData} rawData raw data list 
+ * @returns {boolean} value for hasListings
+ */
+export const getHasListingFiles = (rawData: ProfilerRawData): boolean => {
+  return rawData?.ModuleData?.some(module => module.ListingFile !== "");
+}
+
+/**
  * Returns the boolean value for the hasLink attribute
  * @param hasListing has listing file associated
  * @param moduleDataLength module data length
