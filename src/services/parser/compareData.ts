@@ -1,6 +1,7 @@
 import {
   PresentationData,
   ModuleDetails,
+  ComparedModule,
   ComparedData,
 } from "../../common/PresentationData";
 import { Constants } from "../../common/Constants";
@@ -8,26 +9,37 @@ import { Constants } from "../../common/Constants";
 export async function compareData(
   oldPresentationData: PresentationData,
   newPresentationData: PresentationData
-): Promise<ComparedData[]> {
-  const comparedData: ComparedData[] = [];
+): Promise<ComparedData> {
+  let oldTotalTime = 0;
+  let newTotalTime = 0;
+  const comparedModules: ComparedModule[] = [];
   const newModuleMap = mapModules(newPresentationData.moduleDetails);
 
   oldPresentationData.moduleDetails.forEach((oldModule) => {
     const newModule = newModuleMap.get(oldModule.moduleName);
+    oldTotalTime += oldModule.totalTime;
 
     if (newModule) {
-      comparedData.push(compareModules(oldModule, newModule));
+      comparedModules.push(compareModules(oldModule, newModule));
+      newTotalTime += newModule.totalTime;
       newModuleMap.delete(oldModule.moduleName);
     } else {
-      comparedData.push(createRemovedModule(oldModule));
+      comparedModules.push(createRemovedModule(oldModule));
     }
   });
 
   newModuleMap.forEach((newModule) => {
-    comparedData.push(createAddedModule(newModule));
+    newTotalTime += newModule.totalTime;
+    comparedModules.push(createAddedModule(newModule));
   });
 
-  return comparedData;
+  console.log(newTotalTime);
+  console.log(oldTotalTime);
+  return {
+    comparedModules,
+    firstTotalTime: oldTotalTime,
+    secondTotalTime: newTotalTime,
+  };
 }
 
 const mapModules = (
@@ -39,7 +51,7 @@ const mapModules = (
 const compareModules = (
   oldModule: ModuleDetails,
   newModule: ModuleDetails
-): ComparedData => {
+): ComparedModule => {
   const mergedModuleID =
     oldModule.moduleID * Constants.moduleIdMult + newModule.moduleID;
 
@@ -69,7 +81,7 @@ const calculateChange = (newValue: number, oldValue: number): number => {
   return Number((newValue - oldValue).toFixed(6));
 };
 
-const createAddedModule = (module: ModuleDetails): ComparedData => {
+const createAddedModule = (module: ModuleDetails): ComparedModule => {
   return {
     ...module,
     moduleID: module.moduleID,
@@ -79,7 +91,7 @@ const createAddedModule = (module: ModuleDetails): ComparedData => {
     status: "added",
   };
 };
-const createRemovedModule = (module: ModuleDetails): ComparedData => {
+const createRemovedModule = (module: ModuleDetails): ComparedModule => {
   return {
     ...module,
     moduleID: module.moduleID * Constants.moduleIdMult,
