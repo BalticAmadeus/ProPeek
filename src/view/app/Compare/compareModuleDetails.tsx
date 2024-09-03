@@ -193,7 +193,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     secondTotalTime: comparedData.secondTotalTime,
   };
 
-  const filterTables = (row: ComparedData) => {
+  const filterTables = (row: ComparedModule) => {
     if (!row) {
       return;
     }
