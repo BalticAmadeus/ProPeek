@@ -10,8 +10,8 @@ import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
 import { Box } from "@mui/material";
+import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
 import PercentageFill from "../../Components/PercentageBar/PercentageFill";
-import { useModuleDetailsSettingsContext } from "./ModuleDetailsSettingsContext";
 import { OpenFileTypeEnum } from "../../../../common/openFile";
 
 interface FilterHeaderProps {
@@ -79,7 +79,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
 }) => {
   const [rows, setRows] = useState(otherProps.rows);
   const [filters, setFilters] = useState<string>("");
-  const settingsContext = useModuleDetailsSettingsContext();
+  const settingsContext = useFileTypeSettingsContext();
 
   React.useEffect(() => {
     applyFilter(filters);
@@ -144,23 +144,13 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
     if (!row.hasLink) {
       return;
     }
-
-    switch (settingsContext.openFileType) {
-      case OpenFileTypeEnum.XREF:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.XREF,
-          columns: row.moduleName,
-          lines: row.startLineNum,
-        });
-        break;
-      case OpenFileTypeEnum.LISTING:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.LISTING,
-          listingFile: row.listingFile,
-          lineNumber: row.startLineNum,
-        });
-        break;
-    }
+    
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: row.moduleName,
+      listingFile: row?.listingFile,
+      lineNumber: row.startLineNum,
+    });
   };
 
   return (

@@ -14,8 +14,8 @@ import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { Box } from "@mui/material";
-import ModuleDetailsSettings from "./components/ModuleDetailsSettings";
-import { useModuleDetailsSettingsContext } from "./components/ModuleDetailsSettingsContext";
+import FileTypeSettings from "../Components/FileTypeSettings";
+import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 
 interface ProfilerModuleDetailsProps {
@@ -38,16 +38,6 @@ interface LineColumn extends GenericModuleColumn {}
 const defaultModuleSort: SortColumn = {
   columnKey: "totalTime", // Sort by the "totalTime" column by default
   direction: "DESC", // Use descending order by default
-};
-
-const defaultCallerSort: SortColumn = {
-  columnKey: "callerPcntOfSession",
-  direction: "DESC",
-};
-
-const defaultCalleeSort: SortColumn = {
-  columnKey: "calleePcntOfSession",
-  direction: "DESC",
 };
 
 const defaultLineSort: SortColumn = {
@@ -139,14 +129,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   >(presentationData.calledModules);
   const [sortCallingColumns, setSortCallingColumns] = useState<
     readonly SortColumn[]
-  >([defaultCallerSort]);
+  >([]);
 
   const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
     presentationData.calledModules
   );
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
-  >([defaultCalleeSort]);
+  >([]);
 
   const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
     presentationData.lineSummary
@@ -173,7 +163,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     columnDefinition.LineColumns
   );
 
-  const settingsContext = useModuleDetailsSettingsContext();
+  const settingsContext = useFileTypeSettingsContext();
 
   const sumTotalTime = presentationData.moduleDetails.reduce(
     (acc, module) => acc + module.totalTime,
@@ -283,37 +273,26 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   }, [presentationData.hasXREFs, presentationData.hasListings]);
 
   const openFileForLineSummary = (row: LineSummary): void => {
-    if (!row.hasLink) {
-      return;
-    }
-
-    const moduleRow = sortedModuleRows.find(
+    const foundModule = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    switch (settingsContext.openFileType) {
-      case OpenFileTypeEnum.XREF:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.XREF,
-          columns: moduleRow.moduleName,
-          lines: row.lineNumber,
-        });
-        break;
-      case OpenFileTypeEnum.LISTING:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.LISTING,
-          listingFile: moduleRow.listingFile,
-          lineNumber: row.lineNumber,
-        });
-        break;
-    }
+    if (!foundModule || !foundModule?.hasLink) 
+      return;
+
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: foundModule.moduleName,
+      listingFile: foundModule?.listingFile,
+      lineNumber: row.lineNumber,
+    });
   };
 
   return (
     <div>
       <div className="details-columns">
         <div className="grid-name">Module Details</div>
-        <ModuleDetailsSettings
+        <FileTypeSettings
           showOpenFileType={
             presentationData.hasXREFs && presentationData.hasListings
           }

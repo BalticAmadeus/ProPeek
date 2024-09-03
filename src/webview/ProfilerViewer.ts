@@ -86,9 +86,11 @@ export class ProfilerViewer {
     this.panel.onDidChangeViewState((event) => {
       const currentViewColumn = event.webviewPanel.viewColumn;
       if (currentViewColumn !== this.previousViewColumn) {
-        if (action2 && filePath2) {
+        console.log(action2, filePath2);
+        
+        if (this.action2 && this.filePath2) {
           this.reloadProfilerData(action, filePath);
-          this.loadTwoProfilerData(action, filePath, action2, filePath2);
+          this.loadTwoProfilerData(action, filePath, this.action2, this.filePath2);
         } else {
           this.reloadProfilerData(action, filePath);
         }
@@ -115,15 +117,9 @@ export class ProfilerViewer {
             },
           });
 
-          if (
-            !selectedFiles ||
-            selectedFiles.length !== 1 ||
-            selectedFiles === undefined
-          ) {
+          if (!selectedFiles || selectedFiles.length !== 1 || selectedFiles === undefined) {
             vscode.window.showErrorMessage(
-              `Please select profiler file to compare with your ${path.basename(
-                this.action
-              )}.`
+              `Please select profiler file to compare with your ${path.basename(this.action)}.`
             );
 
             await this.reloadProfilerData(this.action, this.filePath);
@@ -151,7 +147,7 @@ export class ProfilerViewer {
           );
           break;
         case OpenFileTypeEnum.XREF:
-          await open(message.columns, message.lines, profilerService);
+          await open(message.name, message.lineNumber, profilerService);
           break;
         case OpenFileTypeEnum.LISTING:
           await openListing(message.listingFile, message.lineNumber);
@@ -208,7 +204,6 @@ export class ProfilerViewer {
     }
   }
   public async toggleProfilerData(): Promise<void> {
-
     if (!this.isAlternate) {
       try {
         await this.reloadProfilerData(this.action, this.filePath);
@@ -241,7 +236,6 @@ export class ProfilerViewer {
     }
 
     this.isAlternate = !this.isAlternate;
-
   }
 
   private async initProfiler(
@@ -260,7 +254,6 @@ export class ProfilerViewer {
   }
 
   private getWebviewContent(): string {
-    // Local path to main script run in the webview
     const reactAppPathOnDisk = vscode.Uri.file(
       path.join(
         vscode.Uri.file(
