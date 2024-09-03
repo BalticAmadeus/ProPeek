@@ -1,15 +1,12 @@
 import * as React from "react";
-import { useState, useMemo } from "react";
-import {
-  PresentationData,
-  ComparedData,
-} from "../../../common/PresentationData";
+import { useState, useMemo, useEffect } from "react";
+import {PresentationData, ComparedData} from "../../../common/PresentationData";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import * as columnDefinition from "./column.json";
 import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, FormControlLabel, Switch, Typography } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
@@ -35,7 +32,8 @@ const defaultModuleSort: SortColumn = {
 };
 
 const addConditionalFormatting = (
-  columns: Array<GenericModuleColumn>
+  columns: Array<GenericModuleColumn>,
+  isPercentageView: boolean
 ): Array<GenericModuleColumn> => {
   const addModuleChangeFormat = (row: ComparedData, key: string) => {
     let icon = null;
@@ -44,16 +42,12 @@ const addConditionalFormatting = (
     }
     if (row.status === "added") {
       icon = (
-        <AddCircleIcon
-          style={{ color: "green", fontSize: 16, position: "relative", top: 3 }}
-        />
+        <AddCircleIcon style={{ color: "green", fontSize: 16, position: "relative", top: 3 }}/>
       );
     }
     if (row.status === "removed") {
       icon = (
-        <RemoveCircleIcon
-          style={{ color: "red", fontSize: 16, position: "relative", top: 3 }}
-        />
+        <RemoveCircleIcon style={{ color: "red", fontSize: 16, position: "relative", top: 3 }}/>
       );
     }
 
@@ -66,12 +60,22 @@ const addConditionalFormatting = (
 
   const addChangeFormat = (row: ComparedData, key: string) => {
     const changeValue = row[key];
-    const changeType =
-      changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
-    const changeClass = `cell${changeType}Change`;
-    const displayValueSign = changeValue > 0 ? `+${changeValue}` : changeValue;
+    let displayValue;
 
-    return <Box className={`${changeClass}`}>{displayValueSign}</Box>;
+    if (isPercentageView) {
+      if (key === "totalTimeChange") {
+        displayValue = ((changeValue / row.totalTime) * 100).toFixed(2) + "%";
+      } else if (key === "avgTimePerCallChange" && row.avgTimePerCall) {
+        displayValue = ((changeValue / row.avgTimePerCall) * 100).toFixed(2) + "%";
+      }
+    } else {
+      displayValue = changeValue > 0 ? `+${changeValue}` : changeValue;
+    }
+
+    const changeType = changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
+    const changeClass = `cell${changeType}Change`;
+
+    return <Box className={`${changeClass}`}>{displayValue}</Box>;
   };
 
   return columns.map((column) => {
@@ -137,24 +141,30 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 }) => {
   const [moduleRows, setModuleRows] = useState<ComparedData[]>(comparedData);
 
-  const [selectedModuleRow, setSelectedModuleRow] =
-    useState<ComparedData | null>(null);
+  const [selectedModuleRow, setSelectedModuleRow] = useState<ComparedData | null>(null);
 
-  const [sortModuleColumns, setSortModuleColumns] = useState<
-    readonly SortColumn[]
-  >([defaultModuleSort]);
+  const [sortModuleColumns, setSortModuleColumns] = useState<readonly SortColumn[]>([defaultModuleSort]);
 
   const [selectedRow, setSelectedRow] = useState<ComparedData>();
 
   const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
-
-  const formattedMergedColumns: ComparedColumn[] = addConditionalFormatting(columnDefinition.moduleColumns);
-
+  
   const [isLoading, setIsLoading] = useState(false);
+  
+  const vscode = getVSCodeAPI();
+
+  const [isPercentageView, setIsPercentageView] = useState(() => {
+    const savedView = vscode.getState();
+    return savedView !== undefined ? savedView : false;
+  });
+
+  useEffect(() => {
+    vscode.setState(isPercentageView);
+  }, [isPercentageView, vscode]);
+
+  const formattedMergedColumns: ComparedColumn[] = addConditionalFormatting(columnDefinition.moduleColumns, isPercentageView);
 
   const sumTotalTime = presentationData.moduleDetails.reduce((acc, module) => acc + module.totalTime, 0);
-
-  const vscode = getVSCodeAPI();
 
   const filterTables = (row: ComparedData) => {
     if (!row) {
@@ -218,7 +228,12 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   React.useEffect(() => {
     filterTables(selectedRow);
     setIsLoading(false);
+
   }, [selectedRow]);
+
+  const handleToggleView = () => {
+    setIsPercentageView(prev => !prev);
+  };
 
   return (
     <div>
@@ -229,6 +244,18 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
         <Typography color="-var(--vscode-editor-foreground)" fontSize={24} sx={{ mr: 5 }}>
           {fileName} &#x2194; {fileName2}
         </Typography>
+      </div>
+
+      <div style={{ marginBottom: "10px", marginTop: "10px" }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isPercentageView}
+              onChange={handleToggleView}
+            />
+          }
+          label="Show Percentage"
+        />
       </div>
 
       <div className="details-columns">
