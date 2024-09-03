@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import {
   PresentationData,
   ComparedData,
+  ComparedModule,
 } from "../../../common/PresentationData";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import * as columnDefinition from "./column.json";
@@ -16,7 +17,7 @@ import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
-  comparedData: ComparedData[];
+  comparedData: ComparedData;
   fileName: string;
   fileName2: string;
 }
@@ -37,7 +38,7 @@ const defaultModuleSort: SortColumn = {
 const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>
 ): Array<GenericModuleColumn> => {
-  const addModuleChangeFormat = (row: ComparedData, key: string) => {
+  const addModuleChangeFormat = (row: ComparedModule, key: string) => {
     let icon = null;
     if (!row.status) {
       icon = <span style={{ width: 16, display: "inline-block" }} />;
@@ -64,7 +65,7 @@ const addConditionalFormatting = (
     );
   };
 
-  const addChangeFormat = (row: ComparedData, key: string) => {
+  const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     const changeType =
       changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
@@ -78,7 +79,7 @@ const addConditionalFormatting = (
     if (column.key === "moduleName") {
       return {
         ...column,
-        formatter: (props: FormatterProps<ComparedData>) =>
+        formatter: (props: FormatterProps<ComparedModule>) =>
           addModuleChangeFormat(props.row, column.key),
       };
     }
@@ -89,7 +90,7 @@ const addConditionalFormatting = (
     ) {
       return {
         ...column,
-        formatter: (props: FormatterProps<ComparedData>) =>
+        formatter: (props: FormatterProps<ComparedModule>) =>
           addChangeFormat(props.row, column.key),
       };
     }
@@ -135,16 +136,16 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   fileName,
   fileName2
 }) => {
-  const [moduleRows, setModuleRows] = useState<ComparedData[]>(comparedData);
+  const [moduleRows, setModuleRows] = useState<ComparedModule[]>(comparedData.comparedModules);
 
   const [selectedModuleRow, setSelectedModuleRow] =
-    useState<ComparedData | null>(null);
+    useState<ComparedModule | null>(null);
 
   const [sortModuleColumns, setSortModuleColumns] = useState<
     readonly SortColumn[]
   >([defaultModuleSort]);
 
-  const [selectedRow, setSelectedRow] = useState<ComparedData>();
+  const [selectedRow, setSelectedRow] = useState<ComparedModule>();
 
   const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
 
@@ -152,11 +153,14 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const sumTotalTime = presentationData.moduleDetails.reduce((acc, module) => acc + module.totalTime, 0);
+  const sumTotalTime = {
+    firstTotalTime: comparedData.firstTotalTime,
+    secondTotalTime: comparedData.secondTotalTime
+  }
 
   const vscode = getVSCodeAPI();
 
-  const filterTables = (row: ComparedData) => {
+  const filterTables = (row: ComparedModule) => {
     if (!row) {
       return;
     }
@@ -175,7 +179,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const getSortedRows = (
     columns: readonly SortColumn[],
-    rows: ComparedData[]
+    rows: ComparedModule[]
   ) => {
     if (columns.length === 0) {
       return rows;
@@ -193,11 +197,11 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     });
   };
 
-  const sortedModuleRows = useMemo((): readonly ComparedData[] => {
+  const sortedModuleRows = useMemo((): readonly ComparedModule[] => {
     const sortedRows = getSortedRows(
       sortModuleColumns,
       moduleRows
-    ) as ComparedData[];
+    ) as ComparedModule[];
 
     if (sortedRows.length > 0 && selectedModuleRow === null) {
       setSelectedModuleRow(sortedRows[0]);

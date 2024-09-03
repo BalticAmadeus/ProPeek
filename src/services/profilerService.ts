@@ -32,7 +32,7 @@ export class ProfilerService {
   public async compare(
     presentationData: PresentationData,
     secondPresentationData: PresentationData
-  ): Promise<ComparedData[]> {
+  ): Promise<ComparedData> {
     const comparedData = await compareData(
       presentationData,
       secondPresentationData

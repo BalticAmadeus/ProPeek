@@ -5,7 +5,7 @@ import DataGrid, {
   HeaderRenderer,
   HeaderRendererProps,
 } from "react-data-grid";
-import { ComparedData } from "../../../../common/PresentationData";
+import { ComparedModule } from "../../../../common/PresentationData";
 import { useState } from "react";
 import * as React from "react";
 import { Box } from "@mui/material";
@@ -18,9 +18,12 @@ interface FilterHeaderProps {
 }
 
 export interface CompareDetailsTableProps
-  extends DataGridProps<ComparedData>,
+  extends DataGridProps<ComparedModule>,
     Omit<FilterHeaderProps, "onFilterChange"> {
-  sumTotalTime?: number;
+  sumTotalTime?: {
+    firstTotalTime: number;
+    secondTotalTime: number;
+  };
 }
 
 const FilterHeader = React.memo<FilterHeaderProps>(
@@ -98,17 +101,17 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
   };
 
   const addFilterRendererToColumns = (
-    columns: Readonly<Array<Column<ComparedData>>>
-  ): Array<Column<ComparedData>> => {
+    columns: Readonly<Array<Column<ComparedModule>>>
+  ): Array<Column<ComparedModule>> => {
     return columns.map((col) => {
       const hasFilter = col.key === "moduleName";
       if (hasFilter) {
         return {
           ...col,
           headerCellClass: "filter-cell",
-          headerRenderer: (props: HeaderRendererProps<ComparedData>) => (
+          headerRenderer: (props: HeaderRendererProps<ComparedModule>) => (
             <>
-              <Box>{HeaderRenderer<ComparedData, unknown>({ ...props })}</Box>
+              <Box>{HeaderRenderer<ComparedModule, unknown>({ ...props })}</Box>
               <FilterHeader
                 onFilterChange={handleFilterChange}
                 searchValue={searchValue}
@@ -121,7 +124,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
       if (col.key === "pcntOfSession") {
         return {
           ...col,
-          formatter: (props: FormatterProps<ComparedData>) => {
+          formatter: (props: FormatterProps<ComparedModule>) => {
             const percentage = props.row[col.key];
             if (props.row["status"] === "added")
               return <PercentageFill value={0} />;
@@ -150,8 +153,22 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
         columns={filteredColumns}
         rows={rows}
       />
-      {sumTotalTime > 0 && (
-        <div className="total-time">Total Time: {sumTotalTime.toFixed(6)}s</div>
+      {sumTotalTime && (
+        <div>
+          <div className="total-time">
+            Total Time: {sumTotalTime.firstTotalTime.toFixed(6)}s
+          </div>
+          <div className="total-time">
+            Total Time: {sumTotalTime.secondTotalTime.toFixed(6)}s
+          </div>
+          <div className="total-time">
+            Difference:
+            {(
+              sumTotalTime.firstTotalTime - sumTotalTime.secondTotalTime
+            ).toFixed(6)}
+            s
+          </div>
+        </div>
       )}
     </Box>
   );
