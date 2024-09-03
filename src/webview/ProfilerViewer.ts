@@ -77,6 +77,7 @@ export class ProfilerViewer {
 
     this.panel.webview.html = this.getWebviewContent();
 
+    // eslint-disable-next-line curly
     if (filePath2 && action2) this.toggleProfilerData();
 
     const profilerService = new ProfilerService(action);
@@ -86,11 +87,9 @@ export class ProfilerViewer {
     this.panel.onDidChangeViewState((event) => {
       const currentViewColumn = event.webviewPanel.viewColumn;
       if (currentViewColumn !== this.previousViewColumn) {
-        console.log(action2, filePath2);
-        
+
         if (this.action2 && this.filePath2) {
-          this.reloadProfilerData(action, filePath);
-          this.loadTwoProfilerData(action, filePath, this.action2, this.filePath2);
+          this.toggleProfilerData();
         } else {
           this.reloadProfilerData(action, filePath);
         }
@@ -117,9 +116,15 @@ export class ProfilerViewer {
             },
           });
 
-          if (!selectedFiles || selectedFiles.length !== 1 || selectedFiles === undefined) {
+          if (
+            !selectedFiles ||
+            selectedFiles.length !== 1 ||
+            selectedFiles === undefined
+          ) {
             vscode.window.showErrorMessage(
-              `Please select profiler file to compare with your ${path.basename(this.action)}.`
+              `Please select profiler file to compare with your ${path.basename(
+                this.action
+              )}.`
             );
 
             await this.reloadProfilerData(this.action, this.filePath);
@@ -203,7 +208,7 @@ export class ProfilerViewer {
       handleErrors(["Failed to Compare ProPeek Profiler"]);
     }
   }
-  public async toggleProfilerData(): Promise<void> {
+  private async toggleProfilerData(): Promise<void> {
     if (!this.isAlternate) {
       try {
         await this.reloadProfilerData(this.action, this.filePath);
