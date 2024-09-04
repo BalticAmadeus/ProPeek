@@ -12,7 +12,6 @@ import * as React from "react";
 import { Box } from "@mui/material";
 import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
 import PercentageFill from "../../Components/PercentageBar/PercentageFill";
-import { OpenFileTypeEnum } from "../../../../common/openFile";
 
 interface FilterHeaderProps {
   onFilterChange?: (value: string) => void;
@@ -21,9 +20,7 @@ interface FilterHeaderProps {
 }
 export interface ModuleDetailsTableProps
   extends DataGridProps<ModuleDetails>,
-    Omit<FilterHeaderProps, "onFilterChange"> {
-  sumTotalTime?: number;
-}
+    Omit<FilterHeaderProps, "onFilterChange"> {}
 
 const FilterHeader = React.memo<FilterHeaderProps>(
   ({ onFilterChange, searchValue, setSearchValue }) => {
@@ -72,7 +69,6 @@ const FilterHeader = React.memo<FilterHeaderProps>(
 );
 
 const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
-  sumTotalTime,
   searchValue,
   setSearchValue,
   ...otherProps
@@ -144,7 +140,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
     if (!row.hasLink) {
       return;
     }
-    
+
     vscode.postMessage({
       type: settingsContext.openFileType,
       name: row.moduleName,
@@ -167,9 +163,6 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
         columns={filteredColumns}
         rows={rows}
       />
-      {sumTotalTime > 0 && (
-        <div className="total-time">Total Time: {sumTotalTime.toFixed(6)}s</div>
-      )}
     </Box>
   );
 };

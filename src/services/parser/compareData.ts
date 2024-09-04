@@ -10,8 +10,6 @@ export async function compareData(
   oldPresentationData: PresentationData,
   newPresentationData: PresentationData
 ): Promise<ComparedData> {
-  let oldTotalTime = 0;
-  let newTotalTime = 0;
   const comparedModules: ComparedModule[] = [];
   const newModuleMap = mapModules(newPresentationData.moduleDetails);
 
@@ -35,8 +33,8 @@ export async function compareData(
 
   return {
     comparedModules,
-    firstTotalTime: oldTotalTime,
-    secondTotalTime: newTotalTime,
+    firstTotalTime: oldPresentationData.callTree[0].cumulativeTime || 0,
+    secondTotalTime: newPresentationData.callTree[0].cumulativeTime || 0,
   };
 }
 

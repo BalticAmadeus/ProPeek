@@ -13,7 +13,7 @@ import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
@@ -165,10 +165,12 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   const settingsContext = useFileTypeSettingsContext();
 
-  const sumTotalTime = presentationData.moduleDetails.reduce(
-    (acc, module) => acc + module.totalTime,
-    0
-  );
+  const sumTotalTime =
+    presentationData.callTree[0]?.cumulativeTime ??
+    presentationData.moduleDetails.reduce(
+      (acc, module) => acc + module.totalTime,
+      0
+    );
 
   const filterTables = (row: ModuleDetails) => {
     if (!row) {
@@ -193,15 +195,15 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   };
 
   const setMatchingRow = (
-    selectedRow, 
-    matchKeys, 
-    targetRows, 
+    selectedRow,
+    matchKeys,
+    targetRows,
     setSelectedRow
   ) => {
     const matchingRow = targetRows.find( (row) => 
       matchKeys.some((key) => row.moduleID === selectedRow[key])
     );
-    
+
     if (matchingRow) {
       setSelectedRow(matchingRow);
     }
@@ -291,7 +293,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   return (
     <div>
       <div className="details-columns">
-        <div className="grid-name">Module Details</div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div className="grid-name">Module Details</div>
+          <div className="total-time">
+            <Typography color="-var(--vscode-editor-foreground)">
+              Total Time: {sumTotalTime} s
+            </Typography>
+          </div>
+        </div>
         <FileTypeSettings
           showOpenFileType={
             presentationData.hasXREFs && presentationData.hasListings
@@ -306,7 +315,6 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-            sumTotalTime={sumTotalTime}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
           />
