@@ -28,6 +28,8 @@ export class ProfilerViewer {
   private readonly configuration = vscode.workspace.getConfiguration("");
   private readonly extensionPath: string;
   private previousViewColumn: vscode.ViewColumn | undefined;
+  private profilerServiceCache: Map<string, ProfilerService> = new Map();
+  private profilerService?: ProfilerService;
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -77,17 +79,17 @@ export class ProfilerViewer {
 
     this.panel.webview.html = this.getWebviewContent();
 
-    // eslint-disable-next-line curly
-    if (filePath2 && action2) this.toggleProfilerData();
+    if (filePath2 && action2) {
+      this.toggleProfilerData();
+    } else {
+      this.profilerService = new ProfilerService(action);
 
-    const profilerService = new ProfilerService(action);
-
-    this.initProfiler(profilerService, filePath);
+      this.initProfiler(this.profilerService, filePath);
+    }
 
     this.panel.onDidChangeViewState((event) => {
       const currentViewColumn = event.webviewPanel.viewColumn;
       if (currentViewColumn !== this.previousViewColumn) {
-
         if (this.action2 && this.filePath2) {
           this.toggleProfilerData();
         } else {
@@ -142,17 +144,20 @@ export class ProfilerViewer {
           if (this.action2 && this.filePath2) {
             await this.toggleProfilerData();
           }
-
           break;
         case "GRAPH_TYPE_CHANGE":
-          await this.initProfiler(
-            profilerService,
-            filePath,
-            message.showStartTime
-          );
+          if (this.profilerService) {
+            await this.initProfiler(
+              this.profilerService,
+              this.filePath,
+              message.showStartTime
+            );
+          }
           break;
         case OpenFileTypeEnum.XREF:
-          await open(message.name, message.lineNumber, profilerService);
+          if (this.profilerService) {
+            await open(message.name, message.lineNumber, this.profilerService);
+          }
           break;
         case OpenFileTypeEnum.LISTING:
           await openListing(message.listingFile, message.lineNumber);
@@ -165,11 +170,18 @@ export class ProfilerViewer {
     });
   }
 
+  private getProfilerService(action: string): ProfilerService {
+    if (!this.profilerServiceCache.has(action)) {
+      this.profilerServiceCache.set(action, new ProfilerService(action));
+    }
+    return this.profilerServiceCache.get(action)!;
+  }
+
   private async reloadProfilerData(
     action: string,
     filePath: string
   ): Promise<void> {
-    const profilerService = new ProfilerService(action);
+    const profilerService = this.getProfilerService(action);
     await this.initProfiler(profilerService, filePath);
   }
 
@@ -181,8 +193,8 @@ export class ProfilerViewer {
     showStartTime = false
   ): Promise<void> {
     try {
-      const profilerService = new ProfilerService(action);
-      const firstProfilerData = await profilerService.parse(
+      this.profilerService = new ProfilerService(action);
+      const firstProfilerData = await this.profilerService.parse(
         filePath,
         showStartTime
       );
@@ -193,11 +205,11 @@ export class ProfilerViewer {
         showStartTime
       );
 
-      const dataString = await profilerService.compare(
+      const dataString = await this.profilerService.compare(
         firstProfilerData,
         secondProfilerData
       );
-      handleErrors(profilerService.getErrors());
+      handleErrors(this.profilerService.getErrors());
       this.panel?.webview.postMessage({
         data: dataString,
         type: "Compare Data",

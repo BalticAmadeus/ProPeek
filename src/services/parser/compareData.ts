@@ -33,8 +33,6 @@ export async function compareData(
     comparedModules.push(createAddedModule(newModule));
   });
 
-  console.log(newTotalTime);
-  console.log(oldTotalTime);
   return {
     comparedModules,
     firstTotalTime: oldTotalTime,

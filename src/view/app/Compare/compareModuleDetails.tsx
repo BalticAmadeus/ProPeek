@@ -20,6 +20,7 @@ import {
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
+import ProfilerSummary from "./components/ProfilerSummary";
 
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
@@ -170,8 +171,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const vscode = getVSCodeAPI();
 
   const [isPercentageView, setIsPercentageView] = useState(() => {
@@ -245,8 +244,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   }, [moduleRows, sortModuleColumns]);
 
   const handleToggleProfile = async () => {
-    setIsLoading(true);
-
     vscode.postMessage({
       type: "TOGGLE_PROFILER",
     });
@@ -254,7 +251,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   React.useEffect(() => {
     filterTables(selectedRow);
-    setIsLoading(false);
   }, [selectedRow]);
 
   const handleToggleView = () => {
@@ -263,29 +259,23 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          marginTop: "10px",
-          justifyContent: "space-between",
-        }}
-      >
-        <Button variant="outlined" onClick={handleToggleProfile} sx={{ mr: 5, width: 416 }}>
-          {fileName} &#x2194; {fileName2}
-        </Button>
-        <Typography
-          color="-var(--vscode-editor-foreground)"
-          fontSize={24}
-          sx={{ mr: 5 }}
-        >
-          {fileName} &#x2194; {fileName2}
-        </Typography>
-      </div>
+      <ProfilerSummary
+        fileName={fileName}
+        fileName2={fileName2}
+        sumTotalTime={sumTotalTime}
+        isPercentageView={isPercentageView}
+        handleToggleProfile={handleToggleProfile}
+      />
 
       <div style={{ marginBottom: "10px", marginTop: "10px" }}>
         <FormControlLabel
           control={
-            <Switch checked={isPercentageView} onChange={handleToggleView} />
+            <Switch
+              checked={isPercentageView}
+              onChange={handleToggleView}
+              size="small"
+              sx={{ color: "-var(--vscode-editor-foreground)" }}
+            />
           }
           label="Show Percentage"
         />
@@ -302,13 +292,12 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-            sumTotalTime={sumTotalTime}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
+            // sumTotalTime={sumTotalTime}
           />
         ) : null}
       </div>
-      {isLoading && <LoadingOverlay />}
     </div>
   );
 };

@@ -36,7 +36,7 @@ const ProfilerForm: React.FC = () => {
     defaultPresentationData
   );
   const [comparedData, setComparedData] = useState<ComparedData>(null);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [moduleName, setModuleName] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -52,10 +52,25 @@ const ProfilerForm: React.FC = () => {
         setFileName2(event.data.fileName2);
       } else {
         setPresentationData(event.data as PresentationData);
-        setLoading(false);
       }
     });
   });
+
+  React.useEffect(() => {
+    if (presentationData !== defaultPresentationData) {
+      console.log("Presentation Data: ", presentationData);
+      
+      setIsLoading(false);
+    }
+  }, [presentationData]);
+
+  React.useEffect(() => {
+    if (comparedData !== null) {
+      console.log("Compared Data: ", comparedData);
+      setIsLoading(false);
+    }
+  }, [comparedData]);
+
   const ModuleDetailsTab: React.FC = () => {
     return (
       <div>
@@ -117,6 +132,7 @@ const ProfilerForm: React.FC = () => {
     if (!tab) return;
 
     if (tab === ProfilerTab.Compare && !comparedData) {
+      setIsLoading(true);
       const userWantsToCompare: any = await vscode.postMessage({
         type: "requestCompareFiles",
         presentationData,
