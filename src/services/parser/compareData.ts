@@ -15,11 +15,9 @@ export async function compareData(
 
   oldPresentationData.moduleDetails.forEach((oldModule) => {
     const newModule = newModuleMap.get(oldModule.moduleName);
-    oldTotalTime += oldModule.totalTime;
 
     if (newModule) {
       comparedModules.push(compareModules(oldModule, newModule));
-      newTotalTime += newModule.totalTime;
       newModuleMap.delete(oldModule.moduleName);
     } else {
       comparedModules.push(createRemovedModule(oldModule));
@@ -27,7 +25,6 @@ export async function compareData(
   });
 
   newModuleMap.forEach((newModule) => {
-    newTotalTime += newModule.totalTime;
     comparedModules.push(createAddedModule(newModule));
   });
 
