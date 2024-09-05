@@ -171,6 +171,8 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [moduleNameFilter, setModuleNameFilter] = useState<string>("");
 
+  const [isLoading, setIsLoading] = useState<boolean>(null);
+
   const vscode = getVSCodeAPI();
 
   const [isPercentageView, setIsPercentageView] = useState(() => {
@@ -244,10 +246,15 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   }, [moduleRows, sortModuleColumns]);
 
   const handleToggleProfile = async () => {
+    setIsLoading(true);
     vscode.postMessage({
       type: "TOGGLE_PROFILER",
     });
   };
+
+  React.useEffect(() => {
+    setIsLoading(false);
+  }, [sortedModuleRows]);
 
   React.useEffect(() => {
     filterTables(selectedRow);
@@ -259,6 +266,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   return (
     <div>
+      {isLoading && <LoadingOverlay />}
       <ProfilerSummary
         fileName={fileName}
         fileName2={fileName2}

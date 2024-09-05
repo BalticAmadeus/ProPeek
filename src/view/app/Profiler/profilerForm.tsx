@@ -37,6 +37,7 @@ const ProfilerForm: React.FC = () => {
   );
   const [comparedData, setComparedData] = useState<ComparedData>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCompare, setIsLoadingCompare] = useState<boolean>(false);
   const [moduleName, setModuleName] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -59,7 +60,6 @@ const ProfilerForm: React.FC = () => {
   React.useEffect(() => {
     if (presentationData !== defaultPresentationData) {
       console.log("Presentation Data: ", presentationData);
-      
       setIsLoading(false);
     }
   }, [presentationData]);
@@ -67,7 +67,7 @@ const ProfilerForm: React.FC = () => {
   React.useEffect(() => {
     if (comparedData !== null) {
       console.log("Compared Data: ", comparedData);
-      setIsLoading(false);
+      setIsLoadingCompare(false);
     }
   }, [comparedData]);
 
@@ -132,7 +132,7 @@ const ProfilerForm: React.FC = () => {
     if (!tab) return;
 
     if (tab === ProfilerTab.Compare && !comparedData) {
-      setIsLoading(true);
+      setIsLoadingCompare(true);
       const userWantsToCompare: any = await vscode.postMessage({
         type: "requestCompareFiles",
         presentationData,
@@ -180,7 +180,7 @@ const ProfilerForm: React.FC = () => {
   }
   return (
     <React.Fragment>
-      {isLoading && <LoadingOverlay />}
+      {(isLoading || isLoadingCompare) && <LoadingOverlay />}
       <div>
         <div>
           <ToggleButtonGroup

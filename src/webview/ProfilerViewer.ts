@@ -223,8 +223,6 @@ export class ProfilerViewer {
   private async toggleProfilerData(): Promise<void> {
     if (!this.isAlternate) {
       try {
-        await this.reloadProfilerData(this.action, this.filePath);
-
         if (this.action2 && this.filePath2) {
           await this.loadTwoProfilerData(
             this.action,
@@ -233,19 +231,22 @@ export class ProfilerViewer {
             this.filePath2
           );
         }
+
+        await this.reloadProfilerData(this.action, this.filePath);
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
       }
     } else {
       try {
         if (this.action2 && this.filePath2) {
-          await this.reloadProfilerData(this.action2, this.filePath2);
           await this.loadTwoProfilerData(
             this.action2,
             this.filePath2,
             this.action,
             this.filePath
           );
+
+          await this.reloadProfilerData(this.action2, this.filePath2);
         }
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
