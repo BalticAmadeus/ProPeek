@@ -30,6 +30,8 @@ export class ProfilerViewer {
   private previousViewColumn: vscode.ViewColumn | undefined;
   private profilerServiceCache: Map<string, ProfilerService> = new Map();
   private profilerService?: ProfilerService;
+  private parsedData?: PresentationData;
+  private lastViewedProfiler: "main" | "alternate" = "main";
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -84,6 +86,8 @@ export class ProfilerViewer {
     } else {
       this.profilerService = new ProfilerService(action);
 
+      this.profilerServiceCache.set(action, this.profilerService);
+
       this.initProfiler(this.profilerService, filePath);
     }
 
@@ -91,9 +95,9 @@ export class ProfilerViewer {
       const currentViewColumn = event.webviewPanel.viewColumn;
       if (currentViewColumn !== this.previousViewColumn) {
         if (this.action2 && this.filePath2) {
-          this.toggleProfilerData();
+          this.toggleProfilerData(true);
         } else {
-          this.reloadProfilerData(action, filePath);
+          this.reloadProfilerData(this.action, this.filePath);
         }
         this.previousViewColumn = currentViewColumn;
       }
@@ -170,19 +174,18 @@ export class ProfilerViewer {
     });
   }
 
-  private getProfilerService(action: string): ProfilerService {
-    if (!this.profilerServiceCache.has(action)) {
-      this.profilerServiceCache.set(action, new ProfilerService(action));
-    }
-    return this.profilerServiceCache.get(action)!;
-  }
-
   private async reloadProfilerData(
     action: string,
     filePath: string
   ): Promise<void> {
-    const profilerService = this.getProfilerService(action);
-    await this.initProfiler(profilerService, filePath);
+    if (this.profilerService && this.parsedData) {
+      await this.initProfiler(this.profilerService, this.filePath);
+    } else {
+      if (!this.profilerService) {
+        this.profilerService = new ProfilerService(action);
+      }
+      await this.initProfiler(this.profilerService, filePath);
+    }
   }
 
   private async loadTwoProfilerData(
@@ -220,10 +223,59 @@ export class ProfilerViewer {
       handleErrors(["Failed to Compare ProPeek Profiler"]);
     }
   }
-  private async toggleProfilerData(): Promise<void> {
+  private async toggleProfilerData(reloadCurrentState = false): Promise<void> {
+    if (reloadCurrentState) {
+      if (
+        this.lastViewedProfiler === "alternate" &&
+        this.action2 &&
+        this.filePath2 &&
+        this.profilerService &&
+        this.profilerService.getComparedData()
+      ) {
+        await this.initProfiler(
+          new ProfilerService(this.action2),
+          this.filePath2
+        );
+
+        const dataString = this.profilerService.getComparedData()!;
+        console.log("For toggling data cache", dataString);
+
+        this.panel?.webview.postMessage({
+          data: dataString,
+          type: "Compare Data",
+          fileName: path.basename(this.action),
+          fileName2: path.basename(this.action2),
+        });
+      } else {
+        await this.initProfiler(
+          new ProfilerService(this.action),
+          this.filePath
+        );
+        if (
+          this.profilerService &&
+          this.profilerService.getComparedData() &&
+          this.action2 &&
+          this.filePath2
+        ) {
+          const dataString = this.profilerService.getComparedData()!;
+          console.log("For toggling data cache", dataString);
+
+          this.panel?.webview.postMessage({
+            data: dataString,
+            type: "Compare Data",
+            fileName: path.basename(this.action),
+            fileName2: path.basename(this.action2),
+          });
+        }
+      }
+      return;
+    }
+
     if (!this.isAlternate) {
       try {
-        await this.reloadProfilerData(this.action, this.filePath);
+        this.parsedData = undefined;
+        this.profilerService = new ProfilerService(this.action);
+        await this.initProfiler(this.profilerService, this.filePath);
 
         if (this.action2 && this.filePath2) {
           await this.loadTwoProfilerData(
@@ -239,7 +291,9 @@ export class ProfilerViewer {
     } else {
       try {
         if (this.action2 && this.filePath2) {
-          await this.reloadProfilerData(this.action2, this.filePath2);
+          this.parsedData = undefined;
+          this.profilerService = new ProfilerService(this.action2);
+          await this.initProfiler(this.profilerService, this.filePath2);
           await this.loadTwoProfilerData(
             this.action2,
             this.filePath2,
@@ -253,6 +307,7 @@ export class ProfilerViewer {
     }
 
     this.isAlternate = !this.isAlternate;
+    this.lastViewedProfiler = this.isAlternate ? "alternate" : "main";
   }
 
   private async initProfiler(
@@ -261,10 +316,18 @@ export class ProfilerViewer {
     showStartTime = false
   ): Promise<void> {
     try {
-      const dataString = await profilerService.parse(filePath, showStartTime);
-
-      handleErrors(profilerService.getErrors());
-      this.panel?.webview.postMessage(dataString);
+      if (this.parsedData) {
+        this.panel?.webview.postMessage(this.parsedData);
+        console.log("Using Cached Data");
+        console.log(this.parsedData);
+      } else {
+        const dataString = await profilerService.parse(filePath, showStartTime);
+        this.parsedData = dataString;
+        handleErrors(profilerService.getErrors());
+        this.panel?.webview.postMessage(this.parsedData);
+        console.log("Data Have Been Cached");
+        console.log(this.parsedData);
+      }
     } catch (error) {
       handleErrors(["Failed to initialize ProPeek Profiler"]);
     }

@@ -19,12 +19,7 @@ interface FilterHeaderProps {
 
 export interface CompareDetailsTableProps
   extends DataGridProps<ComparedModule>,
-    Omit<FilterHeaderProps, "onFilterChange"> {
-  sumTotalTime?: {
-    firstTotalTime: number;
-    secondTotalTime: number;
-  };
-}
+    Omit<FilterHeaderProps, "onFilterChange"> {}
 
 const FilterHeader = React.memo<FilterHeaderProps>(
   ({ onFilterChange, searchValue, setSearchValue }) => {
@@ -73,7 +68,6 @@ const FilterHeader = React.memo<FilterHeaderProps>(
 );
 
 const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
-  sumTotalTime,
   searchValue,
   setSearchValue,
   ...otherProps
@@ -153,23 +147,6 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
         columns={filteredColumns}
         rows={rows}
       />
-      {sumTotalTime && (
-        <div>
-          <div className="total-time">
-            Total Time: {sumTotalTime.firstTotalTime.toFixed(6)}s
-          </div>
-          <div className="total-time">
-            Total Time: {sumTotalTime.secondTotalTime.toFixed(6)}s
-          </div>
-          <div className="total-time">
-            Difference:
-            {(
-              sumTotalTime.firstTotalTime - sumTotalTime.secondTotalTime
-            ).toFixed(6)}
-            s
-          </div>
-        </div>
-      )}
     </Box>
   );
 };

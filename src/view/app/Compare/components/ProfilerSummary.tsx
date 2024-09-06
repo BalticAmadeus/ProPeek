@@ -79,7 +79,8 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
             >
               {isPercentageView
                 ? `${(
-                    (sumTotalTime.secondTotalTime /
+                    ((sumTotalTime.secondTotalTime -
+                      sumTotalTime.firstTotalTime) /
                       sumTotalTime.firstTotalTime) *
                     100
                   ).toFixed(2)}%`
