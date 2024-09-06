@@ -345,25 +345,19 @@ export class ProfilerViewer {
   ): Promise<void> {
     try {
       let parsedData: PresentationData;
-
-      if (this.parsedDataCache.has(filePath)) {
-        console.time("fileParsing2");
-        console.log(`Using cached data for ${filePath}`);
-        parsedData = this.parsedDataCache.get(filePath)!;
-        console.timeEnd("fileParsing2");
+      const cacheKey = `${filePath}_startTime_${showStartTime}`;
+      console.log(cacheKey);
+      if (this.parsedDataCache.has(cacheKey)) {
+        parsedData = this.parsedDataCache.get(cacheKey)!;
       } else {
-        console.time("fileParsing");
         parsedData = await profilerService.parse(filePath, showStartTime);
-        console.timeEnd("fileParsing");
-        this.parsedDataCache.set(filePath, parsedData);
+        this.parsedDataCache.set(cacheKey, parsedData);
       }
       handleErrors(profilerService.getErrors());
       await this.panel?.webview.postMessage({
         data: parsedData,
         type: "Presentation Data",
       });
-      console.log("Data Have Been Cached");
-      console.log(parsedData);
     } catch (error) {
       handleErrors(["Failed to initialize ProPeek Profiler"]);
     }
