@@ -198,7 +198,10 @@ export class ProfilerViewer {
     try {
       let firstProfilerData: PresentationData;
       let secondProfilerData: PresentationData;
-
+      const cacheKey = `${filePath}_startTime_${showStartTime}`;
+      const cacheKey2 = `${filePath2}_startTime_${showStartTime}`;
+      console.log(cacheKey);
+      console.log(cacheKey2);
       this.profilerService = new ProfilerService(action);
       const profilerService2 = new ProfilerService(action2);
 
