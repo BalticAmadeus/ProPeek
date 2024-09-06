@@ -28,7 +28,6 @@ export class ProfilerViewer {
   private readonly configuration = vscode.workspace.getConfiguration("");
   private readonly extensionPath: string;
   private previousViewColumn: vscode.ViewColumn | undefined;
-  private profilerServiceCache: Map<string, ProfilerService> = new Map();
   private profilerService?: ProfilerService;
   private parsedData?: PresentationData;
   private lastViewedProfiler: "main" | "alternate" = "main";
@@ -85,8 +84,6 @@ export class ProfilerViewer {
       this.toggleProfilerData();
     } else {
       this.profilerService = new ProfilerService(action);
-
-      this.profilerServiceCache.set(action, this.profilerService);
 
       this.initProfiler(this.profilerService, filePath);
     }
@@ -273,8 +270,10 @@ export class ProfilerViewer {
 
     if (!this.isAlternate) {
       try {
+
         this.parsedData = undefined;
         this.profilerService = new ProfilerService(this.action);
+
         await this.initProfiler(this.profilerService, this.filePath);
 
         if (this.action2 && this.filePath2) {
@@ -285,21 +284,28 @@ export class ProfilerViewer {
             this.filePath2
           );
         }
+
+        await this.reloadProfilerData(this.action, this.filePath);
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
       }
     } else {
       try {
         if (this.action2 && this.filePath2) {
+
           this.parsedData = undefined;
           this.profilerService = new ProfilerService(this.action2);
+
           await this.initProfiler(this.profilerService, this.filePath2);
+
           await this.loadTwoProfilerData(
             this.action2,
             this.filePath2,
             this.action,
             this.filePath
           );
+
+          await this.reloadProfilerData(this.action2, this.filePath2);
         }
       } catch (error) {
         handleErrors(["Failed to reload ProPeek Profiler"]);
