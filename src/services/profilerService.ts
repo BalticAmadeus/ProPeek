@@ -8,6 +8,9 @@ import { compareData } from "./parser/compareData";
 
 export class ProfilerService {
   private profilerTitle: string = "";
+  private parsedDataCache: PresentationData | null = null;
+  private firstComparedData: ComparedData | null = null;
+  private secondComparedData: ComparedData | null = null;
 
   constructor(title: string) {
     this.profilerTitle = title;
@@ -17,6 +20,11 @@ export class ProfilerService {
     fileName: string,
     showStartTime: boolean
   ): Promise<PresentationData> {
+    if (this.parsedDataCache) {
+      console.log("Using Cached Data Profile Service");
+      return this.parsedDataCache;  
+    }
+
     ParserLogger.resetErrors();
 
     const readData = readFile(fileName);
@@ -26,9 +34,14 @@ export class ProfilerService {
       showStartTime,
       this.profilerTitle
     );
+
+    this.parsedDataCache = transformedData;
+    
     return transformedData;
   }
-
+  public getCachedData(): PresentationData | null {
+    return this.parsedDataCache;
+  }
   public async compare(
     presentationData: PresentationData,
     secondPresentationData: PresentationData
@@ -37,7 +50,15 @@ export class ProfilerService {
       presentationData,
       secondPresentationData
     );
+    this.firstComparedData = comparedData;
+    console.log("Compared Data Cached");
+    console.log(this.firstComparedData);    
+
     return comparedData;
+  }
+
+  public getComparedData(): ComparedData | null{
+    return this.firstComparedData;
   }
 
   public getErrors(): string[] {

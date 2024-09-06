@@ -133,6 +133,7 @@ const ProfilerForm: React.FC = () => {
 
     if (tab === ProfilerTab.Compare && !comparedData) {
       setIsLoadingCompare(true);
+
       const userWantsToCompare: any = await vscode.postMessage({
         type: "requestCompareFiles",
         presentationData,
