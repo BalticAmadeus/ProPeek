@@ -10,13 +10,7 @@ import * as columnDefinition from "./column.json";
 import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
-import {
-  Box,
-  Button,
-  FormControlLabel,
-  Switch,
-  Typography,
-} from "@mui/material";
+import { Box, FormControlLabel, Switch } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
@@ -198,17 +192,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     if (!row) {
       return;
     }
-  };
-
-  const getModuleID = (moduleID: number) => {
-    const MODULE_ID_MULT = 100000;
-    const firstModuleId = Math.floor(moduleID / MODULE_ID_MULT);
-    const secondtModuleId = moduleID % MODULE_ID_MULT;
-
-    return {
-      firstModuleId,
-      secondtModuleId,
-    };
   };
 
   const getSortedRows = (
