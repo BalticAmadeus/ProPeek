@@ -12,6 +12,7 @@ import {
 } from "../services/parser/presentation/common";
 import { Constants } from "../common/Constants";
 import { OpenFileTypeEnum } from "../common/openFile";
+import { time } from "console";
 
 interface Message {
   showStartTime: any;
@@ -253,8 +254,8 @@ export class ProfilerViewer {
         this.profilerService.getComparedData()
       ) {
         await this.initProfiler(
-          new ProfilerService(this.action2),
-          this.filePath2
+          new ProfilerService(this.action),
+          this.filePath
         );
 
         const dataString = this.profilerService.getComparedData()!;
@@ -267,16 +268,16 @@ export class ProfilerViewer {
           fileName2: path.basename(this.action2),
         });
       } else {
-        await this.initProfiler(
-          new ProfilerService(this.action),
-          this.filePath
-        );
         if (
           this.profilerService &&
           this.profilerService.getComparedData() &&
           this.action2 &&
           this.filePath2
         ) {
+          await this.initProfiler(
+            new ProfilerService(this.action2),
+            this.filePath2
+          );
           const dataString = this.profilerService.getComparedData()!;
           console.log("For toggling data cache", dataString);
 
