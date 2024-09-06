@@ -51,8 +51,12 @@ const ProfilerForm: React.FC = () => {
         setActiveTab(ProfilerTab.Compare);
         setFileName(event.data.fileName);
         setFileName2(event.data.fileName2);
-      } else {
-        setPresentationData(event.data as PresentationData);
+      }
+      if (event.data.type === "Presentation Data") {
+        setPresentationData(event.data.data as PresentationData);
+      }
+      if (event.data.type === "setLoading") {
+        setIsLoadingCompare(event.data.isLoading);
       }
     });
   });

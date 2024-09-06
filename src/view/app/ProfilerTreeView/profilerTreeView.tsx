@@ -82,8 +82,10 @@ function ProfilerTreeView({
 
   React.useEffect(() => {
     window.addEventListener("message", (event) => {
-      const message = event.data as PresentationData;
-      setCallTree(message.callTree);
+      if (event.data.type === "Presentation Data") {
+        const message = event.data.data as PresentationData;
+        setCallTree(message.callTree);
+      }
     });
   }, []);
 
@@ -176,7 +178,6 @@ const TreeView: React.FC<{
   handleOnClick: (row: TreeRow) => void;
 }> = React.memo(
   ({ rows, toggleExpansion, handleNodeSelection, handleOnClick }) => {
-
     const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
 
     const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
@@ -225,7 +226,7 @@ const TreeView: React.FC<{
         },
       },
     ];
-    
+
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.ctrlKey) {

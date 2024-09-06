@@ -30,6 +30,7 @@ export class ProfilerViewer {
   private previousViewColumn: vscode.ViewColumn | undefined;
   private profilerService?: ProfilerService;
   private parsedData?: PresentationData;
+  private parsedDataCache: Map<String, PresentationData> = new Map();
   private lastViewedProfiler: "main" | "alternate" = "main";
 
   constructor(
@@ -124,6 +125,7 @@ export class ProfilerViewer {
             selectedFiles.length !== 1 ||
             selectedFiles === undefined
           ) {
+            this.setLoading(false);
             vscode.window.showErrorMessage(
               `Please select profiler file to compare with your ${path.basename(
                 this.action
@@ -193,17 +195,36 @@ export class ProfilerViewer {
     showStartTime = false
   ): Promise<void> {
     try {
-      this.profilerService = new ProfilerService(action);
-      const firstProfilerData = await this.profilerService.parse(
-        filePath,
-        showStartTime
-      );
+      let firstProfilerData: PresentationData;
+      let secondProfilerData: PresentationData;
 
+      this.profilerService = new ProfilerService(action);
       const profilerService2 = new ProfilerService(action2);
-      const secondProfilerData = await profilerService2.parse(
-        filePath2,
-        showStartTime
-      );
+
+      console.time("Parse1");
+      if (this.parsedDataCache.has(filePath)) {
+        console.log("cached");
+        firstProfilerData = this.parsedDataCache.get(filePath)!;
+      } else {
+        firstProfilerData = await this.profilerService.parse(
+          filePath,
+          showStartTime
+        );
+        this.parsedDataCache.set(filePath, firstProfilerData);
+      }
+      console.timeEnd("Parse1");
+      console.time("Parse2");
+      if (this.parsedDataCache.has(filePath2)) {
+        secondProfilerData = this.parsedDataCache.get(filePath2)!;
+        console.log("cached2");
+      } else {
+        secondProfilerData = await profilerService2.parse(
+          filePath2,
+          showStartTime
+        );
+        this.parsedDataCache.set(filePath2, secondProfilerData);
+      }
+      console.timeEnd("Parse2");
 
       const dataString = await this.profilerService.compare(
         firstProfilerData,
@@ -220,7 +241,9 @@ export class ProfilerViewer {
       handleErrors(["Failed to Compare ProPeek Profiler"]);
     }
   }
+
   private async toggleProfilerData(reloadCurrentState = false): Promise<void> {
+    this.setLoading(true);
     if (reloadCurrentState) {
       if (
         this.lastViewedProfiler === "alternate" &&
@@ -265,6 +288,7 @@ export class ProfilerViewer {
           });
         }
       }
+      this.setLoading(false);
       return;
     }
 
@@ -309,31 +333,48 @@ export class ProfilerViewer {
         handleErrors(["Failed to reload ProPeek Profiler"]);
       }
     }
-
+    this.setLoading(false);
     this.isAlternate = !this.isAlternate;
     this.lastViewedProfiler = this.isAlternate ? "alternate" : "main";
   }
+
   private async initProfiler(
     profilerService: ProfilerService,
     filePath: string,
     showStartTime = false
   ): Promise<void> {
     try {
-      if (this.parsedData) {
-        this.panel?.webview.postMessage(this.parsedData);
-        console.log("Using Cached Data");
-        console.log(this.parsedData);
+      let parsedData: PresentationData;
+
+      if (this.parsedDataCache.has(filePath)) {
+        console.time("fileParsing2");
+        console.log(`Using cached data for ${filePath}`);
+        parsedData = this.parsedDataCache.get(filePath)!;
+        console.timeEnd("fileParsing2");
       } else {
-        const dataString = await profilerService.parse(filePath, showStartTime);
-        this.parsedData = dataString;
-        handleErrors(profilerService.getErrors());
-        this.panel?.webview.postMessage(this.parsedData);
-        console.log("Data Have Been Cached");
-        console.log(this.parsedData);
+        console.time("fileParsing");
+        parsedData = await profilerService.parse(filePath, showStartTime);
+        console.timeEnd("fileParsing");
+        this.parsedDataCache.set(filePath, parsedData);
       }
+      handleErrors(profilerService.getErrors());
+      await this.panel?.webview.postMessage({
+        data: parsedData,
+        type: "Presentation Data",
+      });
+      console.log("Data Have Been Cached");
+      console.log(parsedData);
     } catch (error) {
       handleErrors(["Failed to initialize ProPeek Profiler"]);
     }
+  }
+
+  private async setLoading(isLoading: boolean): Promise<void> {
+    console.log("why is it breaking", isLoading);
+    this.panel?.webview.postMessage({
+      type: "setLoading",
+      isLoading,
+    });
   }
 
   private getWebviewContent(): string {
