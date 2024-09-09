@@ -166,11 +166,9 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   const settingsContext = useFileTypeSettingsContext();
 
   const sumTotalTime =
-    presentationData.callTree[0]?.cumulativeTime ??
-    presentationData.moduleDetails.reduce(
-      (acc, module) => acc + module.totalTime,
-      0
-    );
+    presentationData.moduleDetails
+      .reduce((acc, module) => acc + module.totalTime, 0)
+      .toFixed(6);
 
   const filterTables = (row: ModuleDetails) => {
     if (!row) {

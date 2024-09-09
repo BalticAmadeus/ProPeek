@@ -63,14 +63,12 @@ const ProfilerForm: React.FC = () => {
 
   React.useEffect(() => {
     if (presentationData !== defaultPresentationData) {
-      console.log("Presentation Data: ", presentationData);
       setIsLoading(false);
     }
   }, [presentationData]);
 
   React.useEffect(() => {
     if (comparedData !== null) {
-      console.log("Compared Data: ", comparedData);
       setIsLoadingCompare(false);
     }
   }, [comparedData]);
