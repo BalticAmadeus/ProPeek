@@ -285,7 +285,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
-            // sumTotalTime={sumTotalTime}
           />
         ) : null}
       </div>

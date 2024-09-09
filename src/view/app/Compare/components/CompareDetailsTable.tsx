@@ -103,6 +103,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
         return {
           ...col,
           headerCellClass: "filter-cell",
+          minWidth: 350,
           headerRenderer: (props: HeaderRendererProps<ComparedModule>) => (
             <>
               <Box>{HeaderRenderer<ComparedModule, unknown>({ ...props })}</Box>
@@ -118,6 +119,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
       if (col.key === "pcntOfSession") {
         return {
           ...col,
+          minWidth: 200,
           formatter: (props: FormatterProps<ComparedModule>) => {
             const percentage = props.row[col.key];
             if (props.row["status"] === "added")

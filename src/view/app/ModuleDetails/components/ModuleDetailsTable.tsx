@@ -107,6 +107,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
         return {
           ...col,
           headerCellClass: "filter-cell",
+          minWidth: 350,
           headerRenderer: (props: HeaderRendererProps<ModuleDetails>) => (
             <>
               <Box>{HeaderRenderer<ModuleDetails, unknown>({ ...props })}</Box>
@@ -122,6 +123,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
       if (col.key === "pcntOfSession") {
         return {
           ...col,
+          minWidth: 200,
           formatter: (props: FormatterProps<ModuleDetails>) => {
             const percentage = props.row[col.key];
             return <PercentageFill value={percentage} />;
