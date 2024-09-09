@@ -103,6 +103,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
   ): Array<Column<ModuleDetails>> => {
     return columns.map((col) => {
       const hasFilter = col.key === "moduleName";
+
       if (hasFilter) {
         return {
           ...col,
@@ -118,8 +119,36 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
               />
             </>
           ),
+          formatter: ({ row }: FormatterProps<ModuleDetails>) => {
+            const cellRef = React.useRef<HTMLDivElement>(null);
+            const [isOverflow, setIsOverflow] = React.useState(false);
+
+            React.useEffect(() => {
+              if (cellRef.current) {
+                const isOverflowing =
+                  cellRef.current.scrollWidth > cellRef.current.clientWidth;
+                setIsOverflow(isOverflowing);
+              }
+            }, [row[col.key]]);
+
+            return (
+              <div
+                ref={cellRef}
+                style={{
+                  cursor: isOverflow ? "pointer" : "default",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={isOverflow ? row[col.key] : undefined}
+              >
+                {row[col.key]}
+              </div>
+            );
+          },
         };
       }
+
       if (col.key === "pcntOfSession") {
         return {
           ...col,
@@ -130,6 +159,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
           },
         };
       }
+
       return col;
     });
   };
