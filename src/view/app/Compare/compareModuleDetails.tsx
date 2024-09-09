@@ -100,7 +100,8 @@ const addConditionalFormatting = (
 
     if (
       column.key === "totalTimeChange" ||
-      column.key === "avgTimePerCallChange"
+      column.key === "avgTimePerCallChange" ||
+      column.key === "timesCalledChange"
     ) {
       return {
         ...column,
