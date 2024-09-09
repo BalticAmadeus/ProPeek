@@ -150,7 +150,13 @@ export class ProfilerViewer {
           }
           break;
         case "GRAPH_TYPE_CHANGE":
-          if (this.profilerService) {
+          if (!this.isAlternate && this.filePath2 && this.action2) {
+            await this.initProfiler(
+              new ProfilerService(this.action2),
+              this.filePath2,
+              message.showStartTime
+            );
+          } else if (this.profilerService) {
             await this.initProfiler(
               this.profilerService,
               this.filePath,
@@ -200,35 +206,29 @@ export class ProfilerViewer {
       let secondProfilerData: PresentationData;
       const cacheKey = `${filePath}_startTime_${showStartTime}`;
       const cacheKey2 = `${filePath2}_startTime_${showStartTime}`;
-      console.log(cacheKey);
-      console.log(cacheKey2);
+
       this.profilerService = new ProfilerService(action);
       const profilerService2 = new ProfilerService(action2);
 
-      console.time("Parse1");
-      if (this.parsedDataCache.has(filePath)) {
-        console.log("cached");
-        firstProfilerData = this.parsedDataCache.get(filePath)!;
+      if (this.parsedDataCache.has(cacheKey)) {
+        firstProfilerData = this.parsedDataCache.get(cacheKey)!;
       } else {
         firstProfilerData = await this.profilerService.parse(
           filePath,
           showStartTime
         );
-        this.parsedDataCache.set(filePath, firstProfilerData);
+        this.parsedDataCache.set(cacheKey, firstProfilerData);
       }
-      console.timeEnd("Parse1");
-      console.time("Parse2");
-      if (this.parsedDataCache.has(filePath2)) {
-        secondProfilerData = this.parsedDataCache.get(filePath2)!;
-        console.log("cached2");
+
+      if (this.parsedDataCache.has(cacheKey2)) {
+        secondProfilerData = this.parsedDataCache.get(cacheKey2)!;
       } else {
         secondProfilerData = await profilerService2.parse(
           filePath2,
           showStartTime
         );
-        this.parsedDataCache.set(filePath2, secondProfilerData);
+        this.parsedDataCache.set(cacheKey2, secondProfilerData);
       }
-      console.timeEnd("Parse2");
 
       const dataString = await this.profilerService.compare(
         firstProfilerData,
@@ -241,6 +241,7 @@ export class ProfilerViewer {
         fileName: path.basename(action),
         fileName2: path.basename(action2),
       });
+
     } catch (error) {
       handleErrors(["Failed to Compare ProPeek Profiler"]);
     }
@@ -262,7 +263,6 @@ export class ProfilerViewer {
         );
 
         const dataString = this.profilerService.getComparedData()!;
-        console.log("For toggling data cache", dataString);
 
         this.panel?.webview.postMessage({
           data: dataString,
@@ -282,7 +282,6 @@ export class ProfilerViewer {
             this.filePath2
           );
           const dataString = this.profilerService.getComparedData()!;
-          console.log("For toggling data cache", dataString);
 
           this.panel?.webview.postMessage({
             data: dataString,
@@ -368,7 +367,6 @@ export class ProfilerViewer {
   }
 
   private async setLoading(isLoading: boolean): Promise<void> {
-    console.log("why is it breaking", isLoading);
     this.panel?.webview.postMessage({
       type: "setLoading",
       isLoading,

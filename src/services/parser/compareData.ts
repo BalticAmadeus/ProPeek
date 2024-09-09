@@ -78,8 +78,11 @@ const createAddedModule = (module: ModuleDetails): ComparedModule => {
   return {
     ...module,
     moduleID: module.moduleID,
+    timesCalled: 0,
     timesCalledChange: module.timesCalled,
+    avgTimePerCall: 0,
     avgTimePerCallChange: module.avgTimePerCall || 0,
+    totalTime: 0,
     totalTimeChange: module.totalTime,
     status: "added",
   };

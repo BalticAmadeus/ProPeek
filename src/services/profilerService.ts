@@ -40,8 +40,6 @@ export class ProfilerService {
       secondPresentationData
     );
     this.comparedData = comparedData;
-    console.log("Compared Data Cached");
-    console.log(this.comparedData);
 
     return comparedData;
   }
