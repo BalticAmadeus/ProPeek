@@ -229,6 +229,44 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
               />
             </>
           ),
+          formatter: ({ row }: FormatterProps<ComparedModule>) => {
+            const [isOverflow, setIsOverflow] = React.useState(false);
+            const [isHovered, setIsHovered] = React.useState(false);
+            const cellRef = React.useRef<HTMLDivElement>(null);
+  
+            const checkOverflow = () => {
+              if (cellRef.current) {
+                const isOverflowing =
+                  cellRef.current.scrollWidth > cellRef.current.clientWidth;
+                setIsOverflow(isOverflowing);
+              }
+            };
+  
+            React.useEffect(() => {
+              if (isHovered) {
+                checkOverflow();
+              } else {
+                setIsOverflow(false);
+              }
+            }, [isHovered, row[col.key]]);
+  
+            return (
+              <div
+                ref={cellRef}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  cursor: isOverflow ? "pointer" : "default",
+                }}
+                title={isHovered && isOverflow ? row[col.key] : undefined}
+              >
+                {row[col.key]}
+              </div>
+            );
+          },
         };
       }
 
