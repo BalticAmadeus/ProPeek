@@ -9,7 +9,7 @@ import { ModuleDetails } from "../../../../common/PresentationData";
 import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
-import { Box, Input, TextField, Typography } from "@mui/material";
+import { Box, Input, Typography } from "@mui/material";
 import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
 import PercentageFill from "../../Components/PercentageBar/PercentageFill";
 
@@ -145,6 +145,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
+                  textDecoration: row.hasLink ? "underline" : "",
                 }}
                 title={isOverflow ? row[col.key] : undefined}
               >

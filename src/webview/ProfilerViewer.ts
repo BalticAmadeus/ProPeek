@@ -348,7 +348,6 @@ export class ProfilerViewer {
     try {
       let parsedData: PresentationData;
       const cacheKey = `${filePath}_startTime_${showStartTime}`;
-      console.log(cacheKey);
       if (this.parsedDataCache.has(cacheKey)) {
         parsedData = this.parsedDataCache.get(cacheKey)!;
       } else {
