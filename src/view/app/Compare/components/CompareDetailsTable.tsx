@@ -8,7 +8,20 @@ import DataGrid, {
 import { ComparedModule } from "../../../../common/PresentationData";
 import { useState } from "react";
 import * as React from "react";
-import { Box } from "@mui/material";
+import {
+  Box,
+  FormControl,
+  Input,
+  InputLabel,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Typography,
+} from "@mui/material";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import PercentageFill from "../../Components/PercentageBar/PercentageFill";
 
 interface FilterHeaderProps {
@@ -21,8 +34,19 @@ export interface CompareDetailsTableProps
   extends DataGridProps<ComparedModule>,
     Omit<FilterHeaderProps, "onFilterChange"> {}
 
-const FilterHeader = React.memo<FilterHeaderProps>(
-  ({ onFilterChange, searchValue, setSearchValue }) => {
+const FilterHeader = React.memo<
+  FilterHeaderProps & {
+    dropdownValue: string;
+    onDropdownChange: (event: SelectChangeEvent<string>) => void;
+  }
+>(
+  ({
+    onFilterChange,
+    searchValue,
+    setSearchValue,
+    dropdownValue,
+    onDropdownChange,
+  }) => {
     const [value, setValue] = useState<string>(searchValue ?? "");
 
     React.useEffect(() => {
@@ -43,6 +67,29 @@ const FilterHeader = React.memo<FilterHeaderProps>(
       [onFilterChange]
     );
 
+    const renderValue = (selected: string) => {
+      switch (selected) {
+        case "added":
+          return (
+            <ListItemIcon>
+              <AddCircleIcon
+                style={{ color: "green", fontSize: 16, marginTop: "0.5rem" }}
+              />
+            </ListItemIcon>
+          );
+        case "removed":
+          return (
+            <ListItemIcon>
+              <RemoveCircleIcon
+                style={{ color: "red", fontSize: 16, marginTop: "0.5rem" }}
+              />
+            </ListItemIcon>
+          );
+        default:
+          return <ListItemText primary="All" />;
+      }
+    };
+
     const handleOnBlur = () => {
       if (setSearchValue) {
         setSearchValue(value);
@@ -51,17 +98,68 @@ const FilterHeader = React.memo<FilterHeaderProps>(
 
     return (
       <Box>
-        <input
-          className="textInput"
-          style={{
-            inlineSize: "100%",
-            fontSize: "14px",
-            height: "24px",
-          }}
-          value={value}
-          onChange={handleChange}
-          onBlur={handleOnBlur}
-        />
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Input
+            className="textInput"
+            style={{
+              flexGrow: 1,
+              inlineSize: "100%",
+              fontSize: "14px",
+              height: "30px",
+              color: "var(--vscode-input-foreground)",
+              border: "1px solid var(--vscode-input-border)",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              backgroundColor: "var(--vscode-input-background)",
+            }}
+            value={value}
+            onChange={handleChange}
+            onBlur={handleOnBlur}
+          />
+          <FormControl
+            variant="outlined"
+            size="small"
+            sx={{
+              minWidth: 120,
+              height: 30,
+              borderRadius: "4px",
+              color: "var(--vscode-input-foreground)",
+              ml: 1,
+              backgroundColor: "var(--vscode-input-background)",
+            }}
+          >
+            <Select
+              value={dropdownValue}
+              onChange={onDropdownChange}
+              renderValue={renderValue}
+              sx={{ height: "100%", color: "var(--rdg-checkbox-focus-color)" }}
+            >
+              <MenuItem value="all">
+                <ListItemText primary="All" />
+              </MenuItem>
+              <MenuItem value="added">
+                <ListItemIcon>
+                  <AddCircleIcon
+                    style={{
+                      color: "green",
+                      fontSize: 16,
+                      marginTop: "0.5rem",
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText primary="Added" />
+              </MenuItem>
+              <MenuItem value="removed">
+                <ListItemIcon>
+                  <RemoveCircleIcon
+                    style={{ color: "red", fontSize: 16, marginTop: "0.5rem" }}
+                  />
+                </ListItemIcon>
+                <ListItemText primary="Removed" />
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </div>
       </Box>
     );
   }
@@ -74,16 +172,24 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
 }) => {
   const [rows, setRows] = useState(otherProps.rows);
   const [filters, setFilters] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   React.useEffect(() => {
-    applyFilter(filters);
-  }, [otherProps.rows]);
+    applyFilter(filters, statusFilter);
+  }, [otherProps.rows, filters, statusFilter]);
 
-  const applyFilter = (filter: string) => {
+  const applyFilter = (filter: string, status: string) => {
     const filteredRows = otherProps.rows.filter((row) => {
       const rowValue = row.moduleName.toString().toLowerCase();
       const filterValue = filter.toLowerCase();
-      return rowValue.includes(filterValue);
+      const matchesName = rowValue.includes(filterValue);
+
+      const matchesStatus =
+        status === "all" ||
+        (status === "added" && row.status === "added") ||
+        (status === "removed" && row.status === "removed");
+
+      return matchesName && matchesStatus;
     });
 
     setRows(filteredRows);
@@ -91,7 +197,13 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
 
   const handleFilterChange = (value: string) => {
     setFilters(value);
-    applyFilter(value);
+    applyFilter(value, statusFilter);
+  };
+
+  const handleDropdownChange = (event: SelectChangeEvent<string>) => {
+    const selectedStatus = event.target.value as string;
+    setStatusFilter(selectedStatus);
+    applyFilter(filters, selectedStatus);
   };
 
   const addFilterRendererToColumns = (
@@ -99,7 +211,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
   ): Array<Column<ComparedModule>> => {
     return columns.map((col) => {
       const hasFilter = col.key === "moduleName";
-  
+
       if (hasFilter) {
         return {
           ...col,
@@ -112,41 +224,21 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
                 onFilterChange={handleFilterChange}
                 searchValue={searchValue}
                 setSearchValue={setSearchValue}
+                dropdownValue={statusFilter}
+                onDropdownChange={handleDropdownChange}
               />
             </>
           ),
-          formatter: ({ row }: FormatterProps<ComparedModule>) => {
-            const cellRef = React.useRef<HTMLDivElement>(null);
-            const [isOverflow, setIsOverflow] = React.useState(false);
-  
-            React.useEffect(() => {
-
-              if (cellRef.current) {
-                const isOverflowing = cellRef.current.scrollWidth > cellRef.current.clientWidth;
-                setIsOverflow(isOverflowing);
-              }
-            }, [row[col.key]]);
-  
-            return (
-              <div
-                ref={cellRef}
-                style={{ cursor: isOverflow ? "pointer" : "default", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-                title={isOverflow ? row[col.key] : undefined}
-              >
-                {row[col.key]}
-              </div>
-            );
-          },
         };
       }
-  
+
       if (col.key === "pcntOfSession") {
         return {
           ...col,
           minWidth: 200,
           formatter: (props: FormatterProps<ComparedModule>) => {
             const percentage = props.row[col.key];
-            
+
             if (props.row["status"] === "added") {
               return <PercentageFill value={0} />;
             }
@@ -154,17 +246,17 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
           },
         };
       }
-  
+
       return col;
     });
   };
 
   const filteredColumns = React.useMemo(() => {
     return addFilterRendererToColumns(otherProps.columns);
-  }, [otherProps.columns, searchValue]);
+  }, [otherProps.columns, searchValue, statusFilter]);
 
   return (
-    <Box>
+    <Box sx={{ position: "relative" }}>
       <DataGrid
         defaultColumnOptions={{
           sortable: true,
@@ -174,8 +266,33 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
         rowKeyGetter={(row) => row.moduleID}
         {...otherProps}
         columns={filteredColumns}
-        rows={rows}
+        rows={rows.length > 0 ? rows : []}
       />
+      {rows.length === 0 && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 70,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "var(--rdg-background)",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              textAlign: "center",
+              color: "var(--rdg-focus--color)",
+            }}
+          >
+            No results found
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

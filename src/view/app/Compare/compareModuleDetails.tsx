@@ -59,10 +59,13 @@ const addConditionalFormatting = (
         />
       );
     }
-
+  
     return (
-      <Box alignSelf="center">
-        {icon} {row[key]}
+      <Box className="module-name-container">
+        {icon}
+        <span className="module-name" title={row[key]}>
+          {row[key]}
+        </span>
       </Box>
     );
   };
