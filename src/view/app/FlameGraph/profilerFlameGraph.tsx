@@ -30,6 +30,7 @@ interface IConfigProps {
   handleNodeSelection: any;
   vscode: any;
   hasTracingData: boolean;
+  showStartTime: boolean;
 }
 
 export enum SearchTypes {
@@ -38,13 +39,12 @@ export enum SearchTypes {
   Search,
 }
 
-let showStartTime = false;
-
 function ProfilerFlameGraph({
   presentationData,
   handleNodeSelection,
   vscode,
   hasTracingData,
+  showStartTime,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
@@ -81,10 +81,10 @@ function ProfilerFlameGraph({
       if (event.data.type === "Presentation Data") {
         const message = event.data.data as PresentationData;
         setCallTree(message.callTree);
+        showStartTime = event.data.showStartTime;
         setIsLoading(false);
       }
     };
-
     window.addEventListener("message", handleMessage);
 
     return () => {
