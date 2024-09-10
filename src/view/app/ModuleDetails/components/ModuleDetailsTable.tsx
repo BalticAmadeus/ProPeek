@@ -9,7 +9,7 @@ import { ModuleDetails } from "../../../../common/PresentationData";
 import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
-import { Box } from "@mui/material";
+import { Box, Input, TextField, Typography } from "@mui/material";
 import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
 import PercentageFill from "../../Components/PercentageBar/PercentageFill";
 
@@ -34,7 +34,7 @@ const FilterHeader = React.memo<FilterHeaderProps>(
     }, [searchValue]);
 
     const handleChange = React.useCallback(
-      (event) => {
+      (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value;
         setValue(newValue);
         if (onFilterChange) {
@@ -52,12 +52,18 @@ const FilterHeader = React.memo<FilterHeaderProps>(
 
     return (
       <Box>
-        <input
+        <Input
           className="textInput"
           style={{
+            flexGrow: 1,
             inlineSize: "100%",
             fontSize: "14px",
-            height: "24px",
+            height: "30px",
+            color: "var(--vscode-input-foreground)",
+            border: "1px solid var(--vscode-input-border)",
+            borderRadius: "4px",
+            padding: "4px 8px",
+            backgroundColor: "var(--vscode-input-background)",
           }}
           value={value}
           onChange={handleChange}
@@ -182,7 +188,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
   };
 
   return (
-    <Box>
+    <Box sx={{ position: "relative" }}>
       <DataGrid
         defaultColumnOptions={{
           sortable: true,
@@ -195,6 +201,34 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
         columns={filteredColumns}
         rows={rows}
       />
+
+      {rows.length === 0 && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 70,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "var(--rdg-background)",
+            zIndex: 1,
+            pointerEvents: "none",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              textAlign: "center",
+              color: "var(--rdg-focus--color)",
+            }}
+          >
+            No results found
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
