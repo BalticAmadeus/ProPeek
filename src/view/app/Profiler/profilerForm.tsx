@@ -35,6 +35,7 @@ const ProfilerForm: React.FC = () => {
   const [presentationData, setPresentationData] = useState<PresentationData>(
     defaultPresentationData
   );
+  const [showStartTime, setShowStartTime] = useState<boolean>(false);
   const [comparedData, setComparedData] = useState<ComparedData>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCompare, setIsLoadingCompare] = useState<boolean>(false);
@@ -54,6 +55,7 @@ const ProfilerForm: React.FC = () => {
       }
       if (event.data.type === "Presentation Data") {
         setPresentationData(event.data.data as PresentationData);
+        setShowStartTime(event.data.showStartTime);
       }
       if (event.data.type === "setLoading") {
         setIsLoadingCompare(event.data.isLoading);
@@ -108,6 +110,7 @@ const ProfilerForm: React.FC = () => {
             hasTracingData={presentationData.hasTracingData}
             handleNodeSelection={handleNodeSelection}
             vscode={vscode}
+            showStartTime={showStartTime}
           />
         </FileTypeSettingsContextProvider>
       </div>

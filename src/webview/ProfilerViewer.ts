@@ -241,7 +241,6 @@ export class ProfilerViewer {
         fileName: path.basename(action),
         fileName2: path.basename(action2),
       });
-
     } catch (error) {
       handleErrors(["Failed to Compare ProPeek Profiler"]);
     }
@@ -360,6 +359,7 @@ export class ProfilerViewer {
       await this.panel?.webview.postMessage({
         data: parsedData,
         type: "Presentation Data",
+        showStartTime,
       });
     } catch (error) {
       handleErrors(["Failed to initialize ProPeek Profiler"]);
