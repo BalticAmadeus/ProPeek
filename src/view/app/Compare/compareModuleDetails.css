@@ -24,24 +24,3 @@
     color: red;
     background-color: rgba(255, 0, 0, 0.1);
 }
-
-.module-name-container {
-    display: flex;
-    align-items: center;
-}
-
-.module-name {
-    margin-left: 5px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-}
-
-.module-name:hover {
-    text-decoration: underline;
-    cursor: pointer;
-    z-index: 10;
-    position: relative;
-
-}

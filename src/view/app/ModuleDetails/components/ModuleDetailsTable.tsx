@@ -128,25 +128,39 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
           formatter: ({ row }: FormatterProps<ModuleDetails>) => {
             const cellRef = React.useRef<HTMLDivElement>(null);
             const [isOverflow, setIsOverflow] = React.useState(false);
+            const [isHovered, setIsHovered] = React.useState(false);
 
-            React.useEffect(() => {
+            const checkOverflow = () => {
               if (cellRef.current) {
                 const isOverflowing =
                   cellRef.current.scrollWidth > cellRef.current.clientWidth;
                 setIsOverflow(isOverflowing);
+
+                console.log("isOverflowing", isOverflowing);
               }
-            }, [row[col.key]]);
+            };
+
+            const handleMouseEnter = () => {
+              setIsHovered(true);
+              checkOverflow();
+            };
+
+            const handleMouseLeave = () => {
+              setIsHovered(false);
+              setIsOverflow(false);
+            };
 
             return (
               <div
                 ref={cellRef}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
                 style={{
-                  cursor: isOverflow ? "pointer" : "default",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                 }}
-                title={isOverflow ? row[col.key] : undefined}
+                title={isHovered && isOverflow ? row[col.key] : undefined}
               >
                 {row[col.key]}
               </div>

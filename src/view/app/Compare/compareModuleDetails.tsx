@@ -61,9 +61,9 @@ const addConditionalFormatting = (
     }
   
     return (
-      <Box className="module-name-container">
+      <Box>
         {icon}
-        <span className="module-name" title={row[key]}>
+        <span>
           {row[key]}
         </span>
       </Box>
