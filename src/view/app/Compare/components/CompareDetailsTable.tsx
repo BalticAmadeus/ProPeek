@@ -233,7 +233,36 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
             const [isOverflow, setIsOverflow] = React.useState(false);
             const [isHovered, setIsHovered] = React.useState(false);
             const cellRef = React.useRef<HTMLDivElement>(null);
-  
+            let icon = null;
+
+            if (!row.status) {
+              icon = <span style={{ width: 16, display: "inline-block" }} />;
+            }
+            if (row.status === "added") {
+              icon = (
+                <AddCircleIcon
+                  style={{
+                    color: "green",
+                    fontSize: 16,
+                    position: "relative",
+                    top: 3,
+                  }}
+                />
+              );
+            }
+            if (row.status === "removed") {
+              icon = (
+                <RemoveCircleIcon
+                  style={{
+                    color: "red",
+                    fontSize: 16,
+                    position: "relative",
+                    top: 3,
+                  }}
+                />
+              );
+            }
+
             const checkOverflow = () => {
               if (cellRef.current) {
                 const isOverflowing =
@@ -241,7 +270,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
                 setIsOverflow(isOverflowing);
               }
             };
-  
+
             React.useEffect(() => {
               if (isHovered) {
                 checkOverflow();
@@ -249,7 +278,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
                 setIsOverflow(false);
               }
             }, [isHovered, row[col.key]]);
-  
+
             return (
               <div
                 ref={cellRef}
@@ -263,7 +292,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
                 }}
                 title={isHovered && isOverflow ? row[col.key] : undefined}
               >
-                {row[col.key]}
+                {icon} {row[col.key]}
               </div>
             );
           },

@@ -40,36 +40,6 @@ const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>,
   isPercentageView: boolean
 ): Array<GenericModuleColumn> => {
-  const addModuleChangeFormat = (row: ComparedModule, key: string) => {
-    let icon = null;
-    if (!row.status) {
-      icon = <span style={{ width: 16, display: "inline-block" }} />;
-    }
-    if (row.status === "added") {
-      icon = (
-        <AddCircleIcon
-          style={{ color: "green", fontSize: 16, position: "relative", top: 3 }}
-        />
-      );
-    }
-    if (row.status === "removed") {
-      icon = (
-        <RemoveCircleIcon
-          style={{ color: "red", fontSize: 16, position: "relative", top: 3 }}
-        />
-      );
-    }
-  
-    return (
-      <Box>
-        {icon}
-        <span>
-          {row[key]}
-        </span>
-      </Box>
-    );
-  };
-
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
@@ -93,14 +63,6 @@ const addConditionalFormatting = (
   };
 
   return columns.map((column) => {
-    if (column.key === "moduleName") {
-      return {
-        ...column,
-        formatter: (props: FormatterProps<ComparedModule>) =>
-          addModuleChangeFormat(props.row, column.key),
-      };
-    }
-
     if (
       column.key === "totalTimeChange" ||
       column.key === "avgTimePerCallChange" ||
