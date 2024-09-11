@@ -323,10 +323,38 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
             }
             return <PercentageFill value={percentage} />;
           },
+          headerRenderer: (props: HeaderRendererProps<ComparedModule>) => (
+            <Box
+              sx={{
+                lineHeight: "45px",
+                cursor: "pointer",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              }}
+            >
+              {props.column.name}
+            </Box>
+          ),
         };
       }
 
-      return col;
+      return {
+        ...col,
+        headerRenderer: (props: HeaderRendererProps<ComparedModule>) => (
+          <Box
+            sx={{
+              lineHeight: "45px",
+              cursor: "pointer",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {props.column.name}
+          </Box>
+        ),
+      };
     });
   };
 

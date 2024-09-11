@@ -178,10 +178,35 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
             const percentage = props.row[col.key];
             return <PercentageFill value={percentage} />;
           },
+          headerRenderer: (props: HeaderRendererProps<ModuleDetails>) => (
+            <Box sx={{ lineHeight: "45px",
+              cursor: "pointer",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap", }}>
+              {HeaderRenderer<ModuleDetails, unknown>({ ...props })}
+            </Box>
+          ),
         };
       }
 
-      return col;
+      return {
+        ...col,
+
+        headerRenderer: (props: HeaderRendererProps<ModuleDetails>) => (
+          <Box
+            sx={{
+              lineHeight: "45px",
+              cursor: "pointer",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {HeaderRenderer<ModuleDetails, unknown>({ ...props })}
+          </Box>
+        ),
+      };
     });
   };
 

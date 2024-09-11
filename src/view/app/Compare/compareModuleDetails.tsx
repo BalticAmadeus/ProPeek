@@ -227,7 +227,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
               checked={isPercentageView}
               onChange={handleToggleView}
               size="small"
-              sx={{ color: "-var(--vscode-editor-foreground)" }}
+              sx={{ color: "-var(--vscode-editor-foreground)", ml: 1 }}
             />
           }
           label="Show Percentage"
