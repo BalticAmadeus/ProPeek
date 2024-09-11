@@ -11,8 +11,6 @@ import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import { Box, FormControlLabel, Switch } from "@mui/material";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import ProfilerSummary from "./components/ProfilerSummary";
 
@@ -28,8 +26,6 @@ interface GenericModuleColumn extends Column<any> {
   name: string;
   width: string;
 }
-
-interface ComparedColumn extends GenericModuleColumn {}
 
 const defaultModuleSort: SortColumn = {
   columnKey: "totalTime",
@@ -50,6 +46,8 @@ const addConditionalFormatting = (
       } else if (key === "avgTimePerCallChange" && row.avgTimePerCall) {
         displayValue =
           ((changeValue / row.avgTimePerCall) * 100).toFixed(2) + "%";
+      } else if (key === "timesCalledChange") {
+        displayValue = ((changeValue / row.timesCalled) * 100).toFixed(2) + "%";
       }
     } else {
       displayValue = changeValue > 0 ? `+${changeValue}` : changeValue;
@@ -144,10 +142,8 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     vscode.setState(isPercentageView);
   }, [isPercentageView, vscode]);
 
-  const formattedMergedColumns: ComparedColumn[] = addConditionalFormatting(
-    columnDefinition.moduleColumns,
-    isPercentageView
-  );
+  const formattedMergedColumns: GenericModuleColumn[] =
+    addConditionalFormatting(columnDefinition.moduleColumns, isPercentageView);
 
   const sumTotalTime = {
     firstTotalTime: comparedData.firstTotalTime,
