@@ -11,8 +11,6 @@ import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import { Box, FormControlLabel, Switch } from "@mui/material";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import ProfilerSummary from "./components/ProfilerSummary";
 
@@ -231,7 +229,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
               checked={isPercentageView}
               onChange={handleToggleView}
               size="small"
-              sx={{ color: "-var(--vscode-editor-foreground)" }}
+              sx={{ color: "-var(--vscode-editor-foreground)", ml: 1 }}
             />
           }
           label="Show Percentage"
