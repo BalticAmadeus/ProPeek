@@ -24,3 +24,9 @@
     color: red;
     background-color: rgba(255, 0, 0, 0.1);
 }
+
+.statusFilterOption {
+    display: flex;
+    justify-content: right;
+    height: 100%;
+}

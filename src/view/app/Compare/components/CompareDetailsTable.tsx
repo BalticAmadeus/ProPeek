@@ -12,7 +12,6 @@ import {
   Box,
   FormControl,
   Input,
-  InputLabel,
   ListItemIcon,
   ListItemText,
   MenuItem,
@@ -71,22 +70,22 @@ const FilterHeader = React.memo<
       switch (selected) {
         case "added":
           return (
-            <ListItemIcon>
+            <div className="statusFilterOption">
               <AddCircleIcon
-                style={{ color: "green", fontSize: 16, marginTop: "0.5rem" }}
+                style={{ color: "green", fontSize: 19, marginTop: "0.1rem" }}
               />
-            </ListItemIcon>
+            </div>
           );
         case "removed":
           return (
-            <ListItemIcon>
+            <div className="statusFilterOption">
               <RemoveCircleIcon
-                style={{ color: "red", fontSize: 16, marginTop: "0.5rem" }}
+                style={{ color: "red", fontSize: 19, marginTop: "0.1rem" }}
               />
-            </ListItemIcon>
+            </div>
           );
         default:
-          return <ListItemText primary="All" />;
+          return <div className="statusFilterOption">All</div>;
       }
     };
 
@@ -120,11 +119,11 @@ const FilterHeader = React.memo<
             variant="outlined"
             size="small"
             sx={{
-              minWidth: 120,
+              minWidth: 65,
               height: 30,
-              borderRadius: "4px",
+              border: "none",
               color: "var(--vscode-input-foreground)",
-              ml: 1,
+              ml: 0.5,
               backgroundColor: "var(--vscode-input-background)",
             }}
           >
@@ -132,7 +131,20 @@ const FilterHeader = React.memo<
               value={dropdownValue}
               onChange={onDropdownChange}
               renderValue={renderValue}
-              sx={{ height: "100%", color: "var(--rdg-checkbox-focus-color)" }}
+              sx={{
+                height: "100%",
+                color: "var(--rdg-checkbox-focus-color)",
+                border: "none",
+              }}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    backgroundColor: "var(--vscode-input-background)",
+                    color: "var(--vscode-input-foreground)",
+                    border: "1px solid var(--vscode-input-border)",
+                  },
+                },
+              }}
             >
               <MenuItem value="all">
                 <ListItemText primary="All" />
