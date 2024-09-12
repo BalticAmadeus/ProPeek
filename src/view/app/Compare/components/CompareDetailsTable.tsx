@@ -328,12 +328,12 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
               sx={{
                 lineHeight: "45px",
                 cursor: "pointer",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
-              {props.column.name}
+              {HeaderRenderer<ComparedModule, unknown>({ ...props })}
             </Box>
           ),
         };
@@ -351,7 +351,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
               whiteSpace: "nowrap",
             }}
           >
-            {props.column.name}
+            {HeaderRenderer<ComparedModule, unknown>({ ...props })}
           </Box>
         ),
       };
