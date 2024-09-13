@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       const selectedFiles = await vscode.window.showOpenDialog({
         canSelectMany: true,
-        openLabel: "Select Profiler Files",
+        openLabel: "Select Two Profiler Files",
         filters: {
           "Profiler Files": ["prof", "out"],
         },

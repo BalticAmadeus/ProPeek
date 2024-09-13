@@ -135,8 +135,6 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
                 const isOverflowing =
                   cellRef.current.scrollWidth > cellRef.current.clientWidth;
                 setIsOverflow(isOverflowing);
-
-                console.log("isOverflowing", isOverflowing);
               }
             };
 
