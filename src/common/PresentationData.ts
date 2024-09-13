@@ -61,7 +61,6 @@ export interface ComparedData {
 export interface ComparedModule {
   moduleID: number,
   moduleName: string,
-  startLineNum: number,
   timesCalled: number,
   timesCalledChange: number,
   avgTimePerCall?: number,
@@ -69,7 +68,5 @@ export interface ComparedModule {
   totalTime: number,
   totalTimeChange: number,
   pcntOfSession?: number,
-  listingFile: string,
-  hasLink: boolean,
   status?: string,
 }
