@@ -46,6 +46,7 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
             fontSize: 16,
             border: "1px solid var(--vscode-editor-foreground)",
             marginRight: "2rem",
+            maxWidth: "700px",
           }}
         >
           <div style={{ textAlign: "center", padding: "0 10px" }}>
