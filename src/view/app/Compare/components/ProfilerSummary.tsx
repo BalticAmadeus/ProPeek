@@ -46,22 +46,69 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
             fontSize: 16,
             border: "1px solid var(--vscode-editor-foreground)",
             marginRight: "2rem",
+            maxWidth: "700px",
           }}
         >
-          <div style={{ textAlign: "center", padding: "0 10px" }}>
-            <Typography color="-var(--vscode-editor-foreground)" sx={{ mb: 1 }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "0 10px",
+              maxWidth: "250px",
+            }}
+          >
+            <Typography
+              color="-var(--vscode-editor-foreground)"
+              sx={{
+                mb: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={fileName}
+            >
               Total time: {fileName}
             </Typography>
-            <Typography color="-var(--vscode-editor-foreground)">
+            <Typography
+              color="-var(--vscode-editor-foreground)"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={sumTotalTime.firstTotalTime.toFixed(6) + " s"}
+            >
               {sumTotalTime.firstTotalTime.toFixed(6)} s
             </Typography>
           </div>
 
-          <div style={{ textAlign: "center", padding: "0 10px" }}>
-            <Typography color="-var(--vscode-editor-foreground)" sx={{ mb: 1 }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "0 10px",
+              maxWidth: "250px",
+            }}
+          >
+            <Typography
+              color="-var(--vscode-editor-foreground)"
+              sx={{
+                mb: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={fileName2}
+            >
               Total time: {fileName2}
             </Typography>
-            <Typography color="-var(--vscode-editor-foreground)">
+            <Typography
+              color="-var(--vscode-editor-foreground)"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={sumTotalTime.secondTotalTime.toFixed(6) + " s"}
+            >
               {sumTotalTime.secondTotalTime.toFixed(6)} s
             </Typography>
           </div>

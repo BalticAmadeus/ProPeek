@@ -25,6 +25,7 @@ export interface ModuleDetailsTableProps
 const FilterHeader = React.memo<FilterHeaderProps>(
   ({ onFilterChange, searchValue, setSearchValue }) => {
     const [value, setValue] = useState<string>(searchValue ?? "");
+    const inputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
       setValue(searchValue);
@@ -50,9 +51,16 @@ const FilterHeader = React.memo<FilterHeaderProps>(
       }
     };
 
+    const handleBoxClick = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    };
+
     return (
-      <Box>
+      <Box onClick={handleBoxClick}>
         <Input
+          inputRef={inputRef}
           className="textInput"
           style={{
             flexGrow: 1,
@@ -135,8 +143,6 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
                 const isOverflowing =
                   cellRef.current.scrollWidth > cellRef.current.clientWidth;
                 setIsOverflow(isOverflowing);
-
-                console.log("isOverflowing", isOverflowing);
               }
             };
 

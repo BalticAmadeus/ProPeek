@@ -47,6 +47,7 @@ const FilterHeader = React.memo<
     onDropdownChange,
   }) => {
     const [value, setValue] = useState<string>(searchValue ?? "");
+    const inputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
       setValue(searchValue);
@@ -95,11 +96,18 @@ const FilterHeader = React.memo<
       }
     };
 
+    const handleBoxClick = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    };
+
     return (
-      <Box>
+      <Box onClick={handleBoxClick}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <Input
             className="textInput"
+            inputRef={inputRef}
             style={{
               flexGrow: 1,
               inlineSize: "100%",
