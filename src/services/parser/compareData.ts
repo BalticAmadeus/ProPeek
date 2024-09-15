@@ -84,6 +84,7 @@ const createAddedModule = (module: ModuleDetails): ComparedModule => {
     avgTimePerCallChange: module.avgTimePerCall || 0,
     totalTime: 0,
     totalTimeChange: module.totalTime,
+    pcntOfSession: 0,
     status: "added",
   };
 };
