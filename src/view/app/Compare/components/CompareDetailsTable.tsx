@@ -325,10 +325,6 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
           minWidth: 200,
           formatter: (props: FormatterProps<ComparedModule>) => {
             const percentage = props.row[col.key];
-
-            if (props.row["status"] === "added") {
-              return <PercentageFill value={0} />;
-            }
             return <PercentageFill value={percentage} />;
           },
           headerRenderer: (props: HeaderRendererProps<ComparedModule>) => (
