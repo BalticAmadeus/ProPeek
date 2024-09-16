@@ -378,6 +378,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             sortable: true,
             resizable: true,
           }}
+          style={{textAlign: "end"}}
           onRowsChange={setSelectedLineRows}
           sortColumns={sortLineColumns}
           onSortColumnsChange={setSortLineColumns}
