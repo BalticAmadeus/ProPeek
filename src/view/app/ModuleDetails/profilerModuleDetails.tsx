@@ -8,7 +8,7 @@ import {
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
-import * as columnDefinition from "./column.json";
+import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
@@ -122,7 +122,8 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   >([defaultModuleSort]);
 
   const [selectedRow, setSelectedRow] = useState<ModuleDetails>(
-    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) || null
+    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) ||
+      null
   );
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
@@ -165,10 +166,9 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   const settingsContext = useFileTypeSettingsContext();
 
-  const sumTotalTime =
-    presentationData.moduleDetails
-      .reduce((acc, module) => acc + module.totalTime, 0)
-      .toFixed(6);
+  const sumTotalTime = presentationData.moduleDetails
+    .reduce((acc, module) => acc + module.totalTime, 0)
+    .toFixed(6);
 
   const filterTables = (row: ModuleDetails) => {
     if (!row) {
@@ -198,7 +198,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     targetRows,
     setSelectedRow
   ) => {
-    const matchingRow = targetRows.find( (row) => 
+    const matchingRow = targetRows.find((row) =>
       matchKeys.some((key) => row.moduleID === selectedRow[key])
     );
 
@@ -277,8 +277,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    if (!foundModule || !foundModule?.hasLink) 
-      return;
+    if (!foundModule || !foundModule?.hasLink) return;
 
     vscode.postMessage({
       type: settingsContext.openFileType,
@@ -334,7 +333,12 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
-              setMatchingRow(row, ["callerID"], sortedModuleRows, setSelectedRow);
+              setMatchingRow(
+                row,
+                ["callerID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
             }}
           />
         </div>
@@ -354,7 +358,12 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
-              setMatchingRow(row, ["calleeID"], sortedModuleRows, setSelectedRow);
+              setMatchingRow(
+                row,
+                ["calleeID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
             }}
           />
         </div>

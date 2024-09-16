@@ -6,6 +6,8 @@
         "outDir": "out/view/app",
         "lib": ["es6", "dom"],
         "jsx": "react",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "sourceMap": true,
         "rootDir": "..",
         "noUnusedLocals": true,
