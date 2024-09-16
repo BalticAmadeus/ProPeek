@@ -265,7 +265,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
                     color: "green",
                     fontSize: 16,
                     position: "relative",
-                    top: 3,
+                    top: "5px",
                   }}
                 />
               );
@@ -277,7 +277,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
                     color: "red",
                     fontSize: 16,
                     position: "relative",
-                    top: 3,
+                    top: "5px",
                   }}
                 />
               );

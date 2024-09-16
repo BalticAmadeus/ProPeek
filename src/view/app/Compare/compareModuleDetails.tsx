@@ -151,6 +151,8 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [isLoading, setIsLoading] = useState<boolean>(null);
 
+  const [isBlockSize, setIsBlockSize] = useState<string>("350px");
+
   const vscode = getVSCodeAPI();
 
   const [isPercentageView, setIsPercentageView] = useState(() => {
@@ -161,6 +163,21 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   useEffect(() => {
     vscode.setState(isPercentageView);
   }, [isPercentageView, vscode]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1500) {
+        setIsBlockSize('350px');
+      } else {
+        setIsBlockSize('660px'); 
+    };
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const formattedMergedColumns: GenericModuleColumn[] =
     addConditionalFormatting(columnDefinition.moduleColumns, isPercentageView);
@@ -267,6 +284,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
+            style={{  blockSize: isBlockSize }}
           />
         ) : null}
       </div>
