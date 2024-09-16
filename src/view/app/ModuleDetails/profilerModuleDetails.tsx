@@ -52,6 +52,10 @@ const addConditionalFormatting = (
     <PercentageFill value={value} />
   );
 
+  const addFixedFormat = (row: ModuleDetails | LineSummary, key: string) => (
+    <>{row[key].toFixed(6)}</>
+  );
+
   const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
     <Box className={row.hasLink ? "link-cell" : ""}>{row[key]}</Box>
   );
@@ -72,6 +76,17 @@ const addConditionalFormatting = (
         ...column,
         formatter: (props: FormatterProps<CalledModules>) =>
           addPercentageFormat(props.row[column.key]),
+      };
+    }
+    if (
+      column.key === "totalTime" ||
+      column.key === "avgTimePerCall" ||
+      column.key === "avgTime"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ModuleDetails | LineSummary>) =>
+          addFixedFormat(props.row, column.key),
       };
     }
     return column;

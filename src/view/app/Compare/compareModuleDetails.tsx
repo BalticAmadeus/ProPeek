@@ -39,6 +39,11 @@ const addConditionalFormatting = (
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
+    let changeType = "";
+    let changeClass = "";
+
+    const formatWithSixDecimals = (value: number) =>
+      value === 0 ? value : value.toFixed(6);
 
     if (isPercentageView) {
       if (key === "totalTimeChange") {
@@ -50,13 +55,26 @@ const addConditionalFormatting = (
         displayValue = ((changeValue / row.timesCalled) * 100).toFixed(2) + "%";
       }
     } else {
-      displayValue = changeValue > 0 ? `+${changeValue}` : changeValue;
+      if (key === "totalTime" || key === "avgTimePerCall") {
+        displayValue = formatWithSixDecimals(changeValue);
+      } else if (key === "totalTimeChange" || key === "avgTimePerCallChange") {
+        displayValue =
+          changeValue > 0
+            ? `+${formatWithSixDecimals(changeValue)}`
+            : formatWithSixDecimals(changeValue);
+      } else {
+        displayValue = changeValue;
+      }
     }
-
-    const changeType =
-      changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
-    const changeClass = `cell${changeType}Change`;
-
+    if (
+      key === "totalTimeChange" ||
+      key === "avgTimePerCallChange" ||
+      key === "timesCalledChange"
+    ) {
+      changeType =
+        changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
+      changeClass = `cell${changeType}Change`;
+    }
     return <Box className={`${changeClass}`}>{displayValue}</Box>;
   };
 
@@ -64,7 +82,9 @@ const addConditionalFormatting = (
     if (
       column.key === "totalTimeChange" ||
       column.key === "avgTimePerCallChange" ||
-      column.key === "timesCalledChange"
+      column.key === "timesCalledChange" ||
+      column.key === "totalTime" ||
+      column.key === "avgTimePerCall"
     ) {
       return {
         ...column,
