@@ -53,7 +53,7 @@ const addConditionalFormatting = (
   );
 
   const addFixedFormat = (row: ModuleDetails | LineSummary, key: string) => (
-    <>{row[key].toFixed(6)}</>
+    <>{row[key] !== 0 ? row[key].toFixed(6) : row[key]}</>
   );
 
   const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
@@ -393,7 +393,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             sortable: true,
             resizable: true,
           }}
-          style={{textAlign: "end"}}
+          style={{ textAlign: "end" }}
           onRowsChange={setSelectedLineRows}
           sortColumns={sortLineColumns}
           onSortColumnsChange={setSortLineColumns}

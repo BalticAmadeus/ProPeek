@@ -208,6 +208,16 @@ const TreeView: React.FC<{
       );
     };
 
+    const addFixedFormat = ({ row }: FormatterProps<TreeRow>) => {
+      return (
+        <>
+          {row.cumulativeTime !== 0
+            ? row.cumulativeTime.toFixed(6)
+            : row.cumulativeTime}
+        </>
+      );
+    };
+
     const columns = [
       {
         key: "moduleName",
@@ -216,7 +226,11 @@ const TreeView: React.FC<{
         minWidth: 700,
       },
       { key: "numCalls", name: "Number of Calls" },
-      { key: "cumulativeTime", name: "Cumulative Time" },
+      {
+        key: "cumulativeTime",
+        name: "Cumulative Time",
+        formatter: addFixedFormat,
+      },
       {
         key: "pcntOfSession",
         name: "% of Session",
