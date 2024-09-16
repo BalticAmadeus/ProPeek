@@ -20,8 +20,9 @@
     --rdg-border-color: none;
 }
 
-.c1wupbe700-beta13 {
+.c1wupbe700-beta13:not(:first-child) {
     padding-inline: 4px;
+    text-align: end;
 }
 
 .rdg-row-even {

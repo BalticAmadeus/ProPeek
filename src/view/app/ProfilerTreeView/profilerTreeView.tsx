@@ -82,8 +82,10 @@ function ProfilerTreeView({
 
   React.useEffect(() => {
     window.addEventListener("message", (event) => {
-      const message = event.data as PresentationData;
-      setCallTree(message.callTree);
+      if (event.data.type === "Presentation Data") {
+        const message = event.data.data as PresentationData;
+        setCallTree(message.callTree);
+      }
     });
   }, []);
 
@@ -176,7 +178,6 @@ const TreeView: React.FC<{
   handleOnClick: (row: TreeRow) => void;
 }> = React.memo(
   ({ rows, toggleExpansion, handleNodeSelection, handleOnClick }) => {
-
     const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
 
     const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
@@ -207,6 +208,16 @@ const TreeView: React.FC<{
       );
     };
 
+    const addFixedFormat = ({ row }: FormatterProps<TreeRow>) => {
+      return (
+        <>
+          {row.cumulativeTime !== 0
+            ? row.cumulativeTime.toFixed(6)
+            : row.cumulativeTime}
+        </>
+      );
+    };
+
     const columns = [
       {
         key: "moduleName",
@@ -215,7 +226,11 @@ const TreeView: React.FC<{
         minWidth: 700,
       },
       { key: "numCalls", name: "Number of Calls" },
-      { key: "cumulativeTime", name: "Cumulative Time" },
+      {
+        key: "cumulativeTime",
+        name: "Cumulative Time",
+        formatter: addFixedFormat,
+      },
       {
         key: "pcntOfSession",
         name: "% of Session",
@@ -225,7 +240,7 @@ const TreeView: React.FC<{
         },
       },
     ];
-    
+
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.ctrlKey) {

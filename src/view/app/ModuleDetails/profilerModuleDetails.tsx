@@ -8,12 +8,12 @@ import {
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
-import * as columnDefinition from "./column.json";
+import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
@@ -52,6 +52,10 @@ const addConditionalFormatting = (
     <PercentageFill value={value} />
   );
 
+  const addFixedFormat = (row: ModuleDetails | LineSummary, key: string) => (
+    <>{row[key] !== 0 ? row[key].toFixed(6) : row[key]}</>
+  );
+
   const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
     <Box className={row.hasLink ? "link-cell" : ""}>{row[key]}</Box>
   );
@@ -72,6 +76,17 @@ const addConditionalFormatting = (
         ...column,
         formatter: (props: FormatterProps<CalledModules>) =>
           addPercentageFormat(props.row[column.key]),
+      };
+    }
+    if (
+      column.key === "totalTime" ||
+      column.key === "avgTimePerCall" ||
+      column.key === "avgTime"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ModuleDetails | LineSummary>) =>
+          addFixedFormat(props.row, column.key),
       };
     }
     return column;
@@ -122,7 +137,8 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   >([defaultModuleSort]);
 
   const [selectedRow, setSelectedRow] = useState<ModuleDetails>(
-    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) || null
+    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) ||
+      null
   );
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
@@ -165,10 +181,9 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   const settingsContext = useFileTypeSettingsContext();
 
-  const sumTotalTime = presentationData.moduleDetails.reduce(
-    (acc, module) => acc + module.totalTime,
-    0
-  );
+  const sumTotalTime = presentationData.moduleDetails
+    .reduce((acc, module) => acc + module.totalTime, 0)
+    .toFixed(6);
 
   const filterTables = (row: ModuleDetails) => {
     if (!row) {
@@ -193,15 +208,15 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   };
 
   const setMatchingRow = (
-    selectedRow, 
-    matchKeys, 
-    targetRows, 
+    selectedRow,
+    matchKeys,
+    targetRows,
     setSelectedRow
   ) => {
-    const matchingRow = targetRows.find( (row) => 
+    const matchingRow = targetRows.find((row) =>
       matchKeys.some((key) => row.moduleID === selectedRow[key])
     );
-    
+
     if (matchingRow) {
       setSelectedRow(matchingRow);
     }
@@ -277,8 +292,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    if (!foundModule || !foundModule?.hasLink) 
-      return;
+    if (!foundModule || !foundModule?.hasLink) return;
 
     vscode.postMessage({
       type: settingsContext.openFileType,
@@ -291,7 +305,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   return (
     <div>
       <div className="details-columns">
-        <div className="grid-name">Module Details</div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div className="grid-name">Module Details</div>
+          <div className="total-time">
+            <Typography color="-var(--vscode-editor-foreground)">
+              Total Time: {sumTotalTime} s
+            </Typography>
+          </div>
+        </div>
         <FileTypeSettings
           showOpenFileType={
             presentationData.hasXREFs && presentationData.hasListings
@@ -306,7 +327,6 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-            sumTotalTime={sumTotalTime}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
           />
@@ -328,7 +348,12 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
-              setMatchingRow(row, ["callerID"], sortedModuleRows, setSelectedRow);
+              setMatchingRow(
+                row,
+                ["callerID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
             }}
           />
         </div>
@@ -348,7 +373,12 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
-              setMatchingRow(row, ["calleeID"], sortedModuleRows, setSelectedRow);
+              setMatchingRow(
+                row,
+                ["calleeID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
             }}
           />
         </div>
@@ -363,6 +393,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             sortable: true,
             resizable: true,
           }}
+          style={{ textAlign: "end" }}
           onRowsChange={setSelectedLineRows}
           sortColumns={sortLineColumns}
           onSortColumnsChange={setSortLineColumns}

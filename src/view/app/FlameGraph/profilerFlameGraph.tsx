@@ -30,6 +30,7 @@ interface IConfigProps {
   handleNodeSelection: any;
   vscode: any;
   hasTracingData: boolean;
+  showStartTime: boolean;
 }
 
 export enum SearchTypes {
@@ -38,13 +39,12 @@ export enum SearchTypes {
   Search,
 }
 
-let showStartTime = false;
-
 function ProfilerFlameGraph({
   presentationData,
   handleNodeSelection,
   vscode,
   hasTracingData,
+  showStartTime,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState("");
@@ -78,11 +78,13 @@ function ProfilerFlameGraph({
 
   React.useEffect(() => {
     const handleMessage = (event) => {
-      const message = event.data as PresentationData;
-      setCallTree(message.callTree);
-      setIsLoading(false);
+      if (event.data.type === "Presentation Data") {
+        const message = event.data.data as PresentationData;
+        setCallTree(message.callTree);
+        showStartTime = event.data.showStartTime;
+        setIsLoading(false);
+      }
     };
-
     window.addEventListener("message", handleMessage);
 
     return () => {
@@ -172,8 +174,7 @@ function ProfilerFlameGraph({
       (moduleRow) => moduleRow.moduleID === node.moduleID
     );
 
-    if (!foundModule || !foundModule?.hasLink) 
-      return;
+    if (!foundModule || !foundModule?.hasLink) return;
 
     vscode.postMessage({
       type: settingsContext.openFileType,
