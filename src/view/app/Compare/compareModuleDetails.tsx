@@ -43,7 +43,7 @@ const addConditionalFormatting = (
     let changeClass = "";
 
     const formatWithSixDecimals = (value: number) =>
-      value === 0 ? value : value.toFixed(6);
+      value === 0 ? value : value?.toFixed(6);
 
     if (isPercentageView) {
       if (key === "totalTimeChange") {
@@ -167,16 +167,16 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1500) {
-        setIsBlockSize('350px');
+        setIsBlockSize("350px");
       } else {
-        setIsBlockSize('660px'); 
-    };
+        setIsBlockSize("660px");
+      }
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     handleResize();
 
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const formattedMergedColumns: GenericModuleColumn[] =
@@ -284,7 +284,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
-            style={{  blockSize: isBlockSize }}
+            style={{ blockSize: isBlockSize }}
           />
         ) : null}
       </div>

@@ -53,7 +53,7 @@ const addConditionalFormatting = (
   );
 
   const addFixedFormat = (row: ModuleDetails | LineSummary, key: string) => (
-    <>{row[key] !== 0 ? row[key].toFixed(6) : row[key]}</>
+    <>{row[key] !== 0 ? row[key]?.toFixed(6) : row[key]}</>
   );
 
   const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
