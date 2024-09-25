@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   test-and-compile-front-end:
     docker:
-      - image: circleci/node:16
+      - image: circleci/node:18
     steps:
       - checkout
       - run:
@@ -22,13 +22,13 @@ jobs:
           path: test-results/jest
   build:
     docker:
-      - image: circleci/node:16
+      - image: circleci/node:18
     steps:
       - checkout
-      - run: 
+      - run:
           name: Install vsce
           command: npm install vsce
-      - run: 
+      - run:
           name: Build Extension
           command: npm run vsce
 workflows:
