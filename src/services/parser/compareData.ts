@@ -42,14 +42,26 @@ export async function compareData(
       oldModuleMap.delete(oldModule[0].moduleName);
     }
   });
+
   newModuleMap.forEach((modules) => {
     comparedModules.push(...createAddedModule(modules));
     newModuleMap.delete(modules[0].moduleName);
   });
+  console.log(oldPresentationData.callTree[0]);
   return {
     comparedModules,
-    firstTotalTime: oldPresentationData.callTree[0].cumulativeTime || 0,
-    secondTotalTime: newPresentationData.callTree[0].cumulativeTime || 0,
+    firstTotalTime:
+      oldPresentationData.callTree[0]?.cumulativeTime ||
+      oldPresentationData.moduleDetails.reduce(
+        (acc, module) => acc + module.totalTime,
+        0
+      ),
+    secondTotalTime:
+      newPresentationData.callTree[0]?.cumulativeTime ||
+      newPresentationData.moduleDetails.reduce(
+        (acc, module) => acc + module.totalTime,
+        0
+      ),
   };
 }
 
@@ -74,7 +86,7 @@ const compareModules = (
   newModule: ModuleDetails[],
   moduleLength: number
 ): ComparedModule[] => {
-  const moduleArray: ComparedModule[] = [];
+  const comparedModules: ComparedModule[] = [];
 
   for (let i = 0; i < moduleLength; i++) {
     const mergedModuleID =
@@ -99,9 +111,9 @@ const compareModules = (
       avgTimePerCallChange,
       totalTimeChange,
     };
-    moduleArray.push(comparedModule);
+    comparedModules.push(comparedModule);
   }
-  return moduleArray;
+  return comparedModules;
 };
 
 const calculateChange = (newValue: number, oldValue: number): number => {
@@ -109,10 +121,10 @@ const calculateChange = (newValue: number, oldValue: number): number => {
 };
 
 const createAddedModule = (modules: ModuleDetails[]): ComparedModule[] => {
-  const comparedModules: ComparedModule[] = [];
+  const addedModules: ComparedModule[] = [];
 
   modules.forEach((module) => {
-    comparedModules.push({
+    addedModules.push({
       ...module,
       moduleID: module.moduleID,
       timesCalled: 0,
@@ -126,13 +138,13 @@ const createAddedModule = (modules: ModuleDetails[]): ComparedModule[] => {
     });
   });
 
-  return comparedModules;
+  return addedModules;
 };
 const createRemovedModule = (modules: ModuleDetails[]): ComparedModule[] => {
-  const comparedModules: ComparedModule[] = [];
+  const removedModules: ComparedModule[] = [];
 
   modules.forEach((module) => {
-    comparedModules.push({
+    removedModules.push({
       ...module,
       moduleID: module.moduleID * Constants.moduleIdMult,
       timesCalledChange: -module.timesCalled,
@@ -142,5 +154,5 @@ const createRemovedModule = (modules: ModuleDetails[]): ComparedModule[] => {
     });
   });
 
-  return comparedModules;
+  return removedModules;
 };
