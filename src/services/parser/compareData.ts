@@ -50,18 +50,8 @@ export async function compareData(
   console.log(oldPresentationData.callTree[0]);
   return {
     comparedModules,
-    firstTotalTime:
-      oldPresentationData.callTree[0]?.cumulativeTime ||
-      oldPresentationData.moduleDetails.reduce(
-        (acc, module) => acc + module.totalTime,
-        0
-      ),
-    secondTotalTime:
-      newPresentationData.callTree[0]?.cumulativeTime ||
-      newPresentationData.moduleDetails.reduce(
-        (acc, module) => acc + module.totalTime,
-        0
-      ),
+    firstTotalTime: totalTime(oldPresentationData),
+    secondTotalTime: totalTime(newPresentationData),
   };
 }
 
@@ -155,4 +145,14 @@ const createRemovedModule = (modules: ModuleDetails[]): ComparedModule[] => {
   });
 
   return removedModules;
+};
+
+const totalTime = (presentationData: PresentationData): number => {
+  return (
+    presentationData.callTree[0]?.cumulativeTime ||
+    presentationData.moduleDetails.reduce(
+      (acc, module) => acc + module.totalTime,
+      0
+    )
+  );
 };
