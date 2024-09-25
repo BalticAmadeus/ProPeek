@@ -1,0 +1,14 @@
+.flex-row-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.flame-graph-container {
+    padding-left: 7px;
+}
+
+.graph-type-selects{
+    margin-right: 5%;
+}

@@ -2,25 +2,67 @@
 import * as React from "react";
 import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { FlameGraph } from "react-flame-graph";
+import "./profilerFlameGraph.css";
+import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
+import TimeRibbon from "./TimeRibbon";
+import { Box } from "@mui/material";
+import { OpenFileTypeEnum } from "../../../common/openFile";
+import FileTypeSettings from "../Components/FileTypeSettings";
+import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
+
+interface FlameGraphNodeRoot {
+  name: "root";
+  value: number;
+  left: number;
+  cumulativeTime: number;
+  children: Array<FlameGraphNode>;
+}
+
+interface FlameGraphNode extends Omit<FlameGraphNodeRoot, "name"> {
+  name: string;
+  backgroundColor: string;
+  tooltip: string;
+  moduleID: number;
+}
 
 interface IConfigProps {
   presentationData: PresentationData;
+  handleNodeSelection: any;
+  vscode: any;
+  hasTracingData: boolean;
+  showStartTime: boolean;
 }
 
 export enum SearchTypes {
-    Length,
-    ConstructorOrDestructor,
-    Search,
-  }
+  Length,
+  ConstructorOrDestructor,
+  Search,
+}
 
-function ProfilerFlameGraph({ presentationData }: IConfigProps) {
-    const [searchPhrase, setSearchPhrase] = React.useState<string>("");
-    const [selectedSearchType, setSelectedSearchType] = React.useState("");
+function ProfilerFlameGraph({
+  presentationData,
+  handleNodeSelection,
+  vscode,
+  hasTracingData,
+  showStartTime,
+}: IConfigProps) {
+  const [searchPhrase, setSearchPhrase] = React.useState<string>("");
+  const [selectedSearchType, setSelectedSearchType] = React.useState("");
 
-    const [callTree, setCallTree] = React.useState(presentationData.callTree);
-    const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
-    const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
-    const [nestedStructure, setNestedStructure] = React.useState<any>(convertToNestedStructure(callTree, Mode.Length, searchPhrase));
+  const [callTree, setCallTree] = React.useState(presentationData.callTree);
+  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
+  const [nestedStructure, setNestedStructure] =
+    React.useState<FlameGraphNodeRoot>(
+      convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+    );
+
+  const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
+    callTree[0]?.cumulativeTime ?? 0
+  );
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
+  const settingsContext = useFileTypeSettingsContext();
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -35,114 +77,270 @@ function ProfilerFlameGraph({ presentationData }: IConfigProps) {
   }, []);
 
   React.useEffect(() => {
-    window.addEventListener("message", (event) => {
-      const message = event.data as PresentationData;
-      setCallTree(message.callTree);
-    });
+    const handleMessage = (event) => {
+      if (event.data.type === "Presentation Data") {
+        const message = event.data.data as PresentationData;
+        setCallTree(message.callTree);
+        showStartTime = event.data.showStartTime;
+        setIsLoading(false);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
-    var inputQuery: HTMLButtonElement = undefined;
-    React.useEffect(() => {
-        if (inputQuery) {
-            inputQuery.click();
-        }
-    }, []);
+  React.useEffect(() => {
+    const { hasXREFs, hasListings } = presentationData;
+    if (hasXREFs && !hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.XREF);
+    } else if (!hasXREFs && hasListings) {
+      settingsContext.setOpenFileType(OpenFileTypeEnum.LISTING);
+    }
+  }, [presentationData.hasXREFs, presentationData.hasListings]);
 
-    const handleChange = ({ currentTarget }: React.ChangeEvent<HTMLInputElement>) => {
-        switch (currentTarget.value) {
-            case SearchTypes[SearchTypes.Length]:
-                setNestedStructure(convertToNestedStructure(callTree, Mode.Length, searchPhrase));
-            break;
-            case SearchTypes[SearchTypes.ConstructorOrDestructor]:
-                setNestedStructure(convertToNestedStructure(callTree, Mode.ConstructorDestructor, searchPhrase));
-            break;
-            case SearchTypes[SearchTypes.Search]:
-                setNestedStructure(convertToNestedStructure(callTree, Mode.Search, searchPhrase));
-            break;
-        }
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        setIsCtrlPressed(true);
+      }
     };
+
+    const handleKeyUp = () => {
+      setIsCtrlPressed(false);
+    };
+
+    const handleFocus = () => {
+      setIsCtrlPressed(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
+  var inputQuery: HTMLButtonElement = undefined;
+  React.useEffect(() => {
+    if (inputQuery) {
+      inputQuery.click();
+    }
+  }, []);
+
+  const handleChange = ({
+    currentTarget,
+  }: React.ChangeEvent<HTMLInputElement>) => {
+    switch (currentTarget.value) {
+      case SearchTypes[SearchTypes.Length]:
+        setNestedStructure(
+          convertToNestedStructure(callTree, Mode.Length, searchPhrase)
+        );
+        break;
+      case SearchTypes[SearchTypes.ConstructorOrDestructor]:
+        setNestedStructure(
+          convertToNestedStructure(
+            callTree,
+            Mode.ConstructorDestructor,
+            searchPhrase
+          )
+        );
+        break;
+      case SearchTypes[SearchTypes.Search]:
+        setNestedStructure(
+          convertToNestedStructure(callTree, Mode.Search, searchPhrase)
+        );
+        break;
+    }
+  };
+
+  const handleGraphTypeChange = (event) => {
+    setIsLoading(true);
+    showStartTime = event.target.value !== "Combined";
+    vscode.postMessage({
+      type: "GRAPH_TYPE_CHANGE",
+      showStartTime: showStartTime,
+    });
+  };
+
+  const openFileForFlameGraph = (node: FlameGraphNode): void => {
+    const foundModule = presentationData.moduleDetails.find(
+      (moduleRow) => moduleRow.moduleID === node.moduleID
+    );
+
+    if (!foundModule || !foundModule?.hasLink) return;
+
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: foundModule.moduleName,
+      listingFile: foundModule?.listingFile,
+      lineNumber: foundModule.startLineNum,
+    });
+  };
 
   return (
     <React.Fragment>
+      {isLoading && <LoadingOverlay></LoadingOverlay>}
+      <div className="flex-row-container">
         <div className="checkbox">
-            <label><b>
-            Search Type:
-            </b></label>
-            <br />
-            <br />
-            {Object.keys(SearchTypes).filter(key => Number.isNaN(+key)).map((key) => (
-            <label className="radioBtn" key={key}>
-                <input type="radio"
-                name="exportdata"
-                onChange={(e) => {
+          <label>
+            <b>Search Type:</b>
+          </label>
+          <br />
+          <br />
+          {Object.keys(SearchTypes)
+            .filter((key) => Number.isNaN(+key))
+            .map((key) => (
+              <label className="radioBtn" key={key}>
+                <input
+                  type="radio"
+                  name="exportdata"
+                  onChange={(e) => {
                     handleChange(e);
                     setSelectedSearchType(key);
-                }}
-                value={key}
-                defaultChecked={SearchTypes[key] === SearchTypes.Length}
+                  }}
+                  value={key}
+                  defaultChecked={SearchTypes[key] === SearchTypes.Length}
                 />
                 {key}
-            </label>
+              </label>
             ))}
         </div>
-
-        {selectedSearchType === "Search" && (
-            <div className="input-box">
-                <input
-                    id="input"
-                    className="textInputQuery"
-                    type="text"
-                    value={searchPhrase}
-                    onChange={(event) => {
-                        setSearchPhrase(event.target.value);
-                        setNestedStructure(convertToNestedStructure(callTree, Mode.Search, event.target.value));
-                    }}
-                />
-            </div>
-        )}
-
-        <div>
-        <div className="grid-name">Flame Graph</div>
-            <FlameGraph
-                data={nestedStructure}
-                height={windowHeight}
-                width={windowWidth - 40}
-                onChange={(node: any) => {
-                console.log(`"${node.name}" focused`);
-                }}
+        <div className="graph-type-selects">
+          <label>
+            <b>Graph Type:</b>
+          </label>
+          <br />
+          <br />
+          <label>
+            <input
+              type="radio"
+              name="graphType"
+              value="Combined"
+              onChange={handleGraphTypeChange}
+              defaultChecked={!showStartTime}
+              disabled={!hasTracingData}
             />
+            Combined
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="graphType"
+              value="Separate"
+              onChange={handleGraphTypeChange}
+              defaultChecked={showStartTime}
+              disabled={!hasTracingData}
+            />
+            Separate
+          </label>
         </div>
+      </div>
+
+      {selectedSearchType === "Search" && (
+        <div className="input-box">
+          <input
+            id="input"
+            className="textInputQuery"
+            type="text"
+            value={searchPhrase}
+            onChange={(event) => {
+              setSearchPhrase(event.target.value);
+              setNestedStructure(
+                convertToNestedStructure(
+                  callTree,
+                  Mode.Search,
+                  event.target.value
+                )
+              );
+            }}
+          />
+        </div>
+      )}
+
+      <div>
+        <div className="grid-name">Flame Graph</div>
+        {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
+        <Box className={"flame-graph-container"}>
+          <FileTypeSettings
+            showOpenFileType={
+              presentationData.hasXREFs && presentationData.hasListings
+            }
+          />
+          <FlameGraph
+            data={nestedStructure}
+            height={windowHeight}
+            width={windowWidth - 63}
+            onDoubleClick={(node) => {
+              handleNodeSelection(
+                node.name,
+                (node.source as FlameGraphNode).moduleID
+              );
+            }}
+            onChange={(node) => {
+              setTimeRibbonEndValue(
+                (node.source as FlameGraphNode).cumulativeTime
+              );
+              isCtrlPressed &&
+                openFileForFlameGraph(node.source as FlameGraphNode);
+            }}
+          />
+        </Box>
+      </div>
     </React.Fragment>
   );
 }
 export default ProfilerFlameGraph;
 
-function convertToNestedStructure(data: CallTree[], mode: Mode, searchPhrase: string): any {
-  const root: any = {
+function convertToNestedStructure(
+  data: CallTree[],
+  mode: Mode,
+  searchPhrase: string
+): FlameGraphNodeRoot {
+  const nodeMap: { [key: number]: FlameGraphNode } = {};
+  const rootNode = data[0];
+
+  const root: FlameGraphNodeRoot = {
     name: "root",
     value: 100,
+    left: 0,
+    cumulativeTime: rootNode?.cumulativeTime ?? 0,
     children: [],
   };
 
-  const nodeMap: { [key: number]: any } = {};
-  const startNode : number = data[0].parentID;
-
-  for (const item of data) {
-    nodeMap[item.nodeID] = {
-      name: item.moduleName,
-      value: item.pcntOfSession,
-      backgroundColor: giveColor(mode, item, searchPhrase),
-      tooltip: 'Name: ' + item.moduleName + ' Percentage of Session: ' + item.pcntOfSession.toFixed(2) + "% " + 'Cumulative Time: ' + item.cumulativeTime,
+  for (const node of data) {
+    nodeMap[node.nodeID] = {
+      name: node.moduleName,
+      value: node.pcntOfSession,
+      backgroundColor: giveColor(mode, node, searchPhrase),
+      tooltip: `Name: ${
+        node.moduleName
+      } Percentage of Session: ${node.pcntOfSession.toFixed(
+        2
+      )}% Cumulative Time: ${node.cumulativeTime}`,
+      moduleID: node.moduleID,
+      cumulativeTime: node.cumulativeTime,
       children: [],
+      left: 0,
     };
 
-    if (item.parentID === startNode) {
-      root.children.push(nodeMap[item.nodeID]);
+    if (node.parentID === rootNode.parentID) {
+      root.children.push(nodeMap[node.nodeID]);
     } else {
-      if (!nodeMap[item.parentID].children) {
-        nodeMap[item.parentID].children = [];
+      nodeMap[node.nodeID].left =
+        (node.startTime - rootNode.startTime) / rootNode.cumulativeTime;
+
+      if (!nodeMap[node.parentID].children) {
+        nodeMap[node.parentID].children = [];
       }
-      nodeMap[item.parentID].children.push(nodeMap[item.nodeID]);
+
+      nodeMap[node.parentID].children.push(nodeMap[node.nodeID]);
     }
   }
 
@@ -190,12 +388,11 @@ function giveColorSearch(item: CallTree, searchPhrase: string): string {
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
+  if (item.moduleName.split(" ").length === 1) {
+    return ConstructorDestructorType.None;
+  }
 
-    if(item.moduleName.split(" ").length === 1) {
-        return ConstructorDestructorType.None;
-    }
-
-  const method = (item.moduleName.split(".")[0]).split(" ")[0]; //first element
+  const method = item.moduleName.split(".")[0].split(" ")[0]; //first element
 
   const className = item.moduleName.split(".").slice(-1)[0]; //last element
 

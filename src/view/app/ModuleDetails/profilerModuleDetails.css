@@ -3,6 +3,20 @@
     max-height: 300px;
 }
 .total-time{
-    margin-top: 5px;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    border: 1px solid var(--vscode-editor-foreground);
+    margin-right: 2rem;
+    text-align: center;
+    padding: 0 10px;
+}
+
+.rowFormat {
     font-weight: bold;
+    font-size: 1.1em;
+    font-weight: 900;
+    background-color: rgba(0, 0, 0, 0.3);
 }

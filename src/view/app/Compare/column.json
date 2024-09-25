@@ -16,13 +16,28 @@
             "width": "auto"
         },
         {
+            "key": "timesCalledChange",
+            "name": "Times Called Diff",
+            "width": "auto"
+        },
+        {
             "key": "totalTime",
             "name": "Total Time",
             "width": "auto"
         },
         {
+            "key": "totalTimeChange",
+            "name": "Total Time Diff",
+            "width": "auto"
+        },
+        {
             "key": "avgTimePerCall",
             "name": "Avg Time Per Call",
+            "width": "auto"
+        },
+        {
+            "key": "avgTimePerCallChange",
+            "name": "Avg Time Per Call Diff",
             "width": "auto"
         }
     ],

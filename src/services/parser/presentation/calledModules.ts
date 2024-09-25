@@ -1,4 +1,5 @@
 import { CalledModules, ModuleDetails } from "../../../common/PresentationData";
+import { ParserLogger } from "../ParserLogger";
 import { ProfilerRawData } from "../profilerRawData";
 
 /**
@@ -6,28 +7,47 @@ import { ProfilerRawData } from "../profilerRawData";
  */
 export function calculateCalledModules(rawData: ProfilerRawData, moduleDetailList: ModuleDetails[]): CalledModules[] {
 
-  const calledModulesList = [] as CalledModules[];
+    const calledModulesList = [] as CalledModules[];
 
-  for(let module of rawData.ModuleData) {
+    for (let module of rawData.ModuleData) {
 
-    for(let node of rawData.CallGraphData) {
+        for (let node of rawData.CallGraphData) {
 
-      if (node.CallerID === module.ModuleID) {
+            if (node.CallerID === module.ModuleID) {
 
-        let moduleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CalleeID)!;
+                let calledModule = calledModulesList.find(({ callerID, calleeID }) => callerID === node.CallerID && calleeID === node.CalleeID);
 
-        let calledModule: CalledModules = {
-          moduleID        : module.ModuleID,
-          calledModuleName: moduleDetails.moduleName,
-          timesCalled     : node.CallCount,
-          totalTimesCalled: moduleDetails.timesCalled,
-          pcntOfSession   : moduleDetails.pcntOfSession
+                if (calledModule) {
+                    calledModule.timesCalled += node.CallCount;
+                } else {
+                    let callerModuleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CallerID)!;
+                    if (!callerModuleDetails) {
+                        ParserLogger.logError(`Module with ID ${node.CallerID} not found`);
+                        break;
+                    }
+
+                    let calleeModuleDetails: ModuleDetails = moduleDetailList.find(({ moduleID }) => moduleID === node.CalleeID)!;
+                    if (!calleeModuleDetails) {
+                        ParserLogger.logError(`Module with ID ${node.CalleeID} not found`);
+                        break;
+                    }
+
+                    calledModule = {
+                        callerID: node.CallerID,
+                        calleeID: node.CalleeID,
+                        callerModuleName: callerModuleDetails.moduleName,
+                        calleeModuleName: calleeModuleDetails.moduleName,
+                        timesCalled: node.CallCount,
+                        calleeTotalTimesCalled: calleeModuleDetails.timesCalled,
+                        callerPcntOfSession: callerModuleDetails.pcntOfSession,
+                        calleePcntOfSession: calleeModuleDetails.pcntOfSession
+                    } as CalledModules;
+
+                    calledModulesList.push(calledModule);
+                }
+            }
         }
-
-        calledModulesList.push(calledModule);
-      }
     }
-  }
 
-  return calledModulesList;
+    return calledModulesList;
 }

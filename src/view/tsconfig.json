@@ -9,6 +9,8 @@
             "dom"
         ],
         "jsx": "react",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "sourceMap": true,
         "rootDir": "..",
         "noUnusedLocals": true,
@@ -16,7 +18,6 @@
         "noFallthroughCasesInSwitch": true,
         "experimentalDecorators": true,
         "resolveJsonModule": true,
-        "strict": true
     },
     "exclude": [
         "node_modules"
