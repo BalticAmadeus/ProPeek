@@ -17,7 +17,7 @@ const webpack = require('webpack');
 const webExtensionConfig = {
     mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
     entry: {
-        profiler: "./src/view/app/Profiler"
+        profiler: "./src/view/app/profiler/"
     },
     output: {
         path: path.resolve(__dirname, "out/view/app"),
