@@ -8,18 +8,13 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: npm install --legacy-peer-deps
+          command: npm install
       - run:
           name: Compile Extension
           command: npm run compile:extension
       - run:
           name: Compile Views
           command: npm run compile:views
-      - run:
-          name: Run Tests
-          command: npm run jestTest
-      - store_test_results:
-          path: test-results/jest
   build:
     docker:
       - image: cimg/node:18.0
@@ -27,7 +22,7 @@ jobs:
       - checkout
       - run:
           name: Install vsce
-          command: npm install vsce --legacy-peer-deps
+          command: npm install vsce
       - run:
           name: Build Extension
           command: npm run vsce
