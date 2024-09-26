@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: npm install
+          command: npm install --legacy-peer-deps
       - run:
           name: Compile Extension
           command: npm run compile:extension
@@ -27,7 +27,7 @@ jobs:
       - checkout
       - run:
           name: Install vsce
-          command: npm install vsce
+          command: npm install vsce --legacy-peer-deps
       - run:
           name: Build Extension
           command: npm run vsce
