@@ -186,7 +186,18 @@ const ProfilerForm: React.FC = () => {
     <React.Fragment>
       {(isLoading || isLoadingCompare) && <LoadingOverlay />}
       <div>
-        <div>
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            paddingBottom: 10,
+            width: "100%",
+            backgroundColor: "var(--vscode-editor-background)",
+            boxShadow: "0 1px 0 var(--vscode-editorWidget-border)",
+
+          }}
+        >
           <ToggleButtonGroup
             sx={{ mt: 2 }}
             size="small"
@@ -208,8 +219,7 @@ const ProfilerForm: React.FC = () => {
             </ProToggleButton>
           </ToggleButtonGroup>
         </div>
-        <hr></hr>
-        <div>{content}</div>
+        <div style={{ paddingTop: 10 }}>{content}</div>
       </div>
     </React.Fragment>
   );
