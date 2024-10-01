@@ -70,3 +70,11 @@ export interface ComparedModule {
   pcntOfSession?: number,
   status?: string,
 }
+export interface ComparedCalledModule {
+  callerID: number,
+  callerModuleName: string,
+  callerTimesCalled: number,
+  callerPcntOfSession: number,
+  callerTimesCalledChange: number,
+  callerPcntOfSessionChange: number,
+}
