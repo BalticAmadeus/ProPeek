@@ -47,7 +47,7 @@ export async function compareData(
     comparedModules.push(...createAddedModule(modules));
     newModuleMap.delete(modules[0].moduleName);
   });
-  console.log(oldPresentationData.callTree[0]);
+
   return {
     comparedModules,
     firstTotalTime: totalTime(oldPresentationData),
