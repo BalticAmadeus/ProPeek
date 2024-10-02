@@ -80,6 +80,13 @@ const addConditionalFormatting = (
           changeValue > 0
             ? `+${formatWithSixDecimals(changeValue)}`
             : formatWithSixDecimals(changeValue);
+      } else if (key === "timesCalledChange") {
+        
+        displayValue =
+          changeValue > 0
+            ? `+${changeValue}`
+            : changeValue;
+  
       } else {
         displayValue = changeValue;
       }
