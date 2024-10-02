@@ -4,6 +4,8 @@ import {
   PresentationData,
   ComparedData,
   ComparedModule,
+  CalledModules,
+  LineSummary,
 } from "../../../common/PresentationData";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import * as columnDefinition from "./column.json";
@@ -13,6 +15,7 @@ import { getVSCodeAPI } from "../utils/vscode";
 import { Box, FormControlLabel, Switch } from "@mui/material";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import ProfilerSummary from "./components/ProfilerSummary";
+import DataGrid from "react-data-grid";
 
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
@@ -30,6 +33,21 @@ interface GenericModuleColumn extends Column<any> {
 const defaultModuleSort: SortColumn = {
   columnKey: "totalTime",
   direction: "DESC",
+};
+
+const defaultCallerSort: SortColumn = {
+  columnKey: "callerPcntOfSession",
+  direction: "DESC",
+};
+
+const defaultCalleeSort: SortColumn = {
+  columnKey: "calleePcntOfSession",
+  direction: "DESC",
+};
+
+const defaultLineSort: SortColumn = {
+  columnKey: "lineNumber", // Sort by the "lineNumber" column by default
+  direction: "ASC", // Use ascending order
 };
 
 const addConditionalFormatting = (
@@ -158,12 +176,46 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     return savedView !== undefined ? savedView : false;
   });
 
+  const [selectedCallingRows, setSelectedCallingRows] = useState<
+    CalledModules[]
+  >(presentationData.calledModules);
+  const [sortCallingColumns, setSortCallingColumns] = useState<
+    readonly SortColumn[]
+  >([defaultCallerSort]);
+  const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
+    presentationData.calledModules
+  );
+  const [sortCalledColumns, setSortCalledColumns] = useState<
+    readonly SortColumn[]
+  >([defaultCalleeSort]);
+  const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
+    presentationData.lineSummary
+  );
+  const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>(
+    [defaultLineSort]
+  );
+
   useEffect(() => {
     vscode.setState(isPercentageView);
   }, [isPercentageView, vscode]);
 
   const formattedMergedColumns: GenericModuleColumn[] =
     addConditionalFormatting(columnDefinition.moduleColumns, isPercentageView);
+
+  const callingColumns: GenericModuleColumn[] = addConditionalFormatting(
+    columnDefinition.CallingColumns,
+    isPercentageView
+  );
+
+  const calledColumns: GenericModuleColumn[] = addConditionalFormatting(
+    columnDefinition.CalledColumns,
+    isPercentageView
+  );
+
+  const formattedLineColumns: GenericModuleColumn[] = addConditionalFormatting(
+    columnDefinition.LineColumns,
+    isPercentageView
+  );
 
   const sumTotalTime = {
     firstTotalTime: comparedData.firstTotalTime,
@@ -174,11 +226,44 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     if (!row) {
       return;
     }
+
+    setSelectedCallingRows(
+      presentationData.calledModules.filter(
+        (element) => element.calleeID === row.moduleID
+      )
+    );
+    setSelectedCalledRows(
+      presentationData.calledModules.filter(
+        (element) => element.callerID === row.moduleID
+      )
+    );
+    setSelectedLineRows(
+      presentationData.lineSummary.filter(
+        (element) => element.moduleID === row.moduleID
+      )
+    );
   };
+
+  // 
+  const setMatchingRow = (
+    selectedRow,
+    matchKeys,
+    targetRows,
+    setSelectedRow
+  ) => {
+    const matchingRow = targetRows.find((row) =>
+      matchKeys.some((key) => row.moduleID === selectedRow[key])
+    );
+    if (matchingRow) {
+      setSelectedRow(matchingRow);
+    }
+  };
+
+  // 
 
   const getSortedRows = (
     columns: readonly SortColumn[],
-    rows: ComparedModule[]
+    rows: ComparedModule[] | CalledModules[] | LineSummary[]
   ) => {
     if (columns.length === 0) {
       return rows;
@@ -209,6 +294,25 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
     return sortedRows;
   }, [moduleRows, sortModuleColumns]);
+
+
+  const sortedCallingRows = useMemo((): readonly CalledModules[] => {
+    return getSortedRows(
+      sortCallingColumns,
+      selectedCallingRows
+    ) as CalledModules[];
+  }, [selectedCallingRows, sortCallingColumns]);
+
+  const sortedCalledRows = useMemo((): readonly CalledModules[] => {
+    return getSortedRows(
+      sortCalledColumns,
+      selectedCalledRows
+    ) as CalledModules[];
+  }, [selectedCalledRows, sortCalledColumns]);
+
+  const sortedLineRows = useMemo((): readonly LineSummary[] => {
+    return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
+  }, [selectedLineRows, sortLineColumns]);
 
   const handleToggleProfile = async () => {
     setIsLoading(true);
@@ -269,6 +373,74 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             setSearchValue={setModuleNameFilter}
           />
         ) : null}
+      </div>
+
+      <div className="columns">
+        <div className="calling-columns">
+          <div className="grid-name">Calling Modules</div>
+          <DataGrid
+            className="columns"
+            columns={   
+callingColumns}
+            rows={sortedCallingRows}
+            defaultColumnOptions={{
+              sortable: true,
+              resizable: true,
+            }}
+            onRowsChange={setSelectedCallingRows}
+            sortColumns={sortCallingColumns}
+            onSortColumnsChange={setSortCallingColumns}   
+
+            onRowDoubleClick={(row) => {
+              setModuleNameFilter(row.callerModuleName);
+              setMatchingRow(
+                row,
+                ["callerID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
+            }}
+          />
+        </div>
+        <div className="called-columns">
+          <div className="grid-name">Called Modules</div>
+          <DataGrid
+            className="columns"
+            columns={calledColumns}
+            rows={sortedCalledRows}
+            defaultColumnOptions={{
+              sortable: true,
+              resizable: true,
+            }}
+            onRowsChange={setSelectedCalledRows}
+            sortColumns={sortCalledColumns}
+            onSortColumnsChange={setSortCalledColumns}   
+
+            onRowDoubleClick={(row) => {
+              setModuleNameFilter(row.calleeModuleName);
+              setMatchingRow(
+                row,
+                ["calleeID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
+            }}
+          />
+        </div>
+      </div>
+      <div className="line-columns">
+        <div className="grid-name">Line Summary</div>
+        <DataGrid
+          columns={formattedLineColumns}
+          rows={sortedLineRows}
+          defaultColumnOptions={{
+            sortable: true,
+            resizable: true,
+          }}
+          onRowsChange={setSelectedLineRows}
+          sortColumns={sortLineColumns}
+          onSortColumnsChange={setSortLineColumns}
+        />
       </div>
     </div>
   );
