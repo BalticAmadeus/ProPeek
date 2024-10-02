@@ -19,7 +19,6 @@ interface Message {
 }
 
 export class ProfilerViewer {
-
   // Responsible for toggling between two profiler data sets
   private isViewingAlternateProfiler = false;
   private currentViewedProfiler: "main" | "alternate" = "main";
@@ -123,7 +122,9 @@ export class ProfilerViewer {
         case "requestCompareFiles":
           const selectedFiles = await vscode.window.showOpenDialog({
             canSelectMany: false,
-            title: "Select one profiler file to compare with your " + path.basename(this.proPath),
+            title:
+              "Select one profiler file to compare with your " +
+              path.basename(this.proPath),
             openLabel: "Select Profiler File",
             filters: {
               "Profiler Files": ["prof", "out"],
@@ -142,7 +143,6 @@ export class ProfilerViewer {
               )}.`
             );
 
-            await this.reloadProfilerData(this.proPath, this.filePath);
             return;
           }
           const file = selectedFiles[0].fsPath;
@@ -159,7 +159,11 @@ export class ProfilerViewer {
           }
           break;
         case "GRAPH_TYPE_CHANGE":
-          if (!this.isViewingAlternateProfiler && this.filePath2 && this.proPath2) {
+          if (
+            !this.isViewingAlternateProfiler &&
+            this.filePath2 &&
+            this.proPath2
+          ) {
             await this.initProfiler(
               new ProfilerService(this.proPath2),
               this.filePath2,
@@ -204,7 +208,7 @@ export class ProfilerViewer {
     }
   }
 
-   // Loads, parses and then compares two profiler data sets
+  // Loads, parses and then compares two profiler data sets
   private async loadTwoProfilerData(
     proPath: string,
     filePath: string,
@@ -349,7 +353,9 @@ export class ProfilerViewer {
     }
     this.setLoading(false);
     this.isViewingAlternateProfiler = !this.isViewingAlternateProfiler;
-    this.currentViewedProfiler = this.isViewingAlternateProfiler ? "alternate" : "main";
+    this.currentViewedProfiler = this.isViewingAlternateProfiler
+      ? "alternate"
+      : "main";
   }
 
   // Initializes profiler by parsing and displaying profiler data, caches data for future use

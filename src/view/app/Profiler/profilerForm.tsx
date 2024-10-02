@@ -135,8 +135,7 @@ const ProfilerForm: React.FC = () => {
     tab: ProfilerTab | null
   ) => {
     if (!tab) return;
-
-    if (tab === ProfilerTab.Compare && !comparedData) {
+    else if (tab === ProfilerTab.Compare && !comparedData) {
       const userWantsToCompare: any = await vscode.postMessage({
         type: "requestCompareFiles",
         presentationData,
@@ -145,7 +144,7 @@ const ProfilerForm: React.FC = () => {
       if (userWantsToCompare) {
         setActiveTab(ProfilerTab.Compare);
       } else {
-        setActiveTab(ProfilerTab.ModuleDetails);
+        setActiveTab(activeTab);
       }
     } else {
       setActiveTab(tab);
@@ -195,7 +194,6 @@ const ProfilerForm: React.FC = () => {
             width: "100%",
             backgroundColor: "var(--vscode-editor-background)",
             boxShadow: "0 1px 0 var(--vscode-editorWidget-border)",
-
           }}
         >
           <ToggleButtonGroup
