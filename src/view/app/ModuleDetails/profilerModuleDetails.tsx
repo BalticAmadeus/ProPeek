@@ -11,8 +11,8 @@ import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
-import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
+import { getVSCodeAPI } from "../utils/vscode";
 import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
@@ -53,7 +53,7 @@ const addConditionalFormatting = (
   );
 
   const addFixedFormat = (row: ModuleDetails | LineSummary, key: string) => (
-    <>{row[key] !== 0 ? row[key].toFixed(6) : row[key]}</>
+    <>{row[key] !== 0 ? row[key]?.toFixed(6) : row[key]}</>
   );
 
   const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
