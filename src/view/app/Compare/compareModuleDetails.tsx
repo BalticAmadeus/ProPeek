@@ -8,7 +8,7 @@ import {
   LineSummary,
 } from "../../../common/PresentationData";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
-import * as columnDefinition from "./column.json";
+import columnDefinition from "./column.json";
 import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
@@ -81,12 +81,7 @@ const addConditionalFormatting = (
             ? `+${formatWithSixDecimals(changeValue)}`
             : formatWithSixDecimals(changeValue);
       } else if (key === "timesCalledChange") {
-        
-        displayValue =
-          changeValue > 0
-            ? `+${changeValue}`
-            : changeValue;
-  
+        displayValue = changeValue > 0 ? `+${changeValue}` : changeValue;
       } else {
         displayValue = changeValue;
       }
@@ -251,7 +246,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     );
   };
 
-  // 
+  //
   const setMatchingRow = (
     selectedRow,
     matchKeys,
@@ -266,7 +261,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     }
   };
 
-  // 
+  //
 
   const getSortedRows = (
     columns: readonly SortColumn[],
@@ -301,7 +296,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
     return sortedRows;
   }, [moduleRows, sortModuleColumns]);
-
 
   const sortedCallingRows = useMemo((): readonly CalledModules[] => {
     return getSortedRows(
@@ -387,8 +381,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
           <div className="grid-name">Calling Modules</div>
           <DataGrid
             className="columns"
-            columns={   
-callingColumns}
+            columns={callingColumns}
             rows={sortedCallingRows}
             defaultColumnOptions={{
               sortable: true,
@@ -396,8 +389,7 @@ callingColumns}
             }}
             onRowsChange={setSelectedCallingRows}
             sortColumns={sortCallingColumns}
-            onSortColumnsChange={setSortCallingColumns}   
-
+            onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
               setMatchingRow(
@@ -421,8 +413,7 @@ callingColumns}
             }}
             onRowsChange={setSelectedCalledRows}
             sortColumns={sortCalledColumns}
-            onSortColumnsChange={setSortCalledColumns}   
-
+            onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
               setMatchingRow(

@@ -1,5 +1,5 @@
 import React from "react";
-import "./LoadingOverlay.css";
+import "./loadingOverlay.css";
 
 const LoadingOverlay = ({ message = "Loading..." }) => {
   return (
