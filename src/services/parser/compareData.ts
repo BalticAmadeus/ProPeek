@@ -109,51 +109,49 @@ const compareCalledModules = (
   oldCalledModules: CalledModules[],
   newCalledModules: CalledModules[]
 ): ComparedCalledModule[] => {
+  const comparedCalledModules: ComparedCalledModule[] = [];
   const newCalledMap = new Map(
     newCalledModules.map((module) => [
       `${module.callerID}-${module.calleeID}`,
       module,
     ])
   );
-  const comparedCalledModules: ComparedCalledModule[] = [];
 
   oldCalledModules.forEach((oldCalledModule) => {
+    const oldModuleId = (moduleId: number): number => {
+      return Math.floor(moduleId / Constants.moduleIdMult);
+    };
     const callerId = comparedModules.filter(
-      (module) =>
-        Math.floor(module.moduleID / Constants.moduleIdMult) ===
-        oldCalledModule.callerID
+      (module) => oldModuleId(module.moduleID) === oldCalledModule.callerID
     )[0]?.moduleID;
     const calleeId = comparedModules.filter(
-      (module) =>
-        Math.floor(module.moduleID / Constants.moduleIdMult) ===
-        oldCalledModule.calleeID
+      (module) => oldModuleId(module.moduleID) === oldCalledModule.calleeID
     )[0]?.moduleID;
+
     const newCalledModule = newCalledMap.get(
       `${callerId % Constants.moduleIdMult}-${
         calleeId % Constants.moduleIdMult
       }`
     );
+
     if (newCalledModule) {
+      const callerTimesCalledChange = calculateChange(
+        newCalledModule.timesCalled,
+        oldCalledModule.timesCalled
+      );
+      const calleeTimesCalledChange = calculateChange(
+        newCalledModule.calleeTotalTimesCalled,
+        oldCalledModule.calleeTotalTimesCalled
+      );
+
       comparedCalledModules.push({
+        ...oldCalledModule,
         callerID: callerId,
         calleeID: calleeId,
-        callerModuleName: oldCalledModule.callerModuleName,
-        calleeModuleName: oldCalledModule.calleeModuleName,
         callerTimesCalled: oldCalledModule?.timesCalled,
         calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
-        callerTimesCalledChange:
-          newCalledModule.timesCalled - oldCalledModule.timesCalled,
-        calleeTimesCalledChange:
-          newCalledModule.calleeTotalTimesCalled -
-          oldCalledModule.calleeTotalTimesCalled,
-        callerPcntOfSession: oldCalledModule.callerPcntOfSession,
-        calleePcntOfSession: oldCalledModule.calleePcntOfSession,
-        callerPcntOfSessionChange:
-          newCalledModule.callerPcntOfSession -
-          oldCalledModule.callerPcntOfSession,
-        calleePcntOfSessionChange:
-          newCalledModule.calleePcntOfSession -
-          oldCalledModule.calleePcntOfSession,
+        callerTimesCalledChange,
+        calleeTimesCalledChange,
       });
       newCalledMap.delete(
         `${callerId % Constants.moduleIdMult}-${
@@ -163,26 +161,27 @@ const compareCalledModules = (
     } else {
       comparedCalledModules.push({
         ...oldCalledModule,
+        callerID: oldCalledModule.callerID * Constants.moduleIdMult,
+        calleeID: oldCalledModule.calleeID * Constants.moduleIdMult,
         callerTimesCalled: oldCalledModule.timesCalled,
         callerTimesCalledChange: 0,
         calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
         calleeTimesCalledChange: 0,
-        callerPcntOfSessionChange: 0,
-        calleePcntOfSessionChange: 0,
+        status: "removed",
       });
     }
   });
   newCalledMap.forEach((module) =>
     comparedCalledModules.push({
       ...module,
-      callerTimesCalled: module.timesCalled,
-      callerTimesCalledChange: 0,
-      calleeTimesCalled: module.calleeTotalTimesCalled,
-      calleeTimesCalledChange: 0,
-      callerPcntOfSessionChange: 0,
-      calleePcntOfSessionChange: 0,
+      callerTimesCalled: 0,
+      callerTimesCalledChange: module.timesCalled,
+      calleeTimesCalled: 0,
+      calleeTimesCalledChange: module.calleeTotalTimesCalled,
+      callerPcntOfSession: 0,
+      calleePcntOfSession: 0,
+      status: "added",
     })
   );
-  console.log(compareCalledModules);
   return comparedCalledModules;
 };

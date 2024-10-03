@@ -81,7 +81,6 @@ export interface ComparedCalledModule {
   callerPcntOfSession: number,
   calleePcntOfSession: number,
   callerTimesCalledChange: number,
-  callerPcntOfSessionChange: number,
   calleeTimesCalledChange: number,
-  calleePcntOfSessionChange: number,
+  status?: string,
 }
