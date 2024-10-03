@@ -179,16 +179,15 @@ const compareCalledModules = (
     const oldModuleId = (moduleId: number): number => {
       return Math.floor(moduleId / Constants.moduleIdMult);
     };
-    const callerId = comparedModules.filter(
+    const callerID = comparedModules.filter(
       (module) => oldModuleId(module.moduleID) === oldCalledModule.callerID
     )[0]?.moduleID;
-    const calleeId = comparedModules.filter(
+    const calleeID = comparedModules.filter(
       (module) => oldModuleId(module.moduleID) === oldCalledModule.calleeID
     )[0]?.moduleID;
-
     const newCalledModule = newCalledMap.get(
-      `${callerId % Constants.moduleIdMult}-${
-        calleeId % Constants.moduleIdMult
+      `${callerID % Constants.moduleIdMult}-${
+        calleeID % Constants.moduleIdMult
       }`
     );
 
@@ -204,23 +203,23 @@ const compareCalledModules = (
 
       comparedCalledModules.push({
         ...oldCalledModule,
-        callerID: callerId,
-        calleeID: calleeId,
+        callerID,
+        calleeID,
         callerTimesCalled: oldCalledModule?.timesCalled,
         calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
         callerTimesCalledChange,
         calleeTimesCalledChange,
       });
       newCalledMap.delete(
-        `${callerId % Constants.moduleIdMult}-${
-          calleeId % Constants.moduleIdMult
+        `${callerID % Constants.moduleIdMult}-${
+          calleeID % Constants.moduleIdMult
         }`
       );
     } else {
       comparedCalledModules.push({
         ...oldCalledModule,
-        callerID: oldCalledModule.callerID * Constants.moduleIdMult,
-        calleeID: oldCalledModule.calleeID * Constants.moduleIdMult,
+        callerID,
+        calleeID,
         callerTimesCalled: oldCalledModule.timesCalled,
         callerTimesCalledChange: 0,
         calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
@@ -241,5 +240,6 @@ const compareCalledModules = (
       status: "added",
     })
   );
+
   return comparedCalledModules;
 };
