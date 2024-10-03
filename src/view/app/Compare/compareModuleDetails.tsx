@@ -6,7 +6,7 @@ import {
   ComparedModule,
 } from "../../../common/PresentationData";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
-import * as columnDefinition from "./column.json";
+import columnDefinition from "./column.json";
 import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";

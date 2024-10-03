@@ -1,0 +1,33 @@
+version: 2.1
+
+jobs:
+  compile-front-end:
+    docker:
+      - image: cimg/node:18.0
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - run:
+          name: Compile Extension
+          command: npm run compile:extension
+      - run:
+          name: Compile Views
+          command: npm run compile:views
+  build:
+    docker:
+      - image: cimg/node:18.0
+    steps:
+      - checkout
+      - run:
+          name: Install vsce
+          command: npm install vsce
+      - run:
+          name: Build Extension
+          command: npm run vsce
+workflows:
+  build:
+    jobs:
+      - compile-front-end
+      - build
