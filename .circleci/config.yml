@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  test-and-compile-front-end:
+  compile-front-end:
     docker:
       - image: cimg/node:18.0
     steps:
@@ -29,5 +29,5 @@ jobs:
 workflows:
   build:
     jobs:
-      - test-and-compile-front-end
+      - compile-front-end
       - build
