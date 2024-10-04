@@ -228,11 +228,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     isPercentageView
   );
 
-  const formattedLineColumns: GenericModuleColumn[] = addConditionalFormatting(
-    columnDefinition.LineColumns,
-    isPercentageView
-  );
-
   const sumTotalTime = {
     firstTotalTime: comparedData.firstTotalTime,
     secondTotalTime: comparedData.secondTotalTime,
@@ -324,10 +319,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       selectedCalledRows
     ) as ComparedCalledModule[];
   }, [selectedCalledRows, sortCalledColumns]);
-
-  const sortedLineRows = useMemo((): readonly LineSummary[] => {
-    return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
-  }, [selectedLineRows, sortLineColumns]);
 
   const handleToggleProfile = async () => {
     setIsLoading(true);
