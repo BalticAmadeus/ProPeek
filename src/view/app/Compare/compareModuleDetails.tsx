@@ -369,10 +369,9 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       </div>
 
       <div className="columns">
-        <div className="calling-columns">
+        <div className="calling-columns-compare">
           <div className="grid-name">Calling Modules</div>
           <DataGrid
-            className="columns"
             columns={callingColumns}
             rows={sortedCallingRows}
             defaultColumnOptions={{
@@ -394,10 +393,9 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             }}
           />
         </div>
-        <div className="called-columns">
+        <div className="called-columns-compare">
           <div className="grid-name">Called Modules</div>
           <DataGrid
-            className="columns"
             columns={calledColumns}
             rows={sortedCalledRows}
             defaultColumnOptions={{

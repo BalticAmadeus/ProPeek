@@ -1,7 +1,6 @@
 .columns {
     height: auto;
     max-height: 300px;
-    margin-bottom: 1rem;
 }
 
 .total-time {
@@ -30,4 +29,16 @@
     display: flex;
     justify-content: right;
     height: 100%;
+}
+
+.calling-columns-compare {
+    position: relative;
+    width: 30%;
+    display: inline-block;
+}
+
+.called-columns-compare {
+    position: relative;
+    width: calc(70% - 30px);
+    display: inline-block;
 }
