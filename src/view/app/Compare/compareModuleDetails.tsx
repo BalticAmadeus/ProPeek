@@ -53,14 +53,13 @@ const addConditionalFormatting = (
   const addPercentageFormat = (value: number) => (
     <PercentageFill value={value} />
   );
+  const formatWithSixDecimals = (value: number) =>
+    value === 0 ? value : value?.toFixed(6);
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
     let changeType = "";
     let changeClass = "";
-
-    const formatWithSixDecimals = (value: number) =>
-      value === 0 ? value : value?.toFixed(6);
 
     if (isPercentageView) {
       if (key === "totalTimeChange") {
@@ -72,9 +71,7 @@ const addConditionalFormatting = (
         displayValue = ((changeValue / row.timesCalled) * 100).toFixed(2) + "%";
       }
     } else {
-      if (key === "totalTime" || key === "avgTimePerCall") {
-        displayValue = formatWithSixDecimals(changeValue);
-      } else if (key === "totalTimeChange" || key === "avgTimePerCallChange") {
+      if (key === "totalTimeChange" || key === "avgTimePerCallChange") {
         displayValue =
           changeValue > 0
             ? `+${formatWithSixDecimals(changeValue)}`
@@ -98,12 +95,17 @@ const addConditionalFormatting = (
   };
 
   return columns.map((column) => {
+    if (column.key === "totalTime" || column.key === "avgTimePerCall") {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ComparedModule>) =>
+          formatWithSixDecimals(props.row[column.key]),
+      };
+    }
     if (
       column.key === "totalTimeChange" ||
       column.key === "avgTimePerCallChange" ||
-      column.key === "timesCalledChange" ||
-      column.key === "totalTime" ||
-      column.key === "avgTimePerCall"
+      column.key === "timesCalledChange"
     ) {
       return {
         ...column,
@@ -162,7 +164,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   comparedData,
   fileName,
   fileName2,
-}) => {   
+}) => {
   const [moduleRows, setModuleRows] = useState<ComparedModule[]>(
     comparedData.comparedModules
   );
