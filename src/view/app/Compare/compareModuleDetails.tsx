@@ -167,7 +167,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   comparedData,
   fileName,
   fileName2,
-}) => {
+}) => {   
   const [moduleRows, setModuleRows] = useState<ComparedModule[]>(
     comparedData.comparedModules
   );
@@ -444,20 +444,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             }}
           />
         </div>
-      </div>
-      <div className="line-columns">
-        <div className="grid-name">Line Summary</div>
-        <DataGrid
-          columns={formattedLineColumns}
-          rows={sortedLineRows}
-          defaultColumnOptions={{
-            sortable: true,
-            resizable: true,
-          }}
-          onRowsChange={setSelectedLineRows}
-          sortColumns={sortLineColumns}
-          onSortColumnsChange={setSortLineColumns}
-        />
       </div>
     </div>
   );
