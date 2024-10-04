@@ -221,9 +221,9 @@ const compareCalledModules = (
         callerID,
         calleeID,
         callerTimesCalled: oldCalledModule.timesCalled,
-        callerTimesCalledChange: 0,
+        callerTimesCalledChange: -oldCalledModule.timesCalled,
         calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
-        calleeTimesCalledChange: 0,
+        calleeTimesCalledChange: -oldCalledModule.calleeTotalTimesCalled,
         status: "removed",
       });
     }
