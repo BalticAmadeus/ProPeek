@@ -4,8 +4,8 @@ import {
   PresentationData,
   ComparedData,
   ComparedModule,
-  CalledModules,
   LineSummary,
+  ComparedCalledModule,
 } from "../../../common/PresentationData";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import columnDefinition from "./column.json";
@@ -16,6 +16,7 @@ import { Box, FormControlLabel, Switch } from "@mui/material";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import ProfilerSummary from "./components/ProfilerSummary";
 import DataGrid from "react-data-grid";
+import PercentageFill from "../Components/PercentageBar/PercentageFill";
 
 interface CompareModuleDetailsProps {
   presentationData: PresentationData;
@@ -54,6 +55,9 @@ const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>,
   isPercentageView: boolean
 ): Array<GenericModuleColumn> => {
+  const addPercentageFormat = (value: number) => (
+    <PercentageFill value={value} />
+  );
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
@@ -110,6 +114,16 @@ const addConditionalFormatting = (
         ...column,
         formatter: (props: FormatterProps<ComparedModule>) =>
           addChangeFormat(props.row, column.key),
+      };
+    }
+    if (
+      column.key === "calleePcntOfSession" ||
+      column.key === "callerPcntOfSession"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ComparedCalledModule>) =>
+          addPercentageFormat(props.row[column.key]),
       };
     }
     return column;
@@ -179,14 +193,14 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   });
 
   const [selectedCallingRows, setSelectedCallingRows] = useState<
-    CalledModules[]
-  >(presentationData.calledModules);
+    ComparedCalledModule[]
+  >(comparedData.comparedCalledModules);
   const [sortCallingColumns, setSortCallingColumns] = useState<
     readonly SortColumn[]
   >([defaultCallerSort]);
-  const [selectedCalledRows, setSelectedCalledRows] = useState<CalledModules[]>(
-    presentationData.calledModules
-  );
+  const [selectedCalledRows, setSelectedCalledRows] = useState<
+    ComparedCalledModule[]
+  >(comparedData.comparedCalledModules);
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
   >([defaultCalleeSort]);
@@ -230,12 +244,12 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     }
 
     setSelectedCallingRows(
-      presentationData.calledModules.filter(
+      comparedData.comparedCalledModules.filter(
         (element) => element.calleeID === row.moduleID
       )
     );
     setSelectedCalledRows(
-      presentationData.calledModules.filter(
+      comparedData.comparedCalledModules.filter(
         (element) => element.callerID === row.moduleID
       )
     );
@@ -265,7 +279,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const getSortedRows = (
     columns: readonly SortColumn[],
-    rows: ComparedModule[] | CalledModules[] | LineSummary[]
+    rows: ComparedModule[] | ComparedCalledModule[] | LineSummary[]
   ) => {
     if (columns.length === 0) {
       return rows;
@@ -297,18 +311,18 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     return sortedRows;
   }, [moduleRows, sortModuleColumns]);
 
-  const sortedCallingRows = useMemo((): readonly CalledModules[] => {
+  const sortedCallingRows = useMemo((): readonly ComparedCalledModule[] => {
     return getSortedRows(
       sortCallingColumns,
       selectedCallingRows
-    ) as CalledModules[];
+    ) as ComparedCalledModule[];
   }, [selectedCallingRows, sortCallingColumns]);
 
-  const sortedCalledRows = useMemo((): readonly CalledModules[] => {
+  const sortedCalledRows = useMemo((): readonly ComparedCalledModule[] => {
     return getSortedRows(
       sortCalledColumns,
       selectedCalledRows
-    ) as CalledModules[];
+    ) as ComparedCalledModule[];
   }, [selectedCalledRows, sortCalledColumns]);
 
   const sortedLineRows = useMemo((): readonly LineSummary[] => {
@@ -365,7 +379,10 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
           <CompareDetailsTable
             columns={formattedMergedColumns}
             rows={sortedModuleRows}
-            onRowClick={(row) => setSelectedRow(row)}
+            onRowClick={(row) => {
+              setSelectedRow(row);
+              console.log("mod", row);
+            }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
@@ -390,6 +407,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             onRowsChange={setSelectedCallingRows}
             sortColumns={sortCallingColumns}
             onSortColumnsChange={setSortCallingColumns}
+            onRowClick={(row) => console.log("calling", row)}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
               setMatchingRow(
@@ -414,6 +432,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             onRowsChange={setSelectedCalledRows}
             sortColumns={sortCalledColumns}
             onSortColumnsChange={setSortCalledColumns}
+            onRowClick={(row) => console.log("called", row)}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
               setMatchingRow(
