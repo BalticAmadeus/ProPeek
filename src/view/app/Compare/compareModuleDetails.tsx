@@ -46,11 +46,6 @@ const defaultCalleeSort: SortColumn = {
   direction: "DESC",
 };
 
-const defaultLineSort: SortColumn = {
-  columnKey: "lineNumber", // Sort by the "lineNumber" column by default
-  direction: "ASC", // Use ascending order
-};
-
 const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>,
   isPercentageView: boolean
