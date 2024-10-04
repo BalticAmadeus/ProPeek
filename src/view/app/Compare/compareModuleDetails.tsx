@@ -204,12 +204,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
   const [sortCalledColumns, setSortCalledColumns] = useState<
     readonly SortColumn[]
   >([defaultCalleeSort]);
-  const [selectedLineRows, setSelectedLineRows] = useState<LineSummary[]>(
-    presentationData.lineSummary
-  );
-  const [sortLineColumns, setSortLineColumns] = useState<readonly SortColumn[]>(
-    [defaultLineSort]
-  );
 
   useEffect(() => {
     vscode.setState(isPercentageView);
@@ -246,11 +240,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     setSelectedCalledRows(
       comparedData.comparedCalledModules.filter(
         (element) => element.callerID === row.moduleID
-      )
-    );
-    setSelectedLineRows(
-      presentationData.lineSummary.filter(
-        (element) => element.moduleID === row.moduleID
       )
     );
   };
