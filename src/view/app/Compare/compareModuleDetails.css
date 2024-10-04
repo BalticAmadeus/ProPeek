@@ -1,6 +1,7 @@
 .columns {
     height: auto;
     max-height: 300px;
+    margin-bottom: 1rem;
 }
 
 .total-time {
