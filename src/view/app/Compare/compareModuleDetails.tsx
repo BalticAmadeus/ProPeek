@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   PresentationData,
   ComparedData,
@@ -55,6 +55,7 @@ const addConditionalFormatting = (
   );
   const formatWithSixDecimals = (value: number) =>
     value === 0 ? value : value?.toFixed(6);
+
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
@@ -224,6 +225,59 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     secondTotalTime: comparedData.secondTotalTime,
   };
 
+  const checkOverflow = (columns: GenericModuleColumn[]) => {
+    return columns.map((col) => {
+      const overflow =
+        col.key === "callerModuleName" || col.key === "calleeModuleName";
+
+      if (overflow) {
+        return {
+          ...col,
+          formatter: ({ row }: FormatterProps<ComparedModule>) => {
+            const [isOverflow, setIsOverflow] = React.useState(false);
+            const [isHovered, setIsHovered] = React.useState(false);
+            const cellRef = React.useRef<HTMLDivElement>(null);
+
+            const checkOverflow = () => {
+              if (cellRef.current) {
+                const isOverflowing =
+                  cellRef.current.scrollWidth > cellRef.current.clientWidth;
+                setIsOverflow(isOverflowing);
+              }
+            };
+
+            React.useEffect(() => {
+              if (isHovered && cellRef.current) {
+                checkOverflow();
+              } else {
+                setIsOverflow(false);
+              }
+            }, [isHovered, row[col.key], cellRef.current]);
+
+            return (
+              <div
+                ref={cellRef}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  cursor: isOverflow ? "pointer" : "default",
+                }}
+                title={isHovered && isOverflow ? row[col.key] : undefined}
+              >
+                {row[col.key]}
+              </div>
+            );
+          },
+        };
+      }
+
+      return col;
+    });
+  };
+
   const filterTables = (row: ComparedModule) => {
     if (!row) {
       return;
@@ -241,7 +295,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
     );
   };
 
-  //
   const setMatchingRow = (
     selectedRow,
     matchKeys,
@@ -255,8 +308,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       setSelectedRow(matchingRow);
     }
   };
-
-  //
 
   const getSortedRows = (
     columns: readonly SortColumn[],
@@ -305,6 +356,14 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       selectedCalledRows
     ) as ComparedCalledModule[];
   }, [selectedCalledRows, sortCalledColumns]);
+
+  const overflowCallingColumns = useMemo(() => {
+    return checkOverflow(callingColumns);
+  }, [callingColumns]);
+
+  const overflowCalledColumns = useMemo(() => {
+    return checkOverflow(calledColumns);
+  }, [calledColumns]);
 
   const handleToggleProfile = async () => {
     setIsLoading(true);
@@ -374,7 +433,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
         <div className="calling-columns-compare">
           <div className="grid-name">Calling Modules</div>
           <DataGrid
-            columns={callingColumns}
+            columns={overflowCallingColumns}
             rows={sortedCallingRows}
             defaultColumnOptions={{
               sortable: true,
@@ -398,7 +457,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
         <div className="called-columns-compare">
           <div className="grid-name">Called Modules</div>
           <DataGrid
-            columns={calledColumns}
+            columns={overflowCalledColumns}
             rows={sortedCalledRows}
             defaultColumnOptions={{
               sortable: true,
