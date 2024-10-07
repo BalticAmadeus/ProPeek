@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState, useMemo, useEffect } from "react";
 import {
-  PresentationData,
   ComparedData,
   ComparedModule,
   LineSummary,
@@ -19,7 +18,6 @@ import DataGrid from "react-data-grid";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 
 interface CompareModuleDetailsProps {
-  presentationData: PresentationData;
   comparedData: ComparedData;
   fileName: string;
   fileName2: string;
@@ -171,12 +169,12 @@ function getComparator(sortColumn: string) {
     case "calleeID":
     case "timesCalled":
     case "timesCalledChange":
-    case "calleeTotalTimesCalled":
-    case "callerTotalTimesCalled":
-    case "lineNumber":
+    case "calleeTimesCalled":
+    case "calleeTimesCalledChange":
+    case "callerTimesCalled":
+    case "callerTimesCalledChange":
     case "avgTimePerCall":
     case "avgTimePerCallChange":
-    case "avgTime":
     case "totalTime":
     case "totalTimeChange":
     case "pcntOfSession":
@@ -197,7 +195,6 @@ function getComparator(sortColumn: string) {
 }
 
 const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
-  presentationData,
   comparedData,
   fileName,
   fileName2,
