@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import {
-  PresentationData,
   ComparedData,
   ComparedModule,
   LineSummary,
@@ -19,7 +18,6 @@ import DataGrid from "react-data-grid";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 
 interface CompareModuleDetailsProps {
-  presentationData: PresentationData;
   comparedData: ComparedData;
   fileName: string;
   fileName2: string;
@@ -50,26 +48,54 @@ const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>,
   isPercentageView: boolean
 ): Array<GenericModuleColumn> => {
+  const formatWithSixDecimals = (value: number) =>
+    value === 0 ? value : value?.toFixed(6);
+
+  const getPercentageValue = (changeValue: number, rowValue: number) =>
+    `${((changeValue / rowValue) * 100).toFixed(2)}%`;
+
   const addPercentageFormat = (value: number) => (
     <PercentageFill value={value} />
   );
-  const formatWithSixDecimals = (value: number) =>
-    value === 0 ? value : value?.toFixed(6);
+
+  const getChangeClass = (changeValue: number) => {
+    const changeType =
+      changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
+    return `cell${changeType}Change`;
+  };
+
+  const addCallingChangeFormat = (row: ComparedCalledModule, key: string) => {
+    const changeValue = row[key];
+    let displayValue;
+    const changeClass = getChangeClass(changeValue);
+
+    if (isPercentageView) {
+      if (key === "calleeTimesCalledChange")
+        displayValue = getPercentageValue(changeValue, row.calleeTimesCalled);
+      if (key === "callerTimesCalledChange")
+        displayValue = getPercentageValue(changeValue, row.callerTimesCalled);
+    } else {
+      displayValue = changeValue;
+    }
+    return (
+      <Box className={`${changeClass}`}>
+        {changeValue > 0 ? `+${displayValue}` : displayValue}
+      </Box>
+    );
+  };
 
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
-    let changeType = "";
     let changeClass = "";
 
     if (isPercentageView) {
       if (key === "totalTimeChange") {
-        displayValue = ((changeValue / row.totalTime) * 100).toFixed(2) + "%";
+        displayValue = getPercentageValue(changeValue, row.totalTime);
       } else if (key === "avgTimePerCallChange" && row.avgTimePerCall) {
-        displayValue =
-          ((changeValue / row.avgTimePerCall) * 100).toFixed(2) + "%";
+        displayValue = getPercentageValue(changeValue, row.avgTimePerCall);
       } else if (key === "timesCalledChange") {
-        displayValue = ((changeValue / row.timesCalled) * 100).toFixed(2) + "%";
+        displayValue = getPercentageValue(changeValue, row.timesCalled);
       }
     } else {
       if (key === "totalTimeChange" || key === "avgTimePerCallChange") {
@@ -88,9 +114,7 @@ const addConditionalFormatting = (
       key === "avgTimePerCallChange" ||
       key === "timesCalledChange"
     ) {
-      changeType =
-        changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
-      changeClass = `cell${changeType}Change`;
+      changeClass = getChangeClass(changeValue);
     }
     return <Box className={`${changeClass}`}>{displayValue}</Box>;
   };
@@ -99,8 +123,9 @@ const addConditionalFormatting = (
     if (column.key === "totalTime" || column.key === "avgTimePerCall") {
       return {
         ...column,
-        formatter: (props: FormatterProps<ComparedModule>) =>
-          formatWithSixDecimals(props.row[column.key]),
+        formatter: (props: FormatterProps<ComparedModule>) => (
+          <Box>{formatWithSixDecimals(props.row[column.key])}</Box>
+        ),
       };
     }
     if (
@@ -124,6 +149,16 @@ const addConditionalFormatting = (
           addPercentageFormat(props.row[column.key]),
       };
     }
+    if (
+      column.key === "callerTimesCalledChange" ||
+      column.key === "calleeTimesCalledChange"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ComparedCalledModule>) =>
+          addCallingChangeFormat(props.row, column.key),
+      };
+    }
     return column;
   });
 };
@@ -135,12 +170,12 @@ function getComparator(sortColumn: string) {
     case "calleeID":
     case "timesCalled":
     case "timesCalledChange":
-    case "calleeTotalTimesCalled":
-    case "callerTotalTimesCalled":
-    case "lineNumber":
+    case "calleeTimesCalled":
+    case "calleeTimesCalledChange":
+    case "callerTimesCalled":
+    case "callerTimesCalledChange":
     case "avgTimePerCall":
     case "avgTimePerCallChange":
-    case "avgTime":
     case "totalTime":
     case "totalTimeChange":
     case "pcntOfSession":
@@ -161,7 +196,6 @@ function getComparator(sortColumn: string) {
 }
 
 const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
-  presentationData,
   comparedData,
   fileName,
   fileName2,
