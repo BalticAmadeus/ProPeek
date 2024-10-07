@@ -50,25 +50,54 @@ const addConditionalFormatting = (
   columns: Array<GenericModuleColumn>,
   isPercentageView: boolean
 ): Array<GenericModuleColumn> => {
+  const formatWithSixDecimals = (value: number) =>
+    value === 0 ? value : value?.toFixed(6);
+
+  const getPercentageValue = (changeValue: number, rowValue: number) =>
+    `${((changeValue / rowValue) * 100).toFixed(2)}%`;
+
   const addPercentageFormat = (value: number) => (
     <PercentageFill value={value} />
   );
-  const formatWithSixDecimals = (value: number) =>
-    value === 0 ? value : value?.toFixed(6);
+
+  const getChangeClass = (changeValue: number) => {
+    const changeType =
+      changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
+    return `cell${changeType}Change`;
+  };
+
+  const addCallingChangeFormat = (row: ComparedCalledModule, key: string) => {
+    const changeValue = row[key];
+    let displayValue;
+    const changeClass = getChangeClass(changeValue);
+
+    if (isPercentageView) {
+      if (key === "calleeTimesCalledChange")
+        displayValue = getPercentageValue(changeValue, row.calleeTimesCalled);
+      if (key === "callerTimesCalledChange")
+        displayValue = getPercentageValue(changeValue, row.callerTimesCalled);
+    } else {
+      displayValue = changeValue;
+    }
+    return (
+      <Box className={`${changeClass}`}>
+        {changeValue > 0 ? `+${displayValue}` : displayValue}
+      </Box>
+    );
+  };
+
   const addChangeFormat = (row: ComparedModule, key: string) => {
     const changeValue = row[key];
     let displayValue;
-    let changeType = "";
     let changeClass = "";
 
     if (isPercentageView) {
       if (key === "totalTimeChange") {
-        displayValue = ((changeValue / row.totalTime) * 100).toFixed(2) + "%";
+        displayValue = getPercentageValue(changeValue, row.totalTime);
       } else if (key === "avgTimePerCallChange" && row.avgTimePerCall) {
-        displayValue =
-          ((changeValue / row.avgTimePerCall) * 100).toFixed(2) + "%";
+        displayValue = getPercentageValue(changeValue, row.avgTimePerCall);
       } else if (key === "timesCalledChange") {
-        displayValue = ((changeValue / row.timesCalled) * 100).toFixed(2) + "%";
+        displayValue = getPercentageValue(changeValue, row.timesCalled);
       }
     } else {
       if (key === "totalTimeChange" || key === "avgTimePerCallChange") {
@@ -87,9 +116,7 @@ const addConditionalFormatting = (
       key === "avgTimePerCallChange" ||
       key === "timesCalledChange"
     ) {
-      changeType =
-        changeValue > 0 ? "Negative" : changeValue < 0 ? "Positive" : "";
-      changeClass = `cell${changeType}Change`;
+      changeClass = getChangeClass(changeValue);
     }
     return <Box className={`${changeClass}`}>{displayValue}</Box>;
   };
@@ -121,6 +148,16 @@ const addConditionalFormatting = (
         ...column,
         formatter: (props: FormatterProps<ComparedCalledModule>) =>
           addPercentageFormat(props.row[column.key]),
+      };
+    }
+    if (
+      column.key === "callerTimesCalledChange" ||
+      column.key === "calleeTimesCalledChange"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ComparedCalledModule>) =>
+          addCallingChangeFormat(props.row, column.key),
       };
     }
     return column;
