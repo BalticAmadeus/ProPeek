@@ -123,8 +123,9 @@ const addConditionalFormatting = (
     if (column.key === "totalTime" || column.key === "avgTimePerCall") {
       return {
         ...column,
-        formatter: (props: FormatterProps<ComparedModule>) =>
-          formatWithSixDecimals(props.row[column.key]),
+        formatter: (props: FormatterProps<ComparedModule>) => (
+          <Box>{formatWithSixDecimals(props.row[column.key])}</Box>
+        ),
       };
     }
     if (

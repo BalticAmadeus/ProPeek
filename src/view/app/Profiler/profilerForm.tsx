@@ -120,7 +120,6 @@ const ProfilerForm: React.FC = () => {
     return (
       <div>
         <CompareModuleDetails
-          presentationData={presentationData}
           comparedData={comparedData}
           fileName={fileName}
           fileName2={fileName2}
