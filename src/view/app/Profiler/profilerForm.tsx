@@ -7,7 +7,7 @@ import {
 import ProfilerTreeView from "../ProfilerTreeView/profilerTreeView";
 import ProfilerFlameGraph from "../FlameGraph/profilerFlameGraph";
 import ProfilerModuleDetails from "../ModuleDetails/profilerModuleDetails";
-import CompareModuleDetails from "../Compare/CompareModuleDetails";
+import CompareModuleDetails from "../Compare/compareModuleDetails";
 import { ToggleButtonGroup } from "@mui/material";
 import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOverlay";
 import { getVSCodeAPI } from "../utils/vscode";

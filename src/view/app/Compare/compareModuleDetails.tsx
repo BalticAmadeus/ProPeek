@@ -270,7 +270,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
           formatter: ({ row }: FormatterProps<ComparedModule>) => {
             const [isOverflow, setIsOverflow] = React.useState(false);
             const [isHovered, setIsHovered] = React.useState(false);
-            const cellRef = React.useRef<HTMLDivElement>(null);
+            const cellRef = useRef<HTMLDivElement>(null);
 
             const checkOverflow = () => {
               if (cellRef.current) {
