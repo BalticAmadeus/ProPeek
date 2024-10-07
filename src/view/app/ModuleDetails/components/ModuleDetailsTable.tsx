@@ -9,9 +9,10 @@ import { ModuleDetails } from "../../../../common/PresentationData";
 import { getVSCodeAPI } from "../../utils/vscode";
 import { useState } from "react";
 import * as React from "react";
-import { Box, Input, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useFileTypeSettingsContext } from "../../Components/FileTypeSettingsContext";
 import PercentageFill from "../../Components/PercentageBar/PercentageFill";
+import FilterHeader from "../../Components/FilterHeader/FilterHeader";
 
 interface FilterHeaderProps {
   onFilterChange?: (value: string) => void;
@@ -21,66 +22,6 @@ interface FilterHeaderProps {
 export interface ModuleDetailsTableProps
   extends DataGridProps<ModuleDetails>,
     Omit<FilterHeaderProps, "onFilterChange"> {}
-
-const FilterHeader = React.memo<FilterHeaderProps>(
-  ({ onFilterChange, searchValue, setSearchValue }) => {
-    const [value, setValue] = useState<string>(searchValue ?? "");
-    const inputRef = React.useRef<HTMLInputElement>(null);
-
-    React.useEffect(() => {
-      setValue(searchValue);
-      if (onFilterChange) {
-        onFilterChange(searchValue);
-      }
-    }, [searchValue]);
-
-    const handleChange = React.useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = event.target.value;
-        setValue(newValue);
-        if (onFilterChange) {
-          onFilterChange(newValue);
-        }
-      },
-      [onFilterChange]
-    );
-
-    const handleOnBlur = () => {
-      if (setSearchValue) {
-        setSearchValue(value);
-      }
-    };
-
-    const handleBoxClick = () => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    };
-
-    return (
-      <Box onClick={handleBoxClick}>
-        <Input
-          inputRef={inputRef}
-          className="textInput"
-          style={{
-            flexGrow: 1,
-            inlineSize: "100%",
-            fontSize: "14px",
-            height: "30px",
-            color: "var(--vscode-input-foreground)",
-            border: "1px solid var(--vscode-input-border)",
-            borderRadius: "4px",
-            padding: "4px 8px",
-            backgroundColor: "var(--vscode-input-background)",
-          }}
-          value={value}
-          onChange={handleChange}
-          onBlur={handleOnBlur}
-        />
-      </Box>
-    );
-  }
-);
 
 const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
   searchValue,
@@ -185,11 +126,15 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
             return <PercentageFill value={percentage} />;
           },
           headerRenderer: (props: HeaderRendererProps<ModuleDetails>) => (
-            <Box sx={{ lineHeight: "45px",
-              cursor: "pointer",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap", }}>
+            <Box
+              sx={{
+                lineHeight: "45px",
+                cursor: "pointer",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
               {HeaderRenderer<ModuleDetails, unknown>({ ...props })}
             </Box>
           ),
