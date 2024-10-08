@@ -20,15 +20,21 @@ export class ProfilerService {
   ): Promise<PresentationData> {
     ParserLogger.resetErrors();
 
-    const readData = readFile(fileName);
-    const rawData = parseProfilerData(readData);
-    const transformedData = await transformData(
-      rawData,
-      showStartTime,
-      this.profilerTitle
-    );
+    try {
+      const readData = await readFile(fileName);
 
-    return transformedData;
+      const rawData = parseProfilerData(readData);
+
+      const transformedData = await transformData(
+        rawData,
+        showStartTime,
+        this.profilerTitle
+      );
+
+      return transformedData;
+    } catch (error) {
+      throw error;
+    }
   }
 
   public async compare(
