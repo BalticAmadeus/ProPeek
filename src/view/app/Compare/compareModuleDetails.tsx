@@ -16,6 +16,8 @@ import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import ProfilerSummary from "./components/ProfilerSummary";
 import DataGrid from "react-data-grid";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
 interface CompareModuleDetailsProps {
   comparedData: ComparedData;
@@ -271,6 +273,35 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             const [isOverflow, setIsOverflow] = React.useState(false);
             const [isHovered, setIsHovered] = React.useState(false);
             const cellRef = useRef<HTMLDivElement>(null);
+            let icon = null;
+            console.log(row?.status);
+            if (!row.status) {
+              icon = <span style={{ width: 16, display: "inline-block" }} />;
+            }
+            if (row.status === "added") {
+              icon = (
+                <AddCircleIcon
+                  style={{
+                    color: "green",
+                    fontSize: 16,
+                    position: "relative",
+                    top: "5px",
+                  }}
+                />
+              );
+            }
+            if (row.status === "removed") {
+              icon = (
+                <RemoveCircleIcon
+                  style={{
+                    color: "red",
+                    fontSize: 16,
+                    position: "relative",
+                    top: "5px",
+                  }}
+                />
+              );
+            }
 
             const checkOverflow = () => {
               if (cellRef.current) {
@@ -301,7 +332,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
                 }}
                 title={isHovered && isOverflow ? row[col.key] : undefined}
               >
-                {row[col.key]}
+                {icon} {row[col.key]}
               </div>
             );
           },
