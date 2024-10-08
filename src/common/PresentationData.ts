@@ -54,6 +54,7 @@ export interface PresentationData {
 
 export interface ComparedData {
   comparedModules: ComparedModule[],
+  comparedCalledModules: ComparedCalledModule[],
   firstTotalTime: number,
   secondTotalTime: number,
 }
@@ -68,5 +69,18 @@ export interface ComparedModule {
   totalTime: number,
   totalTimeChange: number,
   pcntOfSession?: number,
+  status?: string,
+}
+export interface ComparedCalledModule {
+  callerID: number,
+  calleeID: number,
+  callerModuleName: string,
+  calleeModuleName: string,
+  callerTimesCalled: number,
+  calleeTimesCalled: number,
+  callerPcntOfSession: number,
+  calleePcntOfSession: number,
+  callerTimesCalledChange: number,
+  calleeTimesCalledChange: number,
   status?: string,
 }

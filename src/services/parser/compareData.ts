@@ -3,6 +3,8 @@ import {
   ModuleDetails,
   ComparedModule,
   ComparedData,
+  CalledModules,
+  ComparedCalledModule,
 } from "../../common/PresentationData";
 import { Constants } from "../../common/Constants";
 
@@ -47,9 +49,13 @@ export async function compareData(
     comparedModules.push(...createAddedModule(modules));
     newModuleMap.delete(modules[0].moduleName);
   });
-
   return {
     comparedModules,
+    comparedCalledModules: compareCalledModules(
+      comparedModules,
+      oldPresentationData.calledModules,
+      newPresentationData.calledModules
+    ),
     firstTotalTime: totalTime(oldPresentationData),
     secondTotalTime: totalTime(newPresentationData),
   };
@@ -155,4 +161,98 @@ const totalTime = (presentationData: PresentationData): number => {
       0
     )
   );
+};
+const compareCalledModules = (
+  comparedModules: ComparedModule[],
+  oldCalledModules: CalledModules[],
+  newCalledModules: CalledModules[]
+): ComparedCalledModule[] => {
+  const comparedCalledModules: ComparedCalledModule[] = [];
+  const newCalledMap = new Map(
+    newCalledModules.map((module) => [
+      `${module.callerID}-${module.calleeID}`,
+      module,
+    ])
+  );
+
+  oldCalledModules.forEach((oldCalledModule) => {
+    const oldModuleId = (moduleId: number): number => {
+      return Math.floor(moduleId / Constants.moduleIdMult);
+    };
+    const callerID = comparedModules.filter(
+      (module) => oldModuleId(module.moduleID) === oldCalledModule.callerID
+    )[0]?.moduleID;
+    const calleeID = comparedModules.filter(
+      (module) => oldModuleId(module.moduleID) === oldCalledModule.calleeID
+    )[0]?.moduleID;
+    const newCalledModule = newCalledMap.get(
+      `${callerID % Constants.moduleIdMult}-${
+        calleeID % Constants.moduleIdMult
+      }`
+    );
+
+    if (newCalledModule) {
+      const callerTimesCalledChange = calculateChange(
+        newCalledModule.timesCalled,
+        oldCalledModule.timesCalled
+      );
+      const calleeTimesCalledChange = calculateChange(
+        newCalledModule.calleeTotalTimesCalled,
+        oldCalledModule.calleeTotalTimesCalled
+      );
+
+      comparedCalledModules.push({
+        ...oldCalledModule,
+        callerID,
+        calleeID,
+        callerTimesCalled: oldCalledModule?.timesCalled,
+        calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
+        callerTimesCalledChange,
+        calleeTimesCalledChange,
+      });
+      newCalledMap.delete(
+        `${callerID % Constants.moduleIdMult}-${
+          calleeID % Constants.moduleIdMult
+        }`
+      );
+    } else {
+      comparedCalledModules.push({
+        ...oldCalledModule,
+        callerID,
+        calleeID,
+        callerTimesCalled: oldCalledModule.timesCalled,
+        callerTimesCalledChange: -oldCalledModule.timesCalled,
+        calleeTimesCalled: oldCalledModule.calleeTotalTimesCalled,
+        calleeTimesCalledChange: -oldCalledModule.calleeTotalTimesCalled,
+        status: "removed",
+      });
+    }
+  });
+
+  newCalledMap.forEach((newCalledModule) => {
+    const newModuleId = (moduleId: number): number => {
+      return Math.floor(moduleId % Constants.moduleIdMult);
+    };
+    const callerID = comparedModules.filter(
+      (module) => newModuleId(module.moduleID) === newCalledModule.callerID
+    )[0]?.moduleID;
+    const calleeID = comparedModules.filter(
+      (module) => newModuleId(module.moduleID) === newCalledModule.calleeID
+    )[0]?.moduleID;
+
+    comparedCalledModules.push({
+      ...newCalledModule,
+      calleeID,
+      callerID,
+      callerTimesCalled: 0,
+      callerTimesCalledChange: newCalledModule.timesCalled,
+      calleeTimesCalled: 0,
+      calleeTimesCalledChange: newCalledModule.calleeTotalTimesCalled,
+      callerPcntOfSession: 0,
+      calleePcntOfSession: 0,
+      status: "added",
+    });
+  });
+
+  return comparedCalledModules;
 };
