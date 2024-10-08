@@ -228,18 +228,31 @@ const compareCalledModules = (
       });
     }
   });
-  newCalledMap.forEach((module) =>
+
+  newCalledMap.forEach((newCalledModule) => {
+    const newModuleId = (moduleId: number): number => {
+      return Math.floor(moduleId % Constants.moduleIdMult);
+    };
+    const callerID = comparedModules.filter(
+      (module) => newModuleId(module.moduleID) === newCalledModule.callerID
+    )[0]?.moduleID;
+    const calleeID = comparedModules.filter(
+      (module) => newModuleId(module.moduleID) === newCalledModule.calleeID
+    )[0]?.moduleID;
+
     comparedCalledModules.push({
-      ...module,
+      ...newCalledModule,
+      calleeID,
+      callerID,
       callerTimesCalled: 0,
-      callerTimesCalledChange: module.timesCalled,
+      callerTimesCalledChange: newCalledModule.timesCalled,
       calleeTimesCalled: 0,
-      calleeTimesCalledChange: module.calleeTotalTimesCalled,
+      calleeTimesCalledChange: newCalledModule.calleeTotalTimesCalled,
       callerPcntOfSession: 0,
       calleePcntOfSession: 0,
       status: "added",
-    })
-  );
+    });
+  });
 
   return comparedCalledModules;
 };

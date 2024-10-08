@@ -449,10 +449,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
           <CompareDetailsTable
             columns={formattedMergedColumns}
             rows={sortedModuleRows}
-            onRowClick={(row) => {
-              setSelectedRow(row);
-              console.log("mod", row);
-            }}
+            onRowClick={(row) => setSelectedRow(row)}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
@@ -476,7 +473,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             onRowsChange={setSelectedCallingRows}
             sortColumns={sortCallingColumns}
             onSortColumnsChange={setSortCallingColumns}
-            onRowClick={(row) => console.log("calling", row)}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
               setMatchingRow(
@@ -500,7 +496,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             onRowsChange={setSelectedCalledRows}
             sortColumns={sortCalledColumns}
             onSortColumnsChange={setSortCalledColumns}
-            onRowClick={(row) => console.log("called", row)}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
               setMatchingRow(
