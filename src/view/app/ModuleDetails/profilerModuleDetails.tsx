@@ -17,7 +17,7 @@ import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
-import MonacoEditor from "@monaco-editor/react";
+import MonacoComponent from "./components/MonacoComponent";
 
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
@@ -455,17 +455,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onRowDoubleClick={openFileForLineSummary}
             onRowClick={(row) => jumpToLine(row)}
           />
-          <MonacoEditor
-            height="300px"
-            width="60%"
-            language="ts"
-            theme="vs-dark"
-            value={selectedModuleCode || ""}
-            options={{
-              readOnly: true,
-              scrollBeyondLastLine: false,
-            }}
-          />
+          <MonacoComponent selectedModuleCode={selectedModuleCode} />
         </div>
       </div>
     </div>
