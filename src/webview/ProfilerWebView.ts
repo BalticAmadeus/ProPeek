@@ -81,9 +81,9 @@ export class ProfilerWebview {
               <meta http-equiv="Content-Security-Policy"
                       content="default-src 'none';
                               img-src https:;
-                              script-src 'unsafe-eval'  
-   'unsafe-inline' ${cspSource};
-                              style-src ${cspSource} 'unsafe-inline';"> 
+                              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net ${cspSource};
+
+                              style-src ${cspSource} 'self' 'unsafe-inline' https://cdn.jsdelivr.net ${cspSource};"> 
   
   
               <script>

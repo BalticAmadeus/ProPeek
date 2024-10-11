@@ -111,6 +111,23 @@ export class FileHandler {
   
       return { fileName, lineNumber };
     }
+
+    static async readFile(filePath: string): Promise<string> { 
+      try {
+          console.log("Reading file:", filePath);
+
+          if (!(await vscode.workspace.fs.stat(vscode.Uri.file(filePath)))) {
+              throw new Error('File not found: ' + filePath);
+          }
+
+          const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
+          return fileContent.toString(); 
+      } catch (error) {
+          console.error("Error reading file:", error);
+          throw error; 
+      }
+  }
+
   
     static countLinesInFile(filePath: string): number {
       const fileContent = fs.readFileSync(filePath, "utf-8");
@@ -143,4 +160,18 @@ export class FileHandler {
       }
       return Promise.resolve(vscode.Uri.file(""));
     }
+
+    static async getFileContent(moduleName: string): Promise<string> {
+
+      const { fileName, procedureName } = getFileAndProcedureName(moduleName);
+      const proPath = getProPath();
+
+     
+        const filePath = await this.getFilePath(proPath, fileName);
+
+        const fileContent = await this.readFile(filePath.path.slice(1));
+        return fileContent;
+    
+    }
+
   }

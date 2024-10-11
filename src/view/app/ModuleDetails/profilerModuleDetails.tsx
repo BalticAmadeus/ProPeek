@@ -17,6 +17,7 @@ import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
+import MonacoEditor from "@monaco-editor/react";
 
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
@@ -137,78 +138,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   moduleName,
   selectedModuleId,
 }) => {
+  const [selectedModuleCode, setSelectedModuleCode] = useState<string | null>(
+    null
+  );
+
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
   );
-  const fileString = `1   
-2   // function function1 returns integer (pi as integer):
-3   //     define variable iCount as integer no-undo.
-4   //     do iCount = 1 to 25000:
-5   //     end.
-6   //     if pi <> 0 then do:
-7   //         pi = pi - 1.
-8   //         return function1(pi).
-9   //     end.
-10   //     else
-11   //       return 0.
-12   // end function.
-13   
-14   // define variable iCount as integer no-undo initial 1000. aaaaaaaaaaaaaaaaaaaaa
-15   // define variable iNum as integer no-undo.
-16   define variable class1 as class1 no-undo.
-17   define variable class2 as class2 no-undo.
-18   // define variable class3 as class3 no-undo.
-19   // define variable class4 as class4 no-undo.
-20   
-21   class1 = new class1().
-22   class2 = new class2().
-23   // class3 = new class3().
-24   // class4 = new class4().
-25   
-26   class1:method2().
-27   class1:method2(1, 1).
-28   
-29   class2:method2(1).
-30   class2:method2(1, 1).
-31   
-32   // iNum = function1(17).
-33   // class3:method1(7).
-34   
-35   //  do iNum = 1 to 50:
-36   //      class1:method1(iCount).
-37   //      class1:method3().
-38   //  end.
-39   
-40   // iNum = function1(17).
-41   // class3:method1(8).
-42   
-43   // do iNum = 1 to 30:       
-44   //     class2:method1(1000).
-45   //     class2:method3().    
-46   // end.                     
-47   
-48   // iNum = function1(15).
-49   // class3:method1(25).
-50   
-51   // iNum = function1(9).
-52   // class3:method1(9).
-53   
-54   // iNum = function1(20).
-55   // class3:method1(5).
-56   
-57   // class4:method2(20).
-58   // class4:method3(25).
-59   // class4:method4(10).
-60   // class4:method5(15).
-61   
-62   
-63   // iNum = function1(10).
-64   // class3:method1(19).
-65   
-66   // iNum = function1(20).
-67   // class3:method1(10).
-`;
-  const lines = fileString.split("\n");
+
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
   const [sortModuleColumns, setSortModuleColumns] = useState<
@@ -366,7 +303,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     }
   }, [presentationData.hasXREFs, presentationData.hasListings]);
 
-  const openFileForLineSummary = (row: LineSummary): void => {
+  const openFileForLineSummary = (row): void => {
     const foundModule = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
@@ -380,6 +317,41 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       lineNumber: row.lineNumber,
     });
   };
+
+  const updateEditorContent = (row: ModuleDetails) => {
+    if (!row || !row.hasLink) {
+      setSelectedModuleCode(null);
+      return;
+    }
+
+    vscode.postMessage({
+      type: "readFile",
+      filePath: row.moduleName,
+    });
+  };
+
+  React.useEffect(() => {
+    const handleMessage = (event) => {
+      const message = event.data;
+
+      console.log("Received message:", message);
+
+      if (message.type === "fileContent") {
+        console.log("Received code:", message.content);
+        setSelectedModuleCode(message.content);
+      } else if (message.type === "fileReadError") {
+        console.error("Error reading file:", message.message);
+        setSelectedModuleCode(null);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
 
   return (
     <div>
@@ -403,7 +375,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             rows={sortedModuleRows}
             onRowClick={(row) => {
               setSelectedRow(row);
-              console.log(row);
+              updateEditorContent(row);
             }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
@@ -476,70 +448,24 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
               sortable: true,
               resizable: true,
             }}
-            style={{ textAlign: "end", width: "50%" }}
+            style={{ textAlign: "end", width: "40%" }}
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
             onRowDoubleClick={openFileForLineSummary}
             onRowClick={(row) => jumpToLine(row)}
           />
-          <div
-            className="line-columns"
-            style={{
-              display: "flex",
-              width: "50%",
-              maxHeight: "400px",
-              overflow: "hidden",
-              border: "1px solid var(--vscode-editorWidget-border)",
-              padding: "10px",
-              backgroundColor: "var(--vscode-editor-background)",
-              color: "var(--vscode-editor-foreground)",
-              marginLeft: "5px",
+          <MonacoEditor
+            height="300px"
+            width="60%"
+            language="ts"
+            theme="vs-dark"
+            value={selectedModuleCode || ""}
+            options={{
+              readOnly: true,
+              scrollBeyondLastLine: false,
             }}
-            id="codeContainer"
-          >
-            {/* Wrapper for synchronized scrolling line and code numbers*/}
-            <div
-              style={{
-                display: "flex",
-                overflowX: "auto",
-                overflowY: "auto",
-                maxHeight: "400px",
-                width: "100%",
-              }}
-            >
-              {/* Line numbers column */}
-              <div
-                style={{
-                  textAlign: "right",
-                  paddingRight: "10px",
-                  userSelect: "none",
-                  color: "var(--vscode-editorLineNumber-foreground)",
-                  minWidth: "25px",
-                  backgroundColor: "var(--vscode-editor-background)",
-                }}
-              >
-                {lines.map((_, index) => (
-                  <pre
-                    key={index}
-                    id={`line-${index + 1}`}
-                    style={{ margin: 0 }}
-                  >
-                    {index + 1}
-                  </pre>
-                ))}
-              </div>
-
-              {/* Code lines column */}
-              <div style={{ width: "100%" }}>
-                {lines.map((line, index) => (
-                  <pre key={index} style={{ whiteSpace: "pre", margin: 0 }}>
-                    {line}
-                  </pre>
-                ))}
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </div>
     </div>

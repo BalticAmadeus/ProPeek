@@ -69,6 +69,21 @@ export class ProfilerViewer {
     // Handle incoming messages from the webview (using webview instance)
     this.webview.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
+        case "readFile":
+          const receivedModuleName = message.filePath;
+
+          const fileContent = await FileHandler.getFileContent(
+            receivedModuleName
+          );
+
+          // Send the file content back to the webview
+          this.webview.panel?.webview.postMessage({
+            type: "fileContent",
+            content: fileContent,
+          });
+
+          break;
+
         case "requestCompareFiles":
           const selectedFiles = await vscode.window.showOpenDialog({
             canSelectMany: false,
