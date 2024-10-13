@@ -1,7 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import MonacoEditor, { loader } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
 
-const MonacoComponent = ({ selectedModuleCode }) => {
+const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
+  const [editorInstance, setEditorInstance] =
+    useState<monaco.editor.IStandaloneCodeEditor>();
   useEffect(() => {
     loader.init().then((monaco) => {
       monaco.editor.defineTheme("myCustomTheme", {
@@ -21,10 +24,17 @@ const MonacoComponent = ({ selectedModuleCode }) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (editorInstance && lineNumber) {
+      editorInstance.revealLineInCenterIfOutsideViewport(lineNumber);
+      editorInstance.setPosition({ lineNumber, column: 1 });
+    }
+  }, [lineNumber, editorInstance]);
+
   return (
     <MonacoEditor
       height="300px"
-      width="60%"
+      width="65%"
       language="typescript"
       theme="myCustomTheme"
       value={selectedModuleCode || ""}
@@ -32,6 +42,7 @@ const MonacoComponent = ({ selectedModuleCode }) => {
         readOnly: true,
         scrollBeyondLastLine: false,
       }}
+      onMount={(editor) => setEditorInstance(editor)}
     />
   );
 };

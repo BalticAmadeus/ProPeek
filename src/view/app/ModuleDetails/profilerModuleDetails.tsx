@@ -122,16 +122,6 @@ function getComparator(sortColumn: string) {
       throw new Error(`unsupported sortColumn: "${sortColumn}"`);
   }
 }
-function jumpToLine(row: LineSummary) {
-  const lineElement = document.getElementById(`line-${row.lineNumber}`);
-  if (lineElement) {
-    document
-      .querySelectorAll(".highlight")
-      .forEach((el) => el.classList.remove("highlight"));
-    lineElement.classList.add("highlight");
-    lineElement.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-}
 
 const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   presentationData,
@@ -145,6 +135,8 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
   );
+
+  const [lineNumber, setLineNumber] = useState<number>();
 
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
@@ -235,6 +227,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
     if (matchingRow) {
       setSelectedRow(matchingRow);
+      updateEditorContent(matchingRow);
     }
   };
 
@@ -319,6 +312,11 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   };
 
   const updateEditorContent = (row: ModuleDetails) => {
+    const openFileType =
+      row.listingFile && presentationData.hasListings
+        ? OpenFileTypeEnum.LISTING
+        : OpenFileTypeEnum.XREF;
+
     if (!row || !row.hasLink) {
       setSelectedModuleCode(null);
       return;
@@ -327,6 +325,8 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     vscode.postMessage({
       type: "readFile",
       filePath: row.moduleName,
+      listingFile: row.listingFile,
+      openFileType,
     });
   };
 
@@ -438,7 +438,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
         </div>
       </div>
 
-      <div className="line-columns">
+      <div className="line-columns" style={{ marginBottom: "50px" }}>
         <div className="grid-name">Line Summary</div>
         <div style={{ display: "flex", flexDirection: "row", width: "100%" }}>
           <DataGrid
@@ -448,14 +448,17 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
               sortable: true,
               resizable: true,
             }}
-            style={{ textAlign: "end", width: "40%" }}
+            style={{ textAlign: "end", width: "35%", maxHeight: "300px" }}
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
             onRowDoubleClick={openFileForLineSummary}
-            onRowClick={(row) => jumpToLine(row)}
+            onRowClick={(row) => setLineNumber(row.lineNumber)}
           />
-          <MonacoComponent selectedModuleCode={selectedModuleCode} />
+          <MonacoComponent
+            selectedModuleCode={selectedModuleCode}
+            lineNumber={lineNumber}
+          />
         </div>
       </div>
     </div>

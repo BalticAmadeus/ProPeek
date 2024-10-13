@@ -71,9 +71,12 @@ export class ProfilerViewer {
       switch (message.type) {
         case "readFile":
           const receivedModuleName = message.filePath;
-
+          const receivedListingFile = message.listingFile;
+          const receivedFileType = message.openFileType;
           const fileContent = await FileHandler.getFileContent(
-            receivedModuleName
+            receivedModuleName,
+            receivedListingFile,
+            receivedFileType
           );
 
           // Send the file content back to the webview

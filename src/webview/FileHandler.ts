@@ -10,6 +10,7 @@ import { ProfilerService } from "../services/profilerService";
 import { IncludeFile } from "../common/XRefData";
 import * as fs from "fs";
 import { Constants } from "../common/Constants";
+import { OpenFileTypeEnum } from "../common/openFile";
 
 export class FileHandler {
 
@@ -161,15 +162,27 @@ export class FileHandler {
       return Promise.resolve(vscode.Uri.file(""));
     }
 
-    static async getFileContent(moduleName: string): Promise<string> {
+    static async getFileContent(moduleName: string, listingFile: string, fileType: OpenFileTypeEnum): Promise<string> {
 
       const { fileName, procedureName } = getFileAndProcedureName(moduleName);
       const proPath = getProPath();
+      let filePath;
 
-     
-        const filePath = await this.getFilePath(proPath, fileName);
-
+      switch(fileType){
+        case OpenFileTypeEnum.XREF:
+          filePath = await this.getFilePath(proPath, fileName);
+          break;
+        case OpenFileTypeEnum.LISTING:
+          const listingFiles = await vscode.workspace.findFiles(getListingFilePath(listingFile));
+          if(listingFiles.length > 0){
+            filePath = listingFiles[0];
+          } else {
+            throw new Error('File not found: ' + filePath);
+          }
+          break;
+      }
         const fileContent = await this.readFile(filePath.path.slice(1));
+
         return fileContent;
     
     }
