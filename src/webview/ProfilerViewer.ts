@@ -167,6 +167,16 @@ export class ProfilerViewer {
         default:
       }
     });
+    this.sendThemeToWebview();
+    vscode.window.onDidChangeActiveColorTheme(() => this.sendThemeToWebview());
+  }
+  private sendThemeToWebview() {
+    const currentTheme = vscode.window.activeColorTheme.kind;
+    console.log("current theme ", currentTheme);
+    this.webview.panel?.webview.postMessage({
+      type: "themeChange",
+      themeKind: currentTheme,
+    });
   }
 
   // Reloads profiler data for the given paths
