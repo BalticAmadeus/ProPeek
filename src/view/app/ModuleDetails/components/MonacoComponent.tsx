@@ -8,15 +8,12 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   const [theme, setTheme] = useState<monaco.editor.BuiltinTheme>("vs-dark");
 
   useEffect(() => {
-    // Listen for messages from the extension
     window.addEventListener("message", (event) => {
       const message = event.data;
 
       if (message.type === "themeChange") {
-        console.log(message.themeKind);
         const themeKind = message.themeKind;
         let monacoTheme;
-        // Map VS Code theme to Monaco Editor theme
         switch (themeKind) {
           case 1:
             monacoTheme = "vs";

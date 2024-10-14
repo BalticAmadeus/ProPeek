@@ -334,13 +334,9 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     const handleMessage = (event) => {
       const message = event.data;
 
-      console.log("Received message:", message);
-
       if (message.type === "fileContent") {
-        console.log("Received code:", message.content);
         setSelectedModuleCode(message.content);
       } else if (message.type === "fileReadError") {
-        console.error("Error reading file:", message.message);
         setSelectedModuleCode(null);
       }
     };

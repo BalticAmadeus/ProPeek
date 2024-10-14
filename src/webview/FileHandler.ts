@@ -115,8 +115,6 @@ export class FileHandler {
 
     static async readFile(filePath: string): Promise<string> { 
       try {
-          console.log("Reading file:", filePath);
-
           if (!(await vscode.workspace.fs.stat(vscode.Uri.file(filePath)))) {
               throw new Error('File not found: ' + filePath);
           }
@@ -124,7 +122,6 @@ export class FileHandler {
           const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
           return fileContent.toString(); 
       } catch (error) {
-          console.error("Error reading file:", error);
           throw error; 
       }
   }
