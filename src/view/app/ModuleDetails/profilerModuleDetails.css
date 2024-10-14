@@ -1,42 +1,46 @@
-.columns{
-    height: auto;
-    max-height: 300px;
+.columns {
+  height: auto;
+  max-height: 300px;
+  margin-bottom: 20px;
 }
-.total-time{
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 16px;
-    border: 1px solid var(--vscode-editor-foreground);
-    margin-right: 2rem;
-    text-align: center;
-    padding: 0 10px;
+
+.total-time {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  border: 1px solid var(--vscode-editor-foreground);
+  margin-right: 2rem;
+  text-align: center;
+  padding: 0 10px;
 }
 
 .rowFormat {
-    font-weight: bold;
-    font-size: 1.1em;
-    font-weight: 900;
-    background-color: rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  font-size: 1.1em;
+  font-weight: 900;
+  background-color: rgba(0, 0, 0, 0.3);
 }
+
 .highlight {
-    background-color: var(--vscode-editorLineHighlightBackground);
-  }
-  .keyword {
-    color: blue;
-    font-weight: bold;
-  }
-  
-  .string {
-    color: green;
-  }
-  
-  .comment {
-    color: gray;
-    font-style: italic;
-  }
-  
-  .number {
-    color: orange;
-  }
+  background-color: var(--vscode-editorLineHighlightBackground);
+}
+
+.keyword {
+  color: blue;
+  font-weight: bold;
+}
+
+.string {
+  color: green;
+}
+
+.comment {
+  color: gray;
+  font-style: italic;
+}
+
+.number {
+  color: orange;
+}

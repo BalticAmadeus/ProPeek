@@ -87,7 +87,7 @@ body.vscode-dark .rdg-row-even {
 .line-columns {
     position: relative;
     width: calc(100% - 30px);
-    padding-top: 40px;
+    margin: 40px;
     clear: both;
 }
 
