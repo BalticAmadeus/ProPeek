@@ -178,9 +178,21 @@ export class FileHandler {
           }
           break;
       }
+
         const fileContent = await this.readFile(filePath.path.slice(1));
 
-        return fileContent;
+        if(fileType === OpenFileTypeEnum.XREF)
+          return fileContent;
+
+
+        const cleanedContent = fileContent
+        .split('\n')
+        .map(line => {
+          return line.replace(/^\s*\d+/, '');
+        })
+        .join('\n');
+
+        return cleanedContent;
     
     }
 
