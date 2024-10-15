@@ -163,12 +163,15 @@ export class ProfilerViewer {
         case "TOGGLE_PROFILER":
           await this.toggleProfilerData();
           break;
+        case "THEME":
+          this.sendThemeToWebview();
+          break;
         default:
       }
     });
-    this.sendThemeToWebview();
     vscode.window.onDidChangeActiveColorTheme(() => this.sendThemeToWebview());
   }
+
   private sendThemeToWebview() {
     const currentTheme = vscode.window.activeColorTheme.kind;
     this.webview.panel?.webview.postMessage({

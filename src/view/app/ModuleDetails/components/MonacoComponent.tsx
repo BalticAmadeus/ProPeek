@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
+import { getVSCodeAPI } from "../../utils/vscode";
 
 const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   const [editorInstance, setEditorInstance] =
@@ -17,6 +18,7 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
       if (message.type === "themeChange") {
         const themeKind = message.themeKind;
         let monacoTheme;
+
         switch (themeKind) {
           case 1:
             monacoTheme = "vs";
@@ -79,11 +81,16 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   }, []);
 
   useEffect(() => {
+    getVSCodeAPI().postMessage({
+      type: "THEME",
+    });
+  }, []);
+
+  useEffect(() => {
     loader.init().then((monaco) => {
       monaco.languages.register({ id: "abl" });
 
       monaco.languages.setMonarchTokensProvider("abl", {
-
         keywords: [
           'accumulate', 'and', 'apply', 'assign', 'backward', 'before', 'break', 'buffer',
           'call', 'cancel', 'case', 'chain', 'class', 'close', 'compile', 'connect',
