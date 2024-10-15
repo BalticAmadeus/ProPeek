@@ -9,6 +9,7 @@ import { Box } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
+import InfoIcon from "@mui/icons-material/Info";
 
 interface FlameGraphNodeRoot {
   name: "root";
@@ -56,12 +57,12 @@ function ProfilerFlameGraph({
     React.useState<FlameGraphNodeRoot>(
       convertToNestedStructure(callTree, Mode.Length, searchPhrase)
     );
-
   const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
     callTree[0]?.cumulativeTime ?? 0
   );
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
+  const [showTooltip, setShowTooltip] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
 
   const windowResize = () => {
@@ -240,6 +241,17 @@ function ProfilerFlameGraph({
             />
             Separate
           </label>
+          {!hasTracingData && (
+            <div className="tooltip-container">
+              <InfoIcon
+                className="fa fa-info-circle"
+                style={{ marginLeft: "5px", cursor: "help", fontSize : "20px" }}
+              />
+              <span className="tooltiptext">
+                When using profiler turn tracing on and load extension again.
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
