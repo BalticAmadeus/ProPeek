@@ -180,20 +180,17 @@ export class FileHandler {
       }
 
         const fileContent = await this.readFile(filePath.path.slice(1));
-
         if(fileType === OpenFileTypeEnum.XREF)
           return fileContent;
-
 
         const cleanedContent = fileContent
         .split('\n')
         .map(line => {
-          return line.replace(/^\s*\d+/, '');
+          return line.replace(/^\s*\d+\s{3}/, '');
         })
         .join('\n');
 
         return cleanedContent;
-    
     }
 
   }

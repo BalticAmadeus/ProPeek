@@ -79,7 +79,6 @@ export class ProfilerViewer {
             receivedFileType
           );
 
-          // Send the file content back to the webview
           this.webview.panel?.webview.postMessage({
             type: "fileContent",
             content: fileContent,
