@@ -82,9 +82,8 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
     loader.init().then((monaco) => {
       monaco.languages.register({ id: "abl" });
 
-      // Define ABL syntax with tokenizer and rules
       monaco.languages.setMonarchTokensProvider("abl", {
-        // ABL-specific keywords (supports both uppercase and lowercase)
+
         keywords: [
           'accumulate', 'and', 'apply', 'assign', 'backward', 'before', 'break', 'buffer',
           'call', 'cancel', 'case', 'chain', 'class', 'close', 'compile', 'connect',
@@ -100,17 +99,14 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
           'no-undo', 'input', 'output', 'by-value', 'by-reference', 'assign', 'add',
           'subtract', 'delete', 'create', 'where', 'find', 'next', 'break', 'continue',
           'message', 'frame', 'next', 'pause'
-  
         ],
-        // ABL data types
+
         types: [
           "integer", "string", "decimal", "logical", "handle", "widget", "buffer", "table", "dataset", "dynamic", "static", "input-output", "output", "input"
-
         ],
-        // Operators
+
         operators: [
           "=", ">", "<", "<=", ">=", "<>", "+", "-", "*", "/", "and", "or", "not", "eq", "ne", "ge", "le", "gt", "lt", "is", "in",
- 
         ],
 
 
@@ -119,7 +115,7 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
           root: [
             // Case insensitive keywords
             [
-              /\b(define|variable|procedure|function|as|integer|string|decimal|do|end|for|each|if|then|else|return|while|new|method|class|public|private|no-undo|input|output|by-value|by-reference|assign|add|subtract|delete|create|where|find|next|break|continue)\b/i,
+              /\b(define|variable|procedure|function|as|integer|string|decimal|do|end|for|each|if|then|else|return|while|new|method|class|public|private|no-undo|input|output|by-value|by-reference|assign|add|subtract|delete|create|where|find|next|break|continue|message|frame|next|pause)\b/i,
               "keyword",
             ],
 
@@ -182,7 +178,7 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
       width="65%"
       language="abl"
       theme="myCustomTheme"
-      value={selectedModuleCode || ""}
+      value={selectedModuleCode || `"Could not find code files or listing files." \n"Check if you created openedge-project.json file in project directory."`}
       options={{
         readOnly: true,
         scrollBeyondLastLine: false,
