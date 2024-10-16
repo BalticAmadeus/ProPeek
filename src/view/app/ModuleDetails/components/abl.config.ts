@@ -194,8 +194,8 @@ export const language = <monaco.languages.IMonarchLanguage>{
         /[a-zA-Z_$][\w$]*/,
         {
           cases: {
-            "@keywords": { token: "keyword", next: "@pop" },
-            "@types": { token: "type", next: "@pop" },
+            "@keywords": "keyword",
+            "@types": "type",
             "@default": "identifier",
           },
         },
