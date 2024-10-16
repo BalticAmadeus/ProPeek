@@ -26,12 +26,53 @@ There are 3 option how to open view:
   - View Calling module details.
   - View Called module details.
   - View Line Summary.
+  - View Code in Monaco Editor by clicking on modules.
 - Treeview.
 - Flamegraph.
   - Ability to sort out procedure names by text.
   - Ability to sort out by constructor and destructor.
   - Ability to toggle graph type.
+- Compare tab for multiple profilers.
+  - Fast switch between profilers.
+  - Ability to see difference in percentage.
+  - View Calling module details difference.
+  - View Called module details difference.
 - Profiler Start/Stop Snippets.
+
+## Instructions to activate Code View and Jump to Code
+
+![proPeek Monaco](resources/images/MonacoEditor.png)
+
+To be able to use Monaco Editor or jump to code feature you have to create openedge-project.json file in root of your project.
+
+![proPeek openedge](resources/images/propath.png)
+
+### Example `openedge-project.json`:
+
+```json
+{
+  "name": "sample",
+  "version": "1.0",
+  "oeversion": "12.8",
+  "graphicalMode": false,
+  "charset": "utf-8",
+  "extraParameters": "",
+  "buildPath": [
+    {
+      "type": "source",
+      "path": "src"
+    },
+    {
+      "type": "propath",
+      "path": "src"
+    }
+  ],
+  "dbConnections": [],
+  "numThreads": 1,
+  "procedures": [],
+  "profiles": []
+}
+```
 
 ## Related work
 
