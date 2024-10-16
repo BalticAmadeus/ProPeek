@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { getVSCodeAPI } from "../../utils/vscode";
+import { conf, language } from "./abl.config";
 
 const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   const [editorInstance, setEditorInstance] =
@@ -36,12 +37,18 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
           case 2:
             monacoTheme = "vs-dark";
             setSyntaxHighlightRules([
-              { token: "comment", foreground: "6A9955" }, // Comments light green
-              { token: "keyword", foreground: "569CD6" }, // Keywords light blue
+              { token: "comment", foreground: "6A9955", fontStyle: "italic" },
+              { token: "keyword", foreground: "569CD6", fontStyle: "bold" },
+              {
+                token: "preprocessor",
+                foreground: "FF00FF",
+                fontStyle: "bold",
+              },
               { token: "type", foreground: "4EC9B0" }, // Data types cyan
               { token: "string", foreground: "CE9178" }, // Strings light brownish-orange
               { token: "number", foreground: "B5CEA8" }, // Numbers light green
               { token: "operator", foreground: "D4D4D4" }, // Operators light gray
+              { token: "bracket", foreground: "DCDCAA" },
               { token: "delimiter", foreground: "C586C0" }, // Delimiters pink/purple
               { token: "identifier", foreground: "9CDCFE" }, // Identifiers light cyan
             ]);
@@ -89,79 +96,8 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   useEffect(() => {
     loader.init().then((monaco) => {
       monaco.languages.register({ id: "abl" });
-
-      monaco.languages.setMonarchTokensProvider("abl", {
-        keywords: [
-          'accumulate', 'and', 'apply', 'assign', 'backward', 'before', 'break', 'buffer',
-          'call', 'cancel', 'case', 'chain', 'class', 'close', 'compile', 'connect',
-          'create', 'dataset', 'define', 'delete', 'do', 'down', 'else', 'end', 'error',
-          'export', 'find', 'for', 'function', 'get', 'if', 'import', 'index', 'initial',
-          'insert', 'leave', 'like', 'lookup', 'method', 'next', 'not', 'on', 'or', 'os-command',
-          'output', 'overlay', 'pause', 'preselect', 'procedure', 'put', 'quit', 'readkey',
-          'release', 'repeat', 'return', 'revert', 'rollback', 'run', 'save', 'scroll',
-          'seek', 'select', 'status', 'stop', 'then', 'to', 'transaction', 'update', 'validate',
-          'when', 'while', 'with', 'work', 'write', 'define', 'variable', 'procedure',
-          'as', 'integer', 'string', 'decimal', 'do', 'end', 'for', 'each', 'if', 'then',
-          'else', 'return', 'while', 'new', 'method', 'class', 'public', 'private',
-          'no-undo', 'input', 'output', 'by-value', 'by-reference', 'assign', 'add',
-          'subtract', 'delete', 'create', 'where', 'find', 'next', 'break', 'continue',
-          'message', 'frame', 'next', 'pause'
-        ],
-
-        types: [
-          "integer", "string", "decimal", "logical", "handle", "widget", "buffer", "table", "dataset", "dynamic", "static", "input-output", "output", "input"
-        ],
-
-        operators: [
-          "=", ">", "<", "<=", ">=", "<>", "+", "-", "*", "/", "and", "or", "not", "eq", "ne", "ge", "le", "gt", "lt", "is", "in",
-        ],
-
-
-        // Tokenizer rules
-        tokenizer: {
-          root: [
-            // Case insensitive keywords
-            [
-              /\b(define|variable|procedure|function|as|integer|string|decimal|do|end|for|each|if|then|else|return|while|new|method|class|public|private|no-undo|input|output|by-value|by-reference|assign|add|subtract|delete|create|where|find|next|break|continue|message|frame|next|pause)\b/i,
-              "keyword",
-            ],
-
-            // Data types
-            [
-              /\b(void|integer|int|character|char|string|decimal|logical|handle|widget|buffer|table|dataset|dynamic|static|input-output)\b/i,
-              "type",
-            ],
-
-            // Strings
-            [/".*?"/, "string"],
-
-            // Numbers (both integers and decimals)
-            [/\b\d+(\.\d+)?\b/, "number"],
-
-            // Operators
-            [/[=><!~?:&|+\-*\/^%]+/, "operator"],
-
-            // Delimiters and punctuation
-            [/[{}()\[\]]/, "delimiter"],
-
-            // Comments (single line and block)
-            [/\/\/.*$/, "comment"], // Single line comment (//)
-            [/\/\*.*\*\//, "comment"], // Block comment (/* */)
-
-            // Identifiers and function names
-            [
-              /[a-zA-Z_]\w*/,
-              {
-                cases: {
-                  "@keywords": "keyword",
-                  "@types": "type",
-                  "@default": "identifier",
-                },
-              },
-            ],
-          ],
-        },
-      });
+      monaco.languages.setLanguageConfiguration("abl", conf);
+      monaco.languages.setMonarchTokensProvider("abl", language);
 
       monaco.editor.defineTheme("myCustomTheme", {
         base: theme,
@@ -185,7 +121,10 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
       width="65%"
       language="abl"
       theme="myCustomTheme"
-      value={selectedModuleCode || `"Could not find code files or listing files." \n"Check if you created openedge-project.json file in project directory."`}
+      value={
+        selectedModuleCode ||
+        `"Could not find code files or listing files." \n"Check if you created openedge-project.json file in project directory."`
+      }
       options={{
         readOnly: true,
         scrollBeyondLastLine: false,
