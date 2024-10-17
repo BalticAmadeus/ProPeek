@@ -123,7 +123,7 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
       theme="myCustomTheme"
       value={
         selectedModuleCode ||
-        `"Could not find code files or listing files." \n"Check if you created openedge-project.json file in project directory."`
+        `//Could not find code files or listing files. \n//Check if you created openedge-project.json file in project directory.`
       }
       options={{
         readOnly: true,
