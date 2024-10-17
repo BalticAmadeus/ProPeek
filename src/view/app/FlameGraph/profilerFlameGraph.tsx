@@ -62,7 +62,6 @@ function ProfilerFlameGraph({
   );
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
-  const [showTooltip, setShowTooltip] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
 
   const windowResize = () => {
