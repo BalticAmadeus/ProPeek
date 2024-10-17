@@ -38,18 +38,11 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
             monacoTheme = "vs-dark";
             setSyntaxHighlightRules([
               { token: "comment", foreground: "6A9955", fontStyle: "italic" },
-              { token: "keyword", foreground: "569CD6", fontStyle: "bold" },
-              {
-                token: "preprocessor",
-                foreground: "FF00FF",
-                fontStyle: "bold",
-              },
               { token: "type", foreground: "4EC9B0" }, // Data types cyan
               { token: "string", foreground: "CE9178" }, // Strings light brownish-orange
               { token: "number", foreground: "B5CEA8" }, // Numbers light green
               { token: "operator", foreground: "D4D4D4" }, // Operators light gray
               { token: "bracket", foreground: "DCDCAA" },
-              { token: "delimiter", foreground: "C586C0" }, // Delimiters pink/purple
               { token: "identifier", foreground: "9CDCFE" }, // Identifiers light cyan
             ]);
             break;

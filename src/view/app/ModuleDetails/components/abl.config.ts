@@ -38,6 +38,7 @@ export const conf: monaco.languages.LanguageConfiguration = {
 
 export const language = <monaco.languages.IMonarchLanguage>{
   defaultToken: "",
+  ignoreCase: true,
   tokenPostfix: ".abl",
 
   keywords: [
@@ -89,8 +90,10 @@ export const language = <monaco.languages.IMonarchLanguage>{
     "output",
     "overlay",
     "pause",
+    "parameter",
     "preselect",
     "procedure",
+    "publish",
     "put",
     "quit",
     "readkey",
@@ -117,10 +120,13 @@ export const language = <monaco.languages.IMonarchLanguage>{
     "work",
     "write",
     "define",
+    "var",
     "variable",
     "as",
     "integer",
-    "string",
+    "int",
+    "character",
+    "char",
     "decimal",
     "new",
     "method",
@@ -141,19 +147,13 @@ export const language = <monaco.languages.IMonarchLanguage>{
 
   types: [
     "integer",
-    "string",
+    "character",
     "decimal",
     "logical",
     "handle",
     "widget",
-    "buffer",
-    "table",
-    "dataset",
     "dynamic",
     "static",
-    "input-output",
-    "output",
-    "input",
   ],
 
   operators: [
@@ -183,7 +183,7 @@ export const language = <monaco.languages.IMonarchLanguage>{
   // Common regular expressions
   symbols: /[=><!~?:&|+\-*\/\^%]+/,
   escapes:
-    /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+    /~(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
   digits: /\d+(_+\d+)*/,
 
   // The main tokenizer for our language
@@ -200,7 +200,6 @@ export const language = <monaco.languages.IMonarchLanguage>{
           },
         },
       ],
-
       // Whitespace
       { include: "@whitespace" },
 
@@ -218,11 +217,6 @@ export const language = <monaco.languages.IMonarchLanguage>{
       ],
 
       // Numbers
-      [/(@digits)[eE]([\-+]?(@digits))?[fFdD]?/, "number.float"],
-      [/(@digits)\.(@digits)([eE][\-+]?(@digits))?[fFdD]?/, "number.float"],
-      [/0[xX](@digits)[Ll]?/, "number.hex"],
-      [/0(@digits)[Ll]?/, "number.octal"],
-      [/0[bB](@digits)[Ll]?/, "number.binary"],
       [/(@digits)[fFdD]?/, "number"],
 
       // Delimiter: after number because of .\d floats
@@ -231,16 +225,10 @@ export const language = <monaco.languages.IMonarchLanguage>{
       // Strings
       [/"/, "string", "@string"],
       [/'/, "string"], // Characters
-
-      [/&\w+/, "preprocessor"],
-
-      // Invalid or error characters
-      [/[^\x00-\x7F]+/, "invalid"],
     ],
 
     whitespace: [
       [/[ \t\r\n]+/, ""],
-      [/\/\*\*/, "comment.doc", "@javadoc"],
       [/\/\*/, "comment", "@comment"],
       [/\/\/.*$/, "comment"],
     ],
@@ -252,17 +240,10 @@ export const language = <monaco.languages.IMonarchLanguage>{
       [/[\/*]/, "comment"],
     ],
 
-    javadoc: [
-      [/[^\/*]+/, "comment.doc"],
-      [/\/\*/, "comment.doc.invalid"],
-      [/\\\*\//, "comment.doc", "@pop"],
-      [/[\/*]/, "comment.doc"],
-    ],
-
     string: [
-      [/[^\\"]+/, "string"],
-      [/\\./, "string.escape"],
-      [/"/, "string", "@pop"],
+      [/[^"]+/, "string"],
+      [/"/, { token: "string", next: "@pop" }],
+      [/\n/, "invalid"],
     ],
   },
   folding: {
