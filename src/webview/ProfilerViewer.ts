@@ -69,6 +69,23 @@ export class ProfilerViewer {
     // Handle incoming messages from the webview (using webview instance)
     this.webview.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
+        case "readFile":
+          const receivedModuleName = message.filePath;
+          const receivedListingFile = message.listingFile;
+          const receivedFileType = message.openFileType;
+          const fileContent = await FileHandler.getFileContent(
+            receivedModuleName,
+            receivedListingFile,
+            receivedFileType
+          );
+
+          this.webview.panel?.webview.postMessage({
+            type: "fileContent",
+            content: fileContent,
+          });
+
+          break;
+
         case "requestCompareFiles":
           const selectedFiles = await vscode.window.showOpenDialog({
             canSelectMany: false,
@@ -146,8 +163,20 @@ export class ProfilerViewer {
         case "TOGGLE_PROFILER":
           await this.toggleProfilerData();
           break;
+        case "THEME":
+          this.sendThemeToWebview();
+          break;
         default:
       }
+    });
+    vscode.window.onDidChangeActiveColorTheme(() => this.sendThemeToWebview());
+  }
+
+  private sendThemeToWebview() {
+    const currentTheme = vscode.window.activeColorTheme.kind;
+    this.webview.panel?.webview.postMessage({
+      type: "themeChange",
+      themeKind: currentTheme,
     });
   }
 

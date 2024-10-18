@@ -10,6 +10,7 @@ import { ProfilerService } from "../services/profilerService";
 import { IncludeFile } from "../common/XRefData";
 import * as fs from "fs";
 import { Constants } from "../common/Constants";
+import { OpenFileTypeEnum } from "../common/openFile";
 
 export class FileHandler {
 
@@ -111,6 +112,20 @@ export class FileHandler {
   
       return { fileName, lineNumber };
     }
+
+    static async readFile(filePath: string): Promise<string> { 
+      try {
+          if (!(await vscode.workspace.fs.stat(vscode.Uri.file(filePath)))) {
+              throw new Error('File not found: ' + filePath);
+          }
+
+          const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
+          return fileContent.toString(); 
+      } catch (error) {
+          throw error; 
+      }
+  }
+
   
     static countLinesInFile(filePath: string): number {
       const fileContent = fs.readFileSync(filePath, "utf-8");
@@ -143,4 +158,39 @@ export class FileHandler {
       }
       return Promise.resolve(vscode.Uri.file(""));
     }
+
+    static async getFileContent(moduleName: string, listingFile: string, fileType: OpenFileTypeEnum): Promise<string> {
+
+      const { fileName, procedureName } = getFileAndProcedureName(moduleName);
+      const proPath = getProPath();
+      let filePath;
+
+      switch(fileType){
+        case OpenFileTypeEnum.XREF:
+          filePath = await this.getFilePath(proPath, fileName);
+          break;
+        case OpenFileTypeEnum.LISTING:
+          const listingFiles = await vscode.workspace.findFiles(getListingFilePath(listingFile));
+          if(listingFiles.length > 0){
+            filePath = listingFiles[0];
+          } else {
+            throw new Error('File not found: ' + filePath);
+          }
+          break;
+      }
+
+        const fileContent = await this.readFile(filePath.path.slice(1));
+        if(fileType === OpenFileTypeEnum.XREF)
+          return fileContent;
+
+        const cleanedContent = fileContent
+        .split('\n')
+        .map(line => {
+          return line.replace(/^\s*\d+\s{3}/, '');
+        })
+        .join('\n');
+
+        return cleanedContent;
+    }
+
   }
