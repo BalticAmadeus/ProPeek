@@ -270,6 +270,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
       if (overflow) {
         return {
           ...col,
+          minWidth: 190,
           formatter: ({ row }: FormatterProps<ComparedModule>) => {
             const [isOverflow, setIsOverflow] = React.useState(false);
             const [isHovered, setIsHovered] = React.useState(false);

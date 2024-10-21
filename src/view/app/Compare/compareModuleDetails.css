@@ -33,12 +33,12 @@
 
 .calling-columns-compare {
     position: relative;
-    width: 30%;
+    width: 40%;
     display: inline-block;
 }
 
 .called-columns-compare {
     position: relative;
-    width: calc(70% - 30px);
+    width: calc(60% - 30px);
     display: inline-block;
 }
