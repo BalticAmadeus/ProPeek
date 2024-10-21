@@ -72,10 +72,13 @@ const addConditionalFormatting = (
     const changeClass = getChangeClass(changeValue);
 
     if (isPercentageView) {
-      if (key === "calleeTimesCalledChange")
-        displayValue = getPercentageValue(changeValue, row.calleeTimesCalled);
-      if (key === "callerTimesCalledChange")
-        displayValue = getPercentageValue(changeValue, row.callerTimesCalled);
+      if (key === "calleeTotalTimesCalledChange")
+        displayValue = getPercentageValue(
+          changeValue,
+          row.calleeTotalTimesCalled
+        );
+      if (key === "timesCalledChange")
+        displayValue = getPercentageValue(changeValue, row.timesCalled);
     } else {
       displayValue = changeValue;
     }
@@ -152,8 +155,8 @@ const addConditionalFormatting = (
       };
     }
     if (
-      column.key === "callerTimesCalledChange" ||
-      column.key === "calleeTimesCalledChange"
+      column.key === "timesCalledChange" ||
+      column.key === "calleeTotalTimesCalledChange"
     ) {
       return {
         ...column,
@@ -172,10 +175,8 @@ function getComparator(sortColumn: string) {
     case "calleeID":
     case "timesCalled":
     case "timesCalledChange":
-    case "calleeTimesCalled":
-    case "calleeTimesCalledChange":
-    case "callerTimesCalled":
-    case "callerTimesCalledChange":
+    case "calleeTotalTimesCalled":
+    case "calleeTotalTimesCalledChange":
     case "avgTimePerCall":
     case "avgTimePerCallChange":
     case "totalTime":
@@ -274,7 +275,6 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
             const [isHovered, setIsHovered] = React.useState(false);
             const cellRef = useRef<HTMLDivElement>(null);
             let icon = null;
-            console.log(row?.status);
             if (!row.status) {
               icon = <span style={{ width: 16, display: "inline-block" }} />;
             }

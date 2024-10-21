@@ -48,12 +48,12 @@
             "width": "auto"
         },
         {
-            "key": "callerTimesCalled",
+            "key": "timesCalled",
             "name": "Times Calling",
             "width": "auto"
         },
         {
-            "key": "callerTimesCalledChange",
+            "key": "timesCalledChange",
             "name": "Times Calling Diff",
             "width": "auto"
         },
@@ -70,22 +70,22 @@
             "width": "auto"
         },
         {
-            "key": "callerTimesCalled",
+            "key": "timesCalled",
             "name": "Times Calling",
             "width": "auto"
         },
         {
-            "key": "callerTimesCalledChange",
+            "key": "timesCalledChange",
             "name": "Times Calling Diff",
             "width": "auto"
         },
         {
-            "key": "calleeTimesCalled",
+            "key": "calleeTotalTimesCalled",
             "name": "Total Times Called",
             "width": "auto"
         },
         {
-            "key": "calleeTimesCalledChange",
+            "key": "calleeTotalTimesCalledChange",
             "name": "Total Times Called Diff",
             "width": "auto"
         },
