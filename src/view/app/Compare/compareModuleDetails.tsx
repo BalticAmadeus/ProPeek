@@ -168,19 +168,40 @@ const addConditionalFormatting = (
   });
 };
 
-function getComparator(sortColumn: string) {
+function getComparator(sortColumn: string, isPercentageView: boolean) {
+  const getPercentageValue = (changeValue: number, originalValue: number) => {
+    if (originalValue === 0) return 0;
+    return (changeValue / originalValue) * 100;
+  };
+
   switch (sortColumn) {
+    case "timesCalledChange":
+    case "calleeTotalTimesCalledChange":
+    case "avgTimePerCallChange":
+    //@ts-ignore
+    //used to bypass fallthough case error
+    case "totalTimeChange":
+      if (isPercentageView) {
+        return (a, b) => {
+          if (a === 0 || b === 0) return 0;
+          const percentageA = getPercentageValue(
+            a[sortColumn],
+            a[sortColumn.replace("Change", "")]
+          );
+          const percentageB = getPercentageValue(
+            b[sortColumn],
+            b[sortColumn.replace("Change", "")]
+          );
+          return percentageA - percentageB;
+        };
+      }
     case "moduleID":
     case "callerID":
     case "calleeID":
     case "timesCalled":
-    case "timesCalledChange":
     case "calleeTotalTimesCalled":
-    case "calleeTotalTimesCalledChange":
     case "avgTimePerCall":
-    case "avgTimePerCallChange":
     case "totalTime":
-    case "totalTimeChange":
     case "pcntOfSession":
     case "callerPcntOfSession":
     case "calleePcntOfSession":
@@ -385,7 +406,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
     return [...rows].sort((a, b) => {
       for (const sort of columns) {
-        const comparator = getComparator(sort.columnKey);
+        const comparator = getComparator(sort.columnKey, isPercentageView);
         const compResult = comparator(a, b);
         if (compResult !== 0) {
           return sort.direction === "ASC" ? compResult : -compResult;
