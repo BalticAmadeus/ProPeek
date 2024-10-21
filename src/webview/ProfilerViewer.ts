@@ -261,10 +261,11 @@ export class ProfilerViewer {
   // Updates the webview panel tab title
   private updateWebviewPanelTitle() {
     let newTitle = "";
+
     if (this.proPath2) {
       newTitle = this.isViewingAlternateProfiler
-        ? `${path.basename(this.proPath)} <> ${path.basename(this.proPath2)}`
-        : `${path.basename(this.proPath2)} <> ${path.basename(this.proPath)}`;
+        ? `${path.basename(this.proPath)} \u21C4 ${path.basename(this.proPath2)}`
+        : `${path.basename(this.proPath2)} \u21C4 ${path.basename(this.proPath)}`;
     } else {
       newTitle = this.proPath;
     }
@@ -276,14 +277,12 @@ export class ProfilerViewer {
     this.profilerService = new ProfilerService(this.proPath);
     await this.initProfiler(this.profilerService, this.filePath);
 
-    if (this.proPath2 && this.filePath2) {
-      await this.loadTwoProfilerData(
-        this.proPath,
-        this.filePath,
-        this.proPath2,
-        this.filePath2
-      );
-    }
+    await this.loadTwoProfilerData(
+      this.proPath,
+      this.filePath,
+      this.proPath2!,
+      this.filePath2!
+    );
 
     await this.reloadProfilerData(this.proPath, this.filePath);
   }
@@ -299,7 +298,6 @@ export class ProfilerViewer {
       this.proPath,
       this.filePath
     );
-    await this.reloadProfilerData(this.proPath2!, this.filePath2!);
   }
 
   private async initAndSendProfilerData(
