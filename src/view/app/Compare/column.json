@@ -71,12 +71,12 @@
         },
         {
             "key": "timesCalled",
-            "name": "Times Calling",
+            "name": "Times Called",
             "width": "auto"
         },
         {
             "key": "timesCalledChange",
-            "name": "Times Calling Diff",
+            "name": "Times Called Diff",
             "width": "auto"
         },
         {
