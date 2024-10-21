@@ -61,6 +61,8 @@ export interface ComparedData {
 
 export interface ComparedModule {
   moduleID: number,
+  moduleIDprof1?: number,
+  moduleIDprof2?: number,
   moduleName: string,
   timesCalled: number,
   timesCalledChange: number,
@@ -76,11 +78,11 @@ export interface ComparedCalledModule {
   calleeID: number,
   callerModuleName: string,
   calleeModuleName: string,
-  callerTimesCalled: number,
-  calleeTimesCalled: number,
+  timesCalled: number,
+  calleeTotalTimesCalled: number,
   callerPcntOfSession: number,
   calleePcntOfSession: number,
-  callerTimesCalledChange: number,
-  calleeTimesCalledChange: number,
+  timesCalledChange: number,
+  calleeTotalTimesCalledChange: number,
   status?: string,
 }
