@@ -44,7 +44,7 @@ export class ProfilerViewer {
     this.previousViewColumn = vscode.ViewColumn.One;
 
     // Create Webview Instance
-    this.webview = new ProfilerWebview(context, proPath);
+    this.webview = new ProfilerWebview(context, this.proPath, this.proPath2);
 
     if (filePath2 && proPath2) {
       this.toggleProfilerData();
@@ -238,6 +238,7 @@ export class ProfilerViewer {
     this.setLoading(false);
   }
 
+  // Toggles between main and alternate profiler
   private async toggleProfilerView(): Promise<void> {
     try {
       if (!this.isViewingAlternateProfiler) {
@@ -253,6 +254,21 @@ export class ProfilerViewer {
     this.currentViewedProfiler = this.isViewingAlternateProfiler
       ? "alternate"
       : "main";
+
+    this.updateWebviewPanelTitle();
+  }
+
+  // Updates the webview panel tab title
+  private updateWebviewPanelTitle() {
+    let newTitle = "";
+    if (this.proPath2) {
+      newTitle = this.isViewingAlternateProfiler
+        ? `${path.basename(this.proPath)} <> ${path.basename(this.proPath2)}`
+        : `${path.basename(this.proPath2)} <> ${path.basename(this.proPath)}`;
+    } else {
+      newTitle = this.proPath;
+    }
+    this.webview.updatePanelTitle(newTitle);
   }
 
   private async switchToMainProfiler(): Promise<void> {
