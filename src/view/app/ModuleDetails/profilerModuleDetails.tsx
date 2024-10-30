@@ -444,7 +444,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
               sortable: true,
               resizable: true,
             }}
-            style={{ textAlign: "end", width: "35%", maxHeight: "300px" }}
+            style={{ textAlign: "end", maxHeight: "300px", width: "40%" }}
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
