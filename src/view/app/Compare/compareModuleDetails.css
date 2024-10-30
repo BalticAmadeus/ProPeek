@@ -30,3 +30,15 @@
     justify-content: right;
     height: 100%;
 }
+
+.calling-columns-compare {
+    position: relative;
+    width: 40%;
+    display: inline-block;
+}
+
+.called-columns-compare {
+    position: relative;
+    width: calc(60% - 30px);
+    display: inline-block;
+}
