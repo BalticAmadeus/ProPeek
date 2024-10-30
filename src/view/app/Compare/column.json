@@ -53,6 +53,11 @@
             "width": "auto"
         },
         {
+            "key": "timesCalledChange",
+            "name": "Times Calling Diff",
+            "width": "auto"
+        },
+        {
             "key": "callerPcntOfSession",
             "name": "% Of Session",
             "width": "auto"
@@ -70,8 +75,18 @@
             "width": "auto"
         },
         {
+            "key": "timesCalledChange",
+            "name": "Times Called Diff",
+            "width": "auto"
+        },
+        {
             "key": "calleeTotalTimesCalled",
             "name": "Total Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "calleeTotalTimesCalledChange",
+            "name": "Total Times Called Diff",
             "width": "auto"
         },
         {

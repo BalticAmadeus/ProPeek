@@ -66,7 +66,7 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
               }}
               title={fileName}
             >
-              Total time: {fileName}
+              {fileName}
             </Typography>
             <Typography
               color="-var(--vscode-editor-foreground)"
@@ -98,7 +98,7 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
               }}
               title={fileName2}
             >
-              Total time: {fileName2}
+              {fileName2}
             </Typography>
             <Typography
               color="-var(--vscode-editor-foreground)"
@@ -131,9 +131,18 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
                       sumTotalTime.firstTotalTime) *
                     100
                   ).toFixed(2)}%`
-                : `${(
-                    sumTotalTime.secondTotalTime - sumTotalTime.firstTotalTime
-                  ).toFixed(6)} s`}
+                : `${
+                    sumTotalTime.secondTotalTime - sumTotalTime.firstTotalTime >
+                    0
+                      ? `+${(
+                          sumTotalTime.secondTotalTime -
+                          sumTotalTime.firstTotalTime
+                        ).toFixed(6)}`
+                      : (
+                          sumTotalTime.secondTotalTime -
+                          sumTotalTime.firstTotalTime
+                        ).toFixed(6)
+                  } s`}
             </Typography>
           </div>
         </div>
