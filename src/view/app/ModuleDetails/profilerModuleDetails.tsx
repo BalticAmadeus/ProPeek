@@ -11,8 +11,8 @@ import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
-import { getVSCodeAPI } from "../utils/vscode";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
+import { getVSCodeAPI } from "../utils/vscode";
 import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
@@ -185,6 +185,60 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     .reduce((acc, module) => acc + module.totalTime, 0)
     .toFixed(6);
 
+  const checkOverflow = (columns: GenericModuleColumn[]) => {
+    return columns.map((col) => {
+      const overflow =
+        col.key === "callerModuleName" || col.key === "calleeModuleName";
+
+      if (overflow) {
+        return {
+          ...col,
+          minWidth: 250,
+          formatter: ({ row }: FormatterProps<ModuleDetails>) => {
+            const [isOverflow, setIsOverflow] = React.useState(false);
+            const [isHovered, setIsHovered] = React.useState(false);
+            const cellRef = React.useRef<HTMLDivElement>(null);
+
+            const checkOverflow = () => {
+              if (cellRef.current) {
+                const isOverflowing =
+                  cellRef.current.scrollWidth > cellRef.current.clientWidth;
+                setIsOverflow(isOverflowing);
+              }
+            };
+
+            React.useEffect(() => {
+              if (isHovered && cellRef.current) {
+                checkOverflow();
+              } else {
+                setIsOverflow(false);
+              }
+            }, [isHovered, row[col.key], cellRef.current]);
+
+            return (
+              <div
+                ref={cellRef}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  cursor: isOverflow ? "pointer" : "default",
+                }}
+                title={isHovered && isOverflow ? row[col.key] : undefined}
+              >
+                {row[col.key]}
+              </div>
+            );
+          },
+        };
+      }
+
+      return col;
+    });
+  };
+
   const filterTables = (row: ModuleDetails) => {
     if (!row) {
       return;
@@ -274,6 +328,14 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
   }, [selectedLineRows, sortLineColumns]);
 
+  const overflowCallingColumns = useMemo(() => {
+    return checkOverflow(callingColumns);
+  }, [callingColumns]);
+
+  const overflowCalledColumns = useMemo(() => {
+    return checkOverflow(calledColumns);
+  }, [calledColumns]);
+
   React.useEffect(() => {
     filterTables(selectedRow);
   }, [selectedRow]);
@@ -337,7 +399,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
           <div className="grid-name">Calling Modules</div>
           <DataGrid
             className="columns"
-            columns={callingColumns}
+            columns={overflowCallingColumns}
             rows={sortedCallingRows}
             defaultColumnOptions={{
               sortable: true,
@@ -362,7 +424,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
           <div className="grid-name">Called Modules</div>
           <DataGrid
             className="columns"
-            columns={calledColumns}
+            columns={overflowCalledColumns}
             rows={sortedCalledRows}
             defaultColumnOptions={{
               sortable: true,

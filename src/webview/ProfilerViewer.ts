@@ -44,7 +44,7 @@ export class ProfilerViewer {
     this.previousViewColumn = vscode.ViewColumn.One;
 
     // Create Webview Instance
-    this.webview = new ProfilerWebview(context, proPath);
+    this.webview = new ProfilerWebview(context, this.proPath, this.proPath2);
 
     if (filePath2 && proPath2) {
       this.toggleProfilerData();
@@ -238,6 +238,7 @@ export class ProfilerViewer {
     this.setLoading(false);
   }
 
+  // Toggles between main and alternate profiler
   private async toggleProfilerView(): Promise<void> {
     try {
       if (!this.isViewingAlternateProfiler) {
@@ -253,6 +254,22 @@ export class ProfilerViewer {
     this.currentViewedProfiler = this.isViewingAlternateProfiler
       ? "alternate"
       : "main";
+
+    this.updateWebviewPanelTitle();
+  }
+
+  // Updates the webview panel tab title
+  private updateWebviewPanelTitle() {
+    let newTitle = "";
+
+    if (this.proPath2) {
+      newTitle = this.isViewingAlternateProfiler
+        ? `${path.basename(this.proPath)} \u21C4 ${path.basename(this.proPath2)}`
+        : `${path.basename(this.proPath2)} \u21C4 ${path.basename(this.proPath)}`;
+    } else {
+      newTitle = this.proPath;
+    }
+    this.webview.updatePanelTitle(newTitle);
   }
 
   private async switchToMainProfiler(): Promise<void> {
@@ -260,14 +277,12 @@ export class ProfilerViewer {
     this.profilerService = new ProfilerService(this.proPath);
     await this.initProfiler(this.profilerService, this.filePath);
 
-    if (this.proPath2 && this.filePath2) {
-      await this.loadTwoProfilerData(
-        this.proPath,
-        this.filePath,
-        this.proPath2,
-        this.filePath2
-      );
-    }
+    await this.loadTwoProfilerData(
+      this.proPath,
+      this.filePath,
+      this.proPath2!,
+      this.filePath2!
+    );
 
     await this.reloadProfilerData(this.proPath, this.filePath);
   }
@@ -283,7 +298,6 @@ export class ProfilerViewer {
       this.proPath,
       this.filePath
     );
-    await this.reloadProfilerData(this.proPath2!, this.filePath2!);
   }
 
   private async initAndSendProfilerData(
