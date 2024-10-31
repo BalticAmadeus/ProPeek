@@ -73,12 +73,17 @@ export class ProfilerViewer {
           const receivedModuleName = message.filePath;
           const receivedListingFile = message.listingFile;
           const receivedFileType = message.openFileType;
-          const fileContent = await FileHandler.getFileContent(
-            receivedModuleName,
-            receivedListingFile,
-            receivedFileType
-          );
-
+          let fileContent;
+          try {
+            fileContent = await FileHandler.getFileContent(
+              receivedModuleName,
+              receivedListingFile,
+              receivedFileType
+            );
+          } catch (error) {
+            fileContent = null;
+            console.log(typeof fileContent, fileContent);
+          }
           this.webview.panel?.webview.postMessage({
             type: "fileContent",
             content: fileContent,

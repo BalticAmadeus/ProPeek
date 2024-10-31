@@ -305,6 +305,25 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     });
   };
 
+  const updateEditorContent = (row: ModuleDetails) => {
+    const openFileType =
+      row.listingFile && presentationData.hasListings
+        ? OpenFileTypeEnum.LISTING
+        : OpenFileTypeEnum.XREF;
+
+    if (!row || !row.hasLink) {
+      setSelectedModuleCode(null);
+      return;
+    }
+
+    vscode.postMessage({
+      type: "readFile",
+      filePath: row.moduleName,
+      listingFile: row.listingFile,
+      openFileType,
+    });
+  };
+
   const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
     const sortedRows = getSortedRows(
       sortModuleColumns,
@@ -314,6 +333,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     if (sortedRows.length > 0 && selectedModuleRow === null) {
       setSelectedModuleRow(sortedRows[0]);
       filterTables(sortedRows[0]);
+      updateEditorContent(sortedRows[0]);
     }
 
     return sortedRows;
@@ -347,6 +367,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   React.useEffect(() => {
     filterTables(selectedRow);
+    if (selectedRow) updateEditorContent(selectedRow);
   }, [selectedRow]);
 
   React.useEffect(() => {
@@ -370,25 +391,6 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       name: foundModule.moduleName,
       listingFile: foundModule?.listingFile,
       lineNumber: row.lineNumber,
-    });
-  };
-
-  const updateEditorContent = (row: ModuleDetails) => {
-    const openFileType =
-      row.listingFile && presentationData.hasListings
-        ? OpenFileTypeEnum.LISTING
-        : OpenFileTypeEnum.XREF;
-
-    if (!row || !row.hasLink) {
-      setSelectedModuleCode(null);
-      return;
-    }
-
-    vscode.postMessage({
-      type: "readFile",
-      filePath: row.moduleName,
-      listingFile: row.listingFile,
-      openFileType,
     });
   };
 
