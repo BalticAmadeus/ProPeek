@@ -106,7 +106,7 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
       editorInstance.revealLineInCenterIfOutsideViewport(lineNumber);
       editorInstance.setPosition({ lineNumber, column: 1 });
     }
-  }, [lineNumber, editorInstance]);
+  }, [lineNumber, editorInstance, selectedModuleCode]);
 
   return (
     <MonacoEditor

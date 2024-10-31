@@ -367,7 +367,10 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   React.useEffect(() => {
     filterTables(selectedRow);
-    if (selectedRow) updateEditorContent(selectedRow);
+    if (selectedRow) {
+      updateEditorContent(selectedRow);
+      setLineNumber(selectedRow.startLineNum);
+    }
   }, [selectedRow]);
 
   React.useEffect(() => {
@@ -436,6 +439,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onRowClick={(row) => {
               setSelectedRow(row);
               updateEditorContent(row);
+              setLineNumber(row.startLineNum);
             }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}

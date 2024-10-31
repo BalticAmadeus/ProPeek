@@ -82,7 +82,6 @@ export class ProfilerViewer {
             );
           } catch (error) {
             fileContent = null;
-            console.log(typeof fileContent, fileContent);
           }
           this.webview.panel?.webview.postMessage({
             type: "fileContent",
