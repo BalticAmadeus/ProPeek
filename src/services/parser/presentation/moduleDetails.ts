@@ -45,7 +45,9 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
     }
 
     moduleDetails.totalTime = Number((moduleDetails.totalTime).toFixed(6));
-    moduleDetails.avgTimePerCall = Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6));
+    moduleDetails.avgTimePerCall = moduleDetails.timesCalled
+      ? Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6))
+      : 0;
     moduleDetailsList.push(moduleDetails);
   }
 
