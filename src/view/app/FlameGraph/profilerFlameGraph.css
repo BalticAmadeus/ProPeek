@@ -28,7 +28,7 @@
     border-radius: 6px;
     position: absolute;
     z-index: 100;
-    bottom: 125%; 
+    top: 125%; 
     left: 20%;
     margin-left: -95px; 
     opacity: 0;

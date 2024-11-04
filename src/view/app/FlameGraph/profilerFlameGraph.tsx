@@ -215,6 +215,17 @@ function ProfilerFlameGraph({
         <div className="graph-type-selects">
           <label>
             <b>Graph Type:</b>
+          {!hasTracingData && (
+            <div className="tooltip-container">
+              <InfoIcon
+                className="fa fa-info-circle"
+                style={{ marginLeft: "5px", cursor: "help", fontSize : "20px", verticalAlign: "middle" }}
+              />
+              <span className="tooltiptext">
+              Profiler needs to contain tracing section to show detailed timing information.
+              </span>
+            </div>
+          )}
           </label>
           <br />
           <br />
@@ -225,9 +236,8 @@ function ProfilerFlameGraph({
               value="Combined"
               onChange={handleGraphTypeChange}
               defaultChecked={!showStartTime}
-              disabled={!hasTracingData}
             />
-            Combined
+            Summary
           </label>
           <label>
             <input
@@ -238,19 +248,9 @@ function ProfilerFlameGraph({
               defaultChecked={showStartTime}
               disabled={!hasTracingData}
             />
-            Separate
+            Detailed
           </label>
-          {!hasTracingData && (
-            <div className="tooltip-container">
-              <InfoIcon
-                className="fa fa-info-circle"
-                style={{ marginLeft: "5px", cursor: "help", fontSize : "20px" }}
-              />
-              <span className="tooltiptext">
-                When using profiler turn tracing on and load extension again.
-              </span>
-            </div>
-          )}
+
         </div>
       </div>
 
