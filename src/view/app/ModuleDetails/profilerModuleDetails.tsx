@@ -331,9 +331,11 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     ) as ModuleDetails[];
 
     if (sortedRows.length > 0 && selectedModuleRow === null) {
-      setSelectedModuleRow(sortedRows[0]);
-      filterTables(sortedRows[0]);
-      updateEditorContent(sortedRows[0]);
+      const firstModuleRow = sortedRows[0];
+      setSelectedModuleRow(firstModuleRow);
+      filterTables(firstModuleRow);
+      updateEditorContent(firstModuleRow);
+      setLineNumber(firstModuleRow.startLineNum);
     }
 
     return sortedRows;
