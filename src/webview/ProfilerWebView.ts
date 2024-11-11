@@ -87,12 +87,14 @@ export class ProfilerWebview {
    initial-scale=1.0">
               <title>Config View</title>
               <meta http-equiv="Content-Security-Policy"
-                      content="default-src 'none';
-                              img-src https:;
-                              script-src 'unsafe-eval'  
-   'unsafe-inline' ${cspSource};
-                              style-src ${cspSource} 'unsafe-inline';"> 
-  
+                      content="default-src 'self' ${cspSource}; 
+                              img-src https: data: ${cspSource}; 
+                              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net ${cspSource}; 
+                              style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net ${cspSource}; 
+                              font-src 'self' https://cdn.jsdelivr.net ${cspSource}; 
+                              worker-src 'self' blob:; 
+                              connect-src 'self' ${cspSource};">
+
   
               <script>
               </script>

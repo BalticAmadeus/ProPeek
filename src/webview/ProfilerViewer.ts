@@ -69,6 +69,27 @@ export class ProfilerViewer {
     // Handle incoming messages from the webview (using webview instance)
     this.webview.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
+        case "readFile":
+          const receivedModuleName = message.filePath;
+          const receivedListingFile = message.listingFile;
+          const receivedFileType = message.openFileType;
+          let fileContent;
+          try {
+            fileContent = await FileHandler.getFileContent(
+              receivedModuleName,
+              receivedListingFile,
+              receivedFileType
+            );
+          } catch (error) {
+            fileContent = null;
+          }
+          this.webview.panel?.webview.postMessage({
+            type: "fileContent",
+            content: fileContent,
+          });
+
+          break;
+
         case "requestCompareFiles":
           const selectedFiles = await vscode.window.showOpenDialog({
             canSelectMany: false,
@@ -146,8 +167,20 @@ export class ProfilerViewer {
         case "TOGGLE_PROFILER":
           await this.toggleProfilerData();
           break;
+        case "THEME":
+          this.sendThemeToWebview();
+          break;
         default:
       }
+    });
+    vscode.window.onDidChangeActiveColorTheme(() => this.sendThemeToWebview());
+  }
+
+  private sendThemeToWebview() {
+    const currentTheme = vscode.window.activeColorTheme.kind;
+    this.webview.panel?.webview.postMessage({
+      type: "themeChange",
+      themeKind: currentTheme,
     });
   }
 
@@ -238,7 +271,6 @@ export class ProfilerViewer {
     this.setLoading(false);
   }
 
-  // Toggles between main and alternate profiler
   private async toggleProfilerView(): Promise<void> {
     try {
       if (!this.isViewingAlternateProfiler) {
@@ -264,8 +296,12 @@ export class ProfilerViewer {
 
     if (this.proPath2) {
       newTitle = this.isViewingAlternateProfiler
-        ? `${path.basename(this.proPath)} \u21C4 ${path.basename(this.proPath2)}`
-        : `${path.basename(this.proPath2)} \u21C4 ${path.basename(this.proPath)}`;
+        ? `${path.basename(this.proPath)} \u21C4 ${path.basename(
+            this.proPath2
+          )}`
+        : `${path.basename(this.proPath2)} \u21C4 ${path.basename(
+            this.proPath
+          )}`;
     } else {
       newTitle = this.proPath;
     }
@@ -298,6 +334,7 @@ export class ProfilerViewer {
       this.proPath,
       this.filePath
     );
+    await this.reloadProfilerData(this.proPath2!, this.filePath2!);
   }
 
   private async initAndSendProfilerData(

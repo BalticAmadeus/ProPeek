@@ -9,6 +9,7 @@ import { Box } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
+import InfoIcon from "@mui/icons-material/Info";
 
 interface FlameGraphNodeRoot {
   name: "root";
@@ -56,7 +57,6 @@ function ProfilerFlameGraph({
     React.useState<FlameGraphNodeRoot>(
       convertToNestedStructure(callTree, Mode.Length, searchPhrase)
     );
-
   const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
     callTree[0]?.cumulativeTime ?? 0
   );
@@ -215,6 +215,17 @@ function ProfilerFlameGraph({
         <div className="graph-type-selects">
           <label>
             <b>Graph Type:</b>
+          {!hasTracingData && (
+            <div className="tooltip-container">
+              <InfoIcon
+                className="fa fa-info-circle"
+                style={{ marginLeft: "5px", cursor: "help", fontSize : "20px", verticalAlign: "middle" }}
+              />
+              <span className="tooltiptext">
+              Profiler needs to contain tracing section to show detailed timing information.
+              </span>
+            </div>
+          )}
           </label>
           <br />
           <br />
@@ -225,9 +236,8 @@ function ProfilerFlameGraph({
               value="Combined"
               onChange={handleGraphTypeChange}
               defaultChecked={!showStartTime}
-              disabled={!hasTracingData}
             />
-            Combined
+            Summary
           </label>
           <label>
             <input
@@ -238,8 +248,9 @@ function ProfilerFlameGraph({
               defaultChecked={showStartTime}
               disabled={!hasTracingData}
             />
-            Separate
+            Detailed
           </label>
+
         </div>
       </div>
 

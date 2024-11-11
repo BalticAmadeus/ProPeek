@@ -17,6 +17,7 @@ import { Box, Typography } from "@mui/material";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
+import MonacoComponent from "./components/MonacoComponent";
 
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
@@ -127,9 +128,16 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   moduleName,
   selectedModuleId,
 }) => {
+  const [selectedModuleCode, setSelectedModuleCode] = useState<string | null>(
+    null
+  );
+
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
   );
+
+  const [lineNumber, setLineNumber] = useState<number>();
+
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
   const [sortModuleColumns, setSortModuleColumns] = useState<
@@ -273,6 +281,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
     if (matchingRow) {
       setSelectedRow(matchingRow);
+      updateEditorContent(matchingRow);
     }
   };
 
@@ -296,6 +305,25 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     });
   };
 
+  const updateEditorContent = (row: ModuleDetails) => {
+    const openFileType =
+      row.listingFile && presentationData.hasListings
+        ? OpenFileTypeEnum.LISTING
+        : OpenFileTypeEnum.XREF;
+
+    if (!row || !row.hasLink) {
+      setSelectedModuleCode(null);
+      return;
+    }
+
+    vscode.postMessage({
+      type: "readFile",
+      filePath: row.moduleName,
+      listingFile: row.listingFile,
+      openFileType,
+    });
+  };
+
   const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
     const sortedRows = getSortedRows(
       sortModuleColumns,
@@ -303,8 +331,11 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     ) as ModuleDetails[];
 
     if (sortedRows.length > 0 && selectedModuleRow === null) {
-      setSelectedModuleRow(sortedRows[0]);
-      filterTables(sortedRows[0]);
+      const firstModuleRow = sortedRows[0];
+      setSelectedModuleRow(firstModuleRow);
+      filterTables(firstModuleRow);
+      updateEditorContent(firstModuleRow);
+      setLineNumber(firstModuleRow.startLineNum);
     }
 
     return sortedRows;
@@ -338,6 +369,10 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   React.useEffect(() => {
     filterTables(selectedRow);
+    if (selectedRow) {
+      updateEditorContent(selectedRow);
+      setLineNumber(selectedRow.startLineNum);
+    }
   }, [selectedRow]);
 
   React.useEffect(() => {
@@ -349,7 +384,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     }
   }, [presentationData.hasXREFs, presentationData.hasListings]);
 
-  const openFileForLineSummary = (row: LineSummary): void => {
+  const openFileForLineSummary = (row): void => {
     const foundModule = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
@@ -363,6 +398,25 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       lineNumber: row.lineNumber,
     });
   };
+
+  React.useEffect(() => {
+    const handleMessage = (event) => {
+      const message = event.data;
+
+      if (message.type === "fileContent") {
+        setSelectedModuleCode(message.content);
+      } else if (message.type === "fileReadError") {
+        setSelectedModuleCode(null);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
 
   return (
     <div>
@@ -384,7 +438,11 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
           <ModuleDetailsTable
             columns={formattedModuleColumns}
             rows={sortedModuleRows}
-            onRowClick={(row) => setSelectedRow(row)}
+            onRowClick={(row) => {
+              setSelectedRow(row);
+              updateEditorContent(row);
+              setLineNumber(row.startLineNum);
+            }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
@@ -446,21 +504,28 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
         </div>
       </div>
 
-      <div className="line-columns">
+      <div className="line-columns" style={{ marginBottom: "50px" }}>
         <div className="grid-name">Line Summary</div>
-        <DataGrid
-          columns={formattedLineColumns}
-          rows={sortedLineRows}
-          defaultColumnOptions={{
-            sortable: true,
-            resizable: true,
-          }}
-          style={{ textAlign: "end", width: "50%" }}
-          onRowsChange={setSelectedLineRows}
-          sortColumns={sortLineColumns}
-          onSortColumnsChange={setSortLineColumns}
-          onRowDoubleClick={openFileForLineSummary}
-        />
+        <div style={{ display: "flex", flexDirection: "row", width: "100%" }}>
+          <DataGrid
+            columns={formattedLineColumns}
+            rows={sortedLineRows}
+            defaultColumnOptions={{
+              sortable: true,
+              resizable: true,
+            }}
+            style={{ textAlign: "end", maxHeight: "300px", width: "40%" }}
+            onRowsChange={setSelectedLineRows}
+            sortColumns={sortLineColumns}
+            onSortColumnsChange={setSortLineColumns}
+            onRowDoubleClick={openFileForLineSummary}
+            onRowClick={(row) => setLineNumber(row.lineNumber)}
+          />
+          <MonacoComponent
+            selectedModuleCode={selectedModuleCode}
+            lineNumber={lineNumber}
+          />
+        </div>
       </div>
     </div>
   );

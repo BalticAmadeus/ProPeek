@@ -79,7 +79,14 @@ const addConditionalFormatting = (
         );
       if (key === "timesCalledChange")
         displayValue = getPercentageValue(changeValue, row.timesCalled);
-    } else {
+    } else if (key === "timesCalledChange") {
+
+      displayValue =
+        changeValue > 0
+          ? `+${changeValue}`
+          : changeValue;
+    }
+    else {
       displayValue = changeValue;
     }
     return (
@@ -96,13 +103,23 @@ const addConditionalFormatting = (
 
     if (isPercentageView) {
       if (key === "totalTimeChange") {
-        displayValue = getPercentageValue(changeValue, row.totalTime);
+        displayValue = `${changeValue > 0 ? "+" : ""}${getPercentageValue(
+          changeValue,
+          row.totalTime
+        )}`;
       } else if (key === "avgTimePerCallChange" && row.avgTimePerCall) {
-        displayValue = getPercentageValue(changeValue, row.avgTimePerCall);
+        displayValue = `${changeValue > 0 ? "+" : ""}${getPercentageValue(
+          changeValue,
+          row.avgTimePerCall
+        )}`;
       } else if (key === "timesCalledChange") {
-        displayValue = getPercentageValue(changeValue, row.timesCalled);
+        displayValue = `${changeValue > 0 ? "+" : ""}${getPercentageValue(
+          changeValue,
+          row.timesCalled
+        )}`;
       }
     } else {
+
       if (key === "totalTimeChange" || key === "avgTimePerCallChange") {
         displayValue =
           changeValue > 0
