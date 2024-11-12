@@ -163,11 +163,24 @@ export class FileHandler {
 
       const { fileName, procedureName } = getFileAndProcedureName(moduleName);
       const proPath = getProPath();
-      let filePath;
+      let filePath = vscode.Uri.file("");
 
       switch(fileType){
         case OpenFileTypeEnum.XREF:
-          filePath = await this.getFilePath(proPath, fileName);
+          if(fs.existsSync(fileName)) {
+            filePath = vscode.Uri.file(fileName);
+            break;
+          } else if(proPath) {
+            for(const path of proPath){
+              const files = await vscode.workspace.findFiles(
+                convertToFilePath(fileName, path)
+              );
+              if (files.length > 0) {
+                filePath = files[0];
+                break;
+              }
+            }
+          }
           break;
         case OpenFileTypeEnum.LISTING:
           const listingFiles = await vscode.workspace.findFiles(getListingFilePath(listingFile));
