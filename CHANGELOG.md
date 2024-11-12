@@ -1,3 +1,17 @@
+## 1.4.0 (2024-11-12)
+
+### Changed
+
+- Double clicking module name will now highlight the correct module
+- Various style changes to navigation buttons, progress bars, tree view etc.
+- Fixed various small bugs
+
+### Added
+
+- Jump to code from flame graph using CTRL + left click
+- Compare tab for comparison between two different profiler files
+- Code view section in module details tab
+
 ## 1.3.0 (2024-04-08)
 
 ### Changed
