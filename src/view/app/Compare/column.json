@@ -1,0 +1,120 @@
+{
+    "moduleColumns": [
+        {
+            "key": "moduleName",
+            "name": "Module Name",
+            "width": "auto"
+        },
+        {
+            "key": "pcntOfSession",
+            "name": "% Of Session",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalledChange",
+            "name": "Times Called Diff",
+            "width": "auto"
+        },
+        {
+            "key": "totalTime",
+            "name": "Total Time",
+            "width": "auto"
+        },
+        {
+            "key": "totalTimeChange",
+            "name": "Total Time Diff",
+            "width": "auto"
+        },
+        {
+            "key": "avgTimePerCall",
+            "name": "Avg Time Per Call",
+            "width": "auto"
+        },
+        {
+            "key": "avgTimePerCallChange",
+            "name": "Avg Time Per Call Diff",
+            "width": "auto"
+        }
+    ],
+    "CallingColumns": [
+        {
+            "key": "callerModuleName",
+            "name": "Calling Module Name",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Calling",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalledChange",
+            "name": "Times Calling Diff",
+            "width": "auto"
+        },
+        {
+            "key": "callerPcntOfSession",
+            "name": "% Of Session",
+            "width": "auto"
+        }
+    ],
+    "CalledColumns": [
+        {
+            "key": "calleeModuleName",
+            "name": "Called Module Name",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalledChange",
+            "name": "Times Called Diff",
+            "width": "auto"
+        },
+        {
+            "key": "calleeTotalTimesCalled",
+            "name": "Total Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "calleeTotalTimesCalledChange",
+            "name": "Total Times Called Diff",
+            "width": "auto"
+        },
+        {
+            "key": "calleePcntOfSession",
+            "name": "% Of Session",
+            "width": "auto"
+        }
+    ],
+    "LineColumns": [
+        {
+            "key": "lineNumber",
+            "name": "Line Number",
+            "width": "auto"
+        },
+        {
+            "key": "timesCalled",
+            "name": "Times Called",
+            "width": "auto"
+        },
+        {
+            "key": "avgTime",
+            "name": "Avg Time",
+            "width": "auto"
+        },
+        {
+            "key": "totalTime",
+            "name": "Total Time",
+            "width": "auto"
+        }
+    ]
+}

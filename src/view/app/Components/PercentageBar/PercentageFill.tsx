@@ -1,27 +1,27 @@
 import { Box } from "@mui/material";
 import * as React from "react";
+import "./PercentageFill.css";
 
 interface PercentageFillProps {
   value: number;
 }
 
 const PercentageFill: React.FC<PercentageFillProps> = ({ value }) => {
+
+  const fixedValue = value.toFixed(2);
+
   return (
-    <Box style={{ height: "10px" }}>
-      <Box style={{ border: "1px solid #ccc", boxSizing: "border-box" }}>
+    <Box className="progressBox">
+      <Box className="progressWrapper">
         <Box
           role="progressbar"
-          style={{
-            width: `${value}%`,
-            height: "10px",
-            backgroundColor: "#007bff",
-          }}
+          className="progressBar"
+          style={{ width: `${value}%` }}
           aria-valuenow={value}
           aria-valuemin={0}
           aria-valuemax={100}
-        >
-          {value}%
-        </Box>
+        />
+        <Box className="progressBarText">{fixedValue}%</Box>
       </Box>
     </Box>
   );

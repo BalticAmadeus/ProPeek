@@ -8,19 +8,21 @@ import {
 } from "../../../common/PresentationData";
 import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
-import * as columnDefinition from "./column.json";
+import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
 import ModuleDetailsTable from "./components/ModuleDetailsTable";
+import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { getVSCodeAPI } from "../utils/vscode";
-import PercentageFill from "./components/PercentageFill";
-import { Box } from "@mui/material";
-import ModuleDetailsSettings from "./components/ModuleDetailsSettings";
-import { useModuleDetailsSettingsContext } from "./components/ModuleDetailsSettingsContext";
+import { Box, Typography } from "@mui/material";
+import FileTypeSettings from "../Components/FileTypeSettings";
+import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
+import MonacoComponent from "./components/MonacoComponent";
 
 interface ProfilerModuleDetailsProps {
   presentationData: PresentationData;
   moduleName: string;
+  selectedModuleId: number;
 }
 
 interface GenericModuleColumn extends Column<any> {
@@ -51,6 +53,10 @@ const addConditionalFormatting = (
     <PercentageFill value={value} />
   );
 
+  const addFixedFormat = (row: ModuleDetails | LineSummary, key: string) => (
+    <>{row[key] !== 0 ? row[key]?.toFixed(6) : row[key]}</>
+  );
+
   const addLinkFormat = (row: ModuleDetails | LineSummary, key: string) => (
     <Box className={row.hasLink ? "link-cell" : ""}>{row[key]}</Box>
   );
@@ -71,6 +77,17 @@ const addConditionalFormatting = (
         ...column,
         formatter: (props: FormatterProps<CalledModules>) =>
           addPercentageFormat(props.row[column.key]),
+      };
+    }
+    if (
+      column.key === "totalTime" ||
+      column.key === "avgTimePerCall" ||
+      column.key === "avgTime"
+    ) {
+      return {
+        ...column,
+        formatter: (props: FormatterProps<ModuleDetails | LineSummary>) =>
+          addFixedFormat(props.row, column.key),
       };
     }
     return column;
@@ -109,17 +126,28 @@ function getComparator(sortColumn: string) {
 const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   presentationData,
   moduleName,
+  selectedModuleId,
 }) => {
+  const [selectedModuleCode, setSelectedModuleCode] = useState<string | null>(
+    null
+  );
+
   const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
   );
+
+  const [lineNumber, setLineNumber] = useState<number>();
+
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
   const [sortModuleColumns, setSortModuleColumns] = useState<
     readonly SortColumn[]
   >([defaultModuleSort]);
 
-  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(null);
+  const [selectedRow, setSelectedRow] = useState<ModuleDetails>(
+    moduleRows.find((moduleRow) => moduleRow.moduleID === selectedModuleId) ||
+      null
+  );
   const [selectedCallingRows, setSelectedCallingRows] = useState<
     CalledModules[]
   >(presentationData.calledModules);
@@ -159,12 +187,65 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     columnDefinition.LineColumns
   );
 
-  const settingsContext = useModuleDetailsSettingsContext();
+  const settingsContext = useFileTypeSettingsContext();
 
-  const sumTotalTime = presentationData.moduleDetails.reduce(
-    (acc, module) => acc + module.totalTime,
-    0
-  );
+  const sumTotalTime = presentationData.moduleDetails
+    .reduce((acc, module) => acc + module.totalTime, 0)
+    .toFixed(6);
+
+  const checkOverflow = (columns: GenericModuleColumn[]) => {
+    return columns.map((col) => {
+      const overflow =
+        col.key === "callerModuleName" || col.key === "calleeModuleName";
+
+      if (overflow) {
+        return {
+          ...col,
+          minWidth: 250,
+          formatter: ({ row }: FormatterProps<ModuleDetails>) => {
+            const [isOverflow, setIsOverflow] = React.useState(false);
+            const [isHovered, setIsHovered] = React.useState(false);
+            const cellRef = React.useRef<HTMLDivElement>(null);
+
+            const checkOverflow = () => {
+              if (cellRef.current) {
+                const isOverflowing =
+                  cellRef.current.scrollWidth > cellRef.current.clientWidth;
+                setIsOverflow(isOverflowing);
+              }
+            };
+
+            React.useEffect(() => {
+              if (isHovered && cellRef.current) {
+                checkOverflow();
+              } else {
+                setIsOverflow(false);
+              }
+            }, [isHovered, row[col.key], cellRef.current]);
+
+            return (
+              <div
+                ref={cellRef}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  cursor: isOverflow ? "pointer" : "default",
+                }}
+                title={isHovered && isOverflow ? row[col.key] : undefined}
+              >
+                {row[col.key]}
+              </div>
+            );
+          },
+        };
+      }
+
+      return col;
+    });
+  };
 
   const filterTables = (row: ModuleDetails) => {
     if (!row) {
@@ -188,6 +269,22 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     );
   };
 
+  const setMatchingRow = (
+    selectedRow,
+    matchKeys,
+    targetRows,
+    setSelectedRow
+  ) => {
+    const matchingRow = targetRows.find((row) =>
+      matchKeys.some((key) => row.moduleID === selectedRow[key])
+    );
+
+    if (matchingRow) {
+      setSelectedRow(matchingRow);
+      updateEditorContent(matchingRow);
+    }
+  };
+
   const getSortedRows = (
     columns: readonly SortColumn[],
     rows: ModuleDetails[] | CalledModules[] | LineSummary[]
@@ -208,6 +305,25 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     });
   };
 
+  const updateEditorContent = (row: ModuleDetails) => {
+    const openFileType =
+      row.listingFile && presentationData.hasListings
+        ? OpenFileTypeEnum.LISTING
+        : OpenFileTypeEnum.XREF;
+
+    if (!row || !row.hasLink) {
+      setSelectedModuleCode(null);
+      return;
+    }
+
+    vscode.postMessage({
+      type: "readFile",
+      filePath: row.moduleName,
+      listingFile: row.listingFile,
+      openFileType,
+    });
+  };
+
   const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
     const sortedRows = getSortedRows(
       sortModuleColumns,
@@ -215,8 +331,11 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     ) as ModuleDetails[];
 
     if (sortedRows.length > 0 && selectedModuleRow === null) {
-      setSelectedModuleRow(sortedRows[0]);
-      filterTables(sortedRows[0]);
+      const firstModuleRow = sortedRows[0];
+      setSelectedModuleRow(firstModuleRow);
+      filterTables(firstModuleRow);
+      updateEditorContent(firstModuleRow);
+      setLineNumber(firstModuleRow.startLineNum);
     }
 
     return sortedRows;
@@ -240,8 +359,20 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     return getSortedRows(sortLineColumns, selectedLineRows) as LineSummary[];
   }, [selectedLineRows, sortLineColumns]);
 
+  const overflowCallingColumns = useMemo(() => {
+    return checkOverflow(callingColumns);
+  }, [callingColumns]);
+
+  const overflowCalledColumns = useMemo(() => {
+    return checkOverflow(calledColumns);
+  }, [calledColumns]);
+
   React.useEffect(() => {
     filterTables(selectedRow);
+    if (selectedRow) {
+      updateEditorContent(selectedRow);
+      setLineNumber(selectedRow.startLineNum);
+    }
   }, [selectedRow]);
 
   React.useEffect(() => {
@@ -253,38 +384,52 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     }
   }, [presentationData.hasXREFs, presentationData.hasListings]);
 
-  const openFileForLineSummary = (row: LineSummary): void => {
-    if (!row.hasLink) {
-      return;
-    }
-
-    const moduleRow = sortedModuleRows.find(
+  const openFileForLineSummary = (row): void => {
+    const foundModule = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    switch (settingsContext.openFileType) {
-      case OpenFileTypeEnum.XREF:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.XREF,
-          columns: moduleRow.moduleName,
-          lines: row.lineNumber,
-        });
-        break;
-      case OpenFileTypeEnum.LISTING:
-        vscode.postMessage({
-          type: OpenFileTypeEnum.LISTING,
-          listingFile: moduleRow.listingFile,
-          lineNumber: row.lineNumber,
-        });
-        break;
-    }
+    if (!foundModule || !foundModule?.hasLink) return;
+
+    vscode.postMessage({
+      type: settingsContext.openFileType,
+      name: foundModule.moduleName,
+      listingFile: foundModule?.listingFile,
+      lineNumber: row.lineNumber,
+    });
   };
+
+  React.useEffect(() => {
+    const handleMessage = (event) => {
+      const message = event.data;
+
+      if (message.type === "fileContent") {
+        setSelectedModuleCode(message.content);
+      } else if (message.type === "fileReadError") {
+        setSelectedModuleCode(null);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
 
   return (
     <div>
       <div className="details-columns">
-        <div className="grid-name">Module Details</div>
-        <ModuleDetailsSettings
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div className="grid-name">Module Details</div>
+          <div className="total-time">
+            <Typography color="-var(--vscode-editor-foreground)">
+              Total Time: {sumTotalTime} s
+            </Typography>
+          </div>
+        </div>
+        <FileTypeSettings
           showOpenFileType={
             presentationData.hasXREFs && presentationData.hasListings
           }
@@ -293,12 +438,15 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
           <ModuleDetailsTable
             columns={formattedModuleColumns}
             rows={sortedModuleRows}
-            onRowClick={(row) => setSelectedRow(row)}
+            onRowClick={(row) => {
+              setSelectedRow(row);
+              updateEditorContent(row);
+              setLineNumber(row.startLineNum);
+            }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
             onSortColumnsChange={setSortModuleColumns}
             rowClass={(row) => (row === selectedRow ? "rowFormat" : "")}
-            sumTotalTime={sumTotalTime}
             searchValue={moduleNameFilter}
             setSearchValue={setModuleNameFilter}
           />
@@ -309,7 +457,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
           <div className="grid-name">Calling Modules</div>
           <DataGrid
             className="columns"
-            columns={callingColumns}
+            columns={overflowCallingColumns}
             rows={sortedCallingRows}
             defaultColumnOptions={{
               sortable: true,
@@ -320,6 +468,12 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCallingColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.callerModuleName);
+              setMatchingRow(
+                row,
+                ["callerID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
             }}
           />
         </div>
@@ -328,7 +482,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
           <div className="grid-name">Called Modules</div>
           <DataGrid
             className="columns"
-            columns={calledColumns}
+            columns={overflowCalledColumns}
             rows={sortedCalledRows}
             defaultColumnOptions={{
               sortable: true,
@@ -339,25 +493,39 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onSortColumnsChange={setSortCalledColumns}
             onRowDoubleClick={(row) => {
               setModuleNameFilter(row.calleeModuleName);
+              setMatchingRow(
+                row,
+                ["calleeID"],
+                sortedModuleRows,
+                setSelectedRow
+              );
             }}
           />
         </div>
       </div>
 
-      <div className="line-columns">
+      <div className="line-columns" style={{ marginBottom: "50px" }}>
         <div className="grid-name">Line Summary</div>
-        <DataGrid
-          columns={formattedLineColumns}
-          rows={sortedLineRows}
-          defaultColumnOptions={{
-            sortable: true,
-            resizable: true,
-          }}
-          onRowsChange={setSelectedLineRows}
-          sortColumns={sortLineColumns}
-          onSortColumnsChange={setSortLineColumns}
-          onRowDoubleClick={openFileForLineSummary}
-        />
+        <div style={{ display: "flex", flexDirection: "row", width: "100%" }}>
+          <DataGrid
+            columns={formattedLineColumns}
+            rows={sortedLineRows}
+            defaultColumnOptions={{
+              sortable: true,
+              resizable: true,
+            }}
+            style={{ textAlign: "end", maxHeight: "300px", width: "40%" }}
+            onRowsChange={setSelectedLineRows}
+            sortColumns={sortLineColumns}
+            onSortColumnsChange={setSortLineColumns}
+            onRowDoubleClick={openFileForLineSummary}
+            onRowClick={(row) => setLineNumber(row.lineNumber)}
+          />
+          <MonacoComponent
+            selectedModuleCode={selectedModuleCode}
+            lineNumber={lineNumber}
+          />
+        </div>
       </div>
     </div>
   );

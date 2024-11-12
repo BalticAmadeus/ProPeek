@@ -1,35 +1,67 @@
-import { readFile } from './helper/fileReader';
-import { parseProfilerData } from './parser/profilerRawData';
-import { transformData } from './parser/presentationData';
-import { PresentationData } from '../common/PresentationData';
-import { getIncludeFiles } from './helper/xRefParser';
-import { ParserLogger } from './parser/ParserLogger';
+import { readFile } from "./helper/fileReader";
+import { parseProfilerData } from "./parser/profilerRawData";
+import { transformData } from "./parser/presentationData";
+import { ComparedData, PresentationData } from "../common/PresentationData";
+import { getIncludeFiles } from "./helper/xRefParser";
+import { ParserLogger } from "./parser/ParserLogger";
+import { compareData } from "./parser/compareData";
 
 export class ProfilerService {
-    private profilerTitle: string = "";
+  private profilerTitle: string = "";
+  private comparedData: ComparedData | null = null;
 
-    constructor(title: string) {
-        this.profilerTitle = title;
+  constructor(title: string) {
+    this.profilerTitle = title;
+  }
+
+  public async parse(
+    fileName: string,
+    showStartTime: boolean
+  ): Promise<PresentationData> {
+    ParserLogger.resetErrors();
+
+    try {
+      const readData = await readFile(fileName);
+
+      const rawData = parseProfilerData(readData);
+
+      const transformedData = await transformData(
+        rawData,
+        showStartTime,
+        this.profilerTitle
+      );
+
+      return transformedData;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    public async parse(fileName: string, showStartTime: boolean): Promise<PresentationData> {
-        ParserLogger.resetErrors();
+  public async compare(
+    presentationData: PresentationData,
+    secondPresentationData: PresentationData
+  ): Promise<ComparedData> {
+    const comparedData = await compareData(
+      presentationData,
+      secondPresentationData
+    );
+    this.comparedData = comparedData;
 
-        const readData = readFile(fileName);
-        const rawData = parseProfilerData(readData);
-        const transformedData = await transformData(rawData, showStartTime, this.profilerTitle);
-        return transformedData;
-    }
+    return comparedData;
+  }
 
-    public getErrors(): string[] {
-        return ParserLogger.getErrors();
-    }
+  public getComparedData(): ComparedData | null {
+    return this.comparedData;
+  }
 
-    public getIncludeFilesFromXref(fileName: string) {
-        const readData = readFile(fileName);
-        const includeFiles = getIncludeFiles(readData);
+  public getErrors(): string[] {
+    return ParserLogger.getErrors();
+  }
 
-        return includeFiles;
-    }
+  public getIncludeFilesFromXref(fileName: string) {
+    const readData = readFile(fileName);
+    const includeFiles = getIncludeFiles(readData);
 
+    return includeFiles;
+  }
 }

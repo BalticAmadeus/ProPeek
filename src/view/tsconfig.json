@@ -4,15 +4,22 @@
         "moduleResolution": "node",
         "target": "es6",
         "outDir": "out/view/app",
-        "lib": ["es6", "dom"],
+        "lib": [
+            "es6",
+            "dom"
+        ],
         "jsx": "react",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "sourceMap": true,
         "rootDir": "..",
         "noUnusedLocals": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "experimentalDecorators": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
     },
-    "exclude": ["node_modules"]
+    "exclude": [
+        "node_modules"
+    ]
 }

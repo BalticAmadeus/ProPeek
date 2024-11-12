@@ -12,3 +12,33 @@
 .graph-type-selects{
     margin-right: 5%;
 }
+
+.graph-type-selects .tooltip-container {
+    position: relative;
+    display: inline-block; 
+  }
+  
+.graph-type-selects .tooltiptext {
+    visibility: hidden; 
+    width: 180px;
+    background-color: var(--vscode-editor-background);
+    color: --var(vscode-editor-foreground);
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 100;
+    top: 125%; 
+    left: 20%;
+    margin-left: -95px; 
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+.graph-type-selects .tooltip-container:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+    font-size: 1rem;
+    border: 1px solid var(--vscode-editor-foreground);
+
+  }

@@ -45,7 +45,9 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
     }
 
     moduleDetails.totalTime = Number((moduleDetails.totalTime).toFixed(6));
-    moduleDetails.avgTimePerCall = Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6));
+    moduleDetails.avgTimePerCall = moduleDetails.timesCalled
+      ? Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6))
+      : 0;
     moduleDetailsList.push(moduleDetails);
   }
 
@@ -111,6 +113,15 @@ export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingF
     } as ListingFileFilter;
   });
 };
+
+/**
+ * Returns boolean value for hasListings
+ * @param {ProfilerRawData} rawData raw data list 
+ * @returns {boolean} value for hasListings
+ */
+export const getHasListingFiles = (rawData: ProfilerRawData): boolean => {
+  return rawData?.ModuleData?.some(module => module.ListingFile !== "");
+}
 
 /**
  * Returns the boolean value for the hasLink attribute

@@ -11,8 +11,18 @@
     --rdg-border-color: none;
 }
 
-.c1wupbe700-beta13 {
+.r104f42s700-beta13:not(.rdg-light) {
+    --rdg-background-color: inherit;
+    --rdg-header-background-color: var(--vscode-editorWidget-background);
+    --rdg-row-hover-background-color: rgba(0, 0, 0, 0.2);
+    --rdg-row-selected-background-color: var(--vscode-list-inactiveSelectionBackground);
+    --rdg-checkbox-color: inherit;
+    --rdg-border-color: none;
+}
+
+.c1wupbe700-beta13:not(:first-child) {
     padding-inline: 4px;
+    text-align: end;
 }
 
 .rdg-row-even {
@@ -25,12 +35,12 @@ body.vscode-dark .rdg-row-even {
 
 .tab.active {
     background-color: var(--vscode-list-activeSelectionBackground);
-  }
+}
 
 
 .buttonProfilerForm {
     appearance: none;
-      -webkit-appearance: none;
+    -webkit-appearance: none;
     font-family: sans-serif;
     cursor: pointer;
     padding: 8px;
@@ -39,21 +49,21 @@ body.vscode-dark .rdg-row-even {
     margin-top: 3px;
     margin-bottom: 10px;
     border: 0px;
-      -webkit-transition: background-color 100ms linear;
-      -ms-transition: background-color 100ms linear;
-       transition: background-color 100ms linear;
-  }
+    -webkit-transition: background-color 100ms linear;
+    -ms-transition: background-color 100ms linear;
+    transition: background-color 100ms linear;
+}
 
-  .button-primary {
+.button-primary {
     background: var(--vscode-list-inactiveSelectionBackground);
     color: var(--rdg-checkbox-focus-color);
     border-radius: 8px;
-  }
+}
 
-  .button-primary:hover {
+.button-primary:hover {
     background: var(--vscode-list-activeSelectionBackground);
     color: var(--rdg-checkbox-focus-color);
-  }
+}
 
 
 .details-columns {
@@ -64,20 +74,19 @@ body.vscode-dark .rdg-row-even {
 
 .calling-columns {
     position: relative;
-    width: 50%;
+    width: 40%;
     display: inline-block;
 }
 
 .called-columns {
     position: relative;
-    width: calc(50% - 30px);
+    width: calc(60% - 30px);
     display: inline-block;
 }
 
 .line-columns {
     position: relative;
     width: calc(100% - 30px);
-    padding-top: 40px;
     clear: both;
 }
 
