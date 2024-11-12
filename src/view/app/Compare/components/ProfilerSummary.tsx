@@ -136,7 +136,7 @@ const ProfilerSummary: React.FC<ProfilerSummaryProps> = ({
                             sumTotalTime.firstTotalTime) /
                             sumTotalTime.firstTotalTime) *
                           100
-                        ).toFixed(2)}%`
+                        ).toFixed(2)}`
                       : (
                           ((sumTotalTime.secondTotalTime -
                             sumTotalTime.firstTotalTime) /
