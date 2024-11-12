@@ -74,13 +74,13 @@ body.vscode-dark .rdg-row-even {
 
 .calling-columns {
     position: relative;
-    width: 50%;
+    width: 40%;
     display: inline-block;
 }
 
 .called-columns {
     position: relative;
-    width: calc(50% - 30px);
+    width: calc(60% - 30px);
     display: inline-block;
 }
 
