@@ -29,12 +29,12 @@ export enum ProfilerSection {
 /**
  * Parse profiler file data into ProfilerRawData object
  */
-export function parseProfilerData(fullContents: string): ProfilerRawData {
+export function parseProfilerData(lineGenerator: Generator<string>): ProfilerRawData {
 
     const separator: string = ".";
     let rawData = {} as ProfilerRawData;
     let section: ProfilerSection = 0;
-    let lastLine: string;
+    let lastLine: string = "";
     let statisticsSectionCount: number = 0;
 
     rawData.ModuleData = [];
@@ -42,8 +42,7 @@ export function parseProfilerData(fullContents: string): ProfilerRawData {
     rawData.LineSummaryData = [];
     rawData.TracingData = [];
     rawData.CallTreeData = [];
-
-    fullContents.split(/\r?\n/).forEach(line => {
+    for (const line of lineGenerator) {
         if (line === separator) {
             if (section === ProfilerSection.Statistics) statisticsSectionCount++;
 
@@ -60,10 +59,11 @@ export function parseProfilerData(fullContents: string): ProfilerRawData {
                 }
             }
         } else {
-            rawData = parseRawDataLine(section, line, rawData);
+            if (section !== ProfilerSection.Tracing)
+                rawData = parseRawDataLine(section, line, rawData);
         }
         lastLine = line;
-    });
+    };
 
     return rawData;
 }
