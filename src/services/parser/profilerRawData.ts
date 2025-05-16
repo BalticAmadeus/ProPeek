@@ -59,8 +59,7 @@ export function parseProfilerData(lineGenerator: Generator<string>): ProfilerRaw
                 }
             }
         } else {
-            if (section !== ProfilerSection.Tracing)
-                rawData = parseRawDataLine(section, line, rawData);
+            rawData = parseRawDataLine(section, line, rawData);
         }
         lastLine = line;
     };
