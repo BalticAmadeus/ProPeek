@@ -16,18 +16,18 @@ export class ProfilerService {
 
   public async parse(
     fileName: string,
-    showStartTime: boolean
+    useTracingData: boolean
   ): Promise<PresentationData> {
     ParserLogger.resetErrors();
 
     try {
       const lineGenerator = readFileLinesSync(fileName);
 
-      const rawData = parseProfilerData(lineGenerator);
+      const rawData = parseProfilerData(lineGenerator, useTracingData);
 
       const transformedData = await transformData(
         rawData,
-        showStartTime,
+        useTracingData,
         this.profilerTitle
       );
 

@@ -10,25 +10,20 @@ import * as vscode from "vscode";
 /**
  * Transform ProfilerRawData object into PresentationData object
  */
-export async function transformData(rawData: ProfilerRawData, showStartTime: boolean, profilerTitle: string): Promise<PresentationData> {
-
-    if (rawData.ModuleData.length >= Constants.fileSearchLimit) {
-        vscode.window.showWarningMessage('Skipping workspace module pre-search. (ProPeek)');
-    }
+export async function transformData(rawData: ProfilerRawData, useTracingData: boolean, profilerTitle: string): Promise<PresentationData> {
 
     const hasXREFs = await hasFiles(`**${Constants.defaultXREFPath}*.xref`);
     const hasListings = getHasListingFiles(rawData);
 
-    const totalSessionTime: number = getTotalSessionTime(rawData);
+    const totalSessionTime: number = getTotalSessionTime(rawData, useTracingData);
     const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle, hasListings);
-    const hasTracingData: boolean = rawData.TracingData.length > 0;
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
         lineSummary: await calculateLineSummary(rawData, profilerTitle, hasListings),
-        callTree: getCallTree(rawData, moduleDetails, totalSessionTime, showStartTime),
-        hasTracingData: hasTracingData,
+        callTree: getCallTree(rawData, moduleDetails, totalSessionTime, useTracingData),
+        hasTracingData: rawData.hasTracingData,
         hasXREFs: hasXREFs,
         hasListings: hasListings,
     };
@@ -40,15 +35,16 @@ export async function transformData(rawData: ProfilerRawData, showStartTime: boo
  * Returns total session time
  * Uses Call Tree section for profiler v3, Line Summary section for previous versions
  */
-export function getTotalSessionTime(rawData: ProfilerRawData): number {
+export function getTotalSessionTime(rawData: ProfilerRawData, useTracingData: boolean): number {
 
-    switch (rawData.DescriptionData.Version) {
-        case 1:
-        case 2:
-            return getTotalSessionTimeByLineSummary(rawData);
-        default:
-            return rawData.CallTreeData.find(({ ModuleID }) => ModuleID === 0)!.CumulativeTime;
+    if (useTracingData ||
+        rawData.DescriptionData.Version === 1 ||
+        rawData.DescriptionData.Version === 2
+    ) {
+        return getTotalSessionTimeByLineSummary(rawData);
     }
+
+    return rawData.CallTreeData.find(({ ModuleID }) => ModuleID === 0)!.CumulativeTime;
 }
 
 /**
@@ -68,13 +64,13 @@ export function getTotalSessionTimeByLineSummary(rawData: ProfilerRawData): numb
 /**
  * Returns call tree based on profiler version and config parameters
  */
-export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number, showStartTime: boolean): CallTree[] {
+export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetails[], totalSessionTime: number, useTracingData: boolean): CallTree[] {
 
     const hasTracingData: boolean = rawData.TracingData.length > 0;
     const version: number = rawData.DescriptionData.Version;
 
     // calculate call tree by tracing data if start time is needed or version is older than 3
-    if (version >= 3 && !(showStartTime && hasTracingData)) {
+    if (version >= 3 && !(useTracingData && hasTracingData)) {
         return calculateCallTree(rawData, moduleDetails, totalSessionTime);
     } else {
         return calculateCallTreeByTracingData(rawData, moduleDetails);

@@ -11,7 +11,8 @@ export interface ProfilerRawData {
     CallGraphData: CallGraphData[],
     LineSummaryData: LineSummaryData[],
     TracingData: TracingData[],
-    CallTreeData: CallTreeData[]
+    CallTreeData: CallTreeData[],
+    hasTracingData: boolean
 }
 
 export enum ProfilerSection {
@@ -29,7 +30,7 @@ export enum ProfilerSection {
 /**
  * Parse profiler file data into ProfilerRawData object
  */
-export function parseProfilerData(lineGenerator: Generator<string>): ProfilerRawData {
+export function parseProfilerData(lineGenerator: Generator<string>, useTracingData: boolean): ProfilerRawData {
 
     const separator: string = ".";
     let rawData = {} as ProfilerRawData;
@@ -42,6 +43,8 @@ export function parseProfilerData(lineGenerator: Generator<string>): ProfilerRaw
     rawData.LineSummaryData = [];
     rawData.TracingData = [];
     rawData.CallTreeData = [];
+    rawData.hasTracingData = false;
+
     for (const line of lineGenerator) {
         if (line === separator) {
             if (section === ProfilerSection.Statistics) statisticsSectionCount++;
@@ -59,7 +62,9 @@ export function parseProfilerData(lineGenerator: Generator<string>): ProfilerRaw
                 }
             }
         } else {
-            rawData = parseRawDataLine(section, line, rawData);
+            if (section === ProfilerSection.Tracing) rawData.hasTracingData = true;
+
+            rawData = parseRawDataLine(section, line, rawData, useTracingData);
         }
         lastLine = line;
     };
@@ -70,7 +75,7 @@ export function parseProfilerData(lineGenerator: Generator<string>): ProfilerRaw
 /**
  * Parse raw data line into one of the section objects
  */
-export function parseRawDataLine(section: ProfilerSection, line: string, rawData: ProfilerRawData): ProfilerRawData {
+export function parseRawDataLine(section: ProfilerSection, line: string, rawData: ProfilerRawData, useTracingData: boolean): ProfilerRawData {
 
     switch (section) {
         case ProfilerSection.Description:
@@ -86,7 +91,7 @@ export function parseRawDataLine(section: ProfilerSection, line: string, rawData
             rawData.LineSummaryData.push(parseLineSummaryLine(line));
             break;
         case ProfilerSection.Tracing:
-            rawData.TracingData.push(parseTracingLine(line));
+            if (useTracingData) rawData.TracingData.push(parseTracingLine(line));
             break;
         case ProfilerSection.Coverage:
             // Coverage Data Section - not used
@@ -95,7 +100,7 @@ export function parseRawDataLine(section: ProfilerSection, line: string, rawData
             // Statistics Section - not used
             break;
         case ProfilerSection.CallTree:
-            rawData.CallTreeData.push(parseCallTreeLine(line));
+            if (!useTracingData) rawData.CallTreeData.push(parseCallTreeLine(line));
             break;
         case ProfilerSection.UserData:
             // User Data Section - not used
