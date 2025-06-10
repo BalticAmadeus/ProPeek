@@ -50,6 +50,7 @@ export interface PresentationData {
   hasTracingData: boolean,
   hasXREFs: boolean,
   hasListings: boolean,
+  isTracingLimitExceeded?: boolean,
 }
 
 export interface ComparedData {

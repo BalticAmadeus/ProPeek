@@ -26,6 +26,7 @@ export async function transformData(rawData: ProfilerRawData, useTracingData: bo
         hasTracingData: rawData.hasTracingData,
         hasXREFs: hasXREFs,
         hasListings: hasListings,
+        isTracingLimitExceeded: rawData.isTracingLimitExceeded,
     };
 
     return presentationData;

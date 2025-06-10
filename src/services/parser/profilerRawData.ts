@@ -12,7 +12,8 @@ export interface ProfilerRawData {
     LineSummaryData: LineSummaryData[],
     TracingData: TracingData[],
     CallTreeData: CallTreeData[],
-    hasTracingData: boolean
+    hasTracingData: boolean,
+    isTracingLimitExceeded?: boolean,
 }
 
 export enum ProfilerSection {
@@ -32,7 +33,9 @@ export enum ProfilerSection {
  */
 export function parseProfilerData(lineGenerator: Generator<string>, useTracingData: boolean): ProfilerRawData {
 
+    const TRACE_DATA_LINE_LIMIT: number = 20000000;
     const separator: string = ".";
+    let tracingLineCount: number = 0;
     let rawData = {} as ProfilerRawData;
     let section: ProfilerSection = 0;
     let lastLine: string = "";
@@ -67,7 +70,12 @@ export function parseProfilerData(lineGenerator: Generator<string>, useTracingDa
             rawData = parseRawDataLine(section, line, rawData, useTracingData);
         }
         lastLine = line;
+        tracingLineCount++;
     };
+
+    if (tracingLineCount > TRACE_DATA_LINE_LIMIT) {
+        rawData.isTracingLimitExceeded = true;
+    }
 
     return rawData;
 }
