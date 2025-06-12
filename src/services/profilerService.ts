@@ -1,4 +1,4 @@
-import { readFile } from "./helper/fileReader";
+import { readFile, readFileLinesSync } from "./helper/fileReader";
 import { parseProfilerData } from "./parser/profilerRawData";
 import { transformData } from "./parser/presentationData";
 import { ComparedData, PresentationData } from "../common/PresentationData";
@@ -16,18 +16,18 @@ export class ProfilerService {
 
   public async parse(
     fileName: string,
-    showStartTime: boolean
+    useTracingData: boolean
   ): Promise<PresentationData> {
     ParserLogger.resetErrors();
 
     try {
-      const readData = await readFile(fileName);
+      const lineGenerator = readFileLinesSync(fileName);
 
-      const rawData = parseProfilerData(readData);
+      const rawData = parseProfilerData(lineGenerator, useTracingData);
 
       const transformedData = await transformData(
         rawData,
-        showStartTime,
+        useTracingData,
         this.profilerTitle
       );
 
