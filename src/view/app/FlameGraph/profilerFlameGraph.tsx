@@ -9,7 +9,7 @@ import { Box } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
-import InfoIcon from "@mui/icons-material/Info";
+import ToolTip from "../Components/ToolTip";
 
 interface FlameGraphNodeRoot {
   name: "root";
@@ -184,6 +184,21 @@ function ProfilerFlameGraph({
     });
   };
 
+  const handleTooltipText = () => {
+    const tooltipText = [];
+    if (presentationData.isTracingLimitExceeded) {
+      tooltipText.push(
+        "Tracing data section is too large to show in detail."
+      );
+    }
+    if (!hasTracingData){ 
+      tooltipText.push(
+        "Profiler needs to contain tracing section to show detailed timing information."
+      );
+    }
+    return tooltipText.join(" ");
+  };
+
   return (
     <React.Fragment>
       {isLoading && <LoadingOverlay></LoadingOverlay>}
@@ -215,17 +230,7 @@ function ProfilerFlameGraph({
         <div className="graph-type-selects">
           <label>
             <b>Graph Type:</b>
-          {!hasTracingData && (
-            <div className="tooltip-container">
-              <InfoIcon
-                className="fa fa-info-circle"
-                style={{ marginLeft: "5px", cursor: "help", fontSize : "20px", verticalAlign: "middle" }}
-              />
-              <span className="tooltiptext">
-              Profiler needs to contain tracing section to show detailed timing information.
-              </span>
-            </div>
-          )}
+            <ToolTip message={handleTooltipText()} style={{color: "#ffc107"}} show={!hasTracingData || presentationData.isTracingLimitExceeded} iconSize="12px" />
           </label>
           <br />
           <br />
@@ -246,7 +251,7 @@ function ProfilerFlameGraph({
               value="Separate"
               onChange={handleGraphTypeChange}
               defaultChecked={showStartTime}
-              disabled={!hasTracingData}
+              disabled={!hasTracingData || presentationData.isTracingLimitExceeded}
             />
             Detailed
           </label>

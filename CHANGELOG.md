@@ -1,3 +1,9 @@
+## 1.4.1 (2025-06-12)
+
+### Changed
+
+- Fixed performance issues when opening big profiler files
+
 ## 1.4.0 (2024-11-12)
 
 ### Changed

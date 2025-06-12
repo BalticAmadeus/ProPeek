@@ -11,7 +11,9 @@ export interface ProfilerRawData {
     CallGraphData: CallGraphData[],
     LineSummaryData: LineSummaryData[],
     TracingData: TracingData[],
-    CallTreeData: CallTreeData[]
+    CallTreeData: CallTreeData[],
+    hasTracingData: boolean,
+    isTracingLimitExceeded?: boolean,
 }
 
 export enum ProfilerSection {
@@ -29,12 +31,14 @@ export enum ProfilerSection {
 /**
  * Parse profiler file data into ProfilerRawData object
  */
-export function parseProfilerData(fullContents: string): ProfilerRawData {
+export function parseProfilerData(lineGenerator: Generator<string>, useTracingData: boolean): ProfilerRawData {
 
+    const TRACE_DATA_LINE_LIMIT: number = 20000000;
     const separator: string = ".";
+    let tracingLineCount: number = 0;
     let rawData = {} as ProfilerRawData;
     let section: ProfilerSection = 0;
-    let lastLine: string;
+    let lastLine: string = "";
     let statisticsSectionCount: number = 0;
 
     rawData.ModuleData = [];
@@ -42,8 +46,9 @@ export function parseProfilerData(fullContents: string): ProfilerRawData {
     rawData.LineSummaryData = [];
     rawData.TracingData = [];
     rawData.CallTreeData = [];
+    rawData.hasTracingData = false;
 
-    fullContents.split(/\r?\n/).forEach(line => {
+    for (const line of lineGenerator) {
         if (line === separator) {
             if (section === ProfilerSection.Statistics) statisticsSectionCount++;
 
@@ -60,10 +65,17 @@ export function parseProfilerData(fullContents: string): ProfilerRawData {
                 }
             }
         } else {
-            rawData = parseRawDataLine(section, line, rawData);
+            if (section === ProfilerSection.Tracing) rawData.hasTracingData = true;
+
+            rawData = parseRawDataLine(section, line, rawData, useTracingData);
         }
         lastLine = line;
-    });
+        tracingLineCount++;
+    };
+
+    if (tracingLineCount > TRACE_DATA_LINE_LIMIT) {
+        rawData.isTracingLimitExceeded = true;
+    }
 
     return rawData;
 }
@@ -71,7 +83,7 @@ export function parseProfilerData(fullContents: string): ProfilerRawData {
 /**
  * Parse raw data line into one of the section objects
  */
-export function parseRawDataLine(section: ProfilerSection, line: string, rawData: ProfilerRawData): ProfilerRawData {
+export function parseRawDataLine(section: ProfilerSection, line: string, rawData: ProfilerRawData, useTracingData: boolean): ProfilerRawData {
 
     switch (section) {
         case ProfilerSection.Description:
@@ -87,7 +99,7 @@ export function parseRawDataLine(section: ProfilerSection, line: string, rawData
             rawData.LineSummaryData.push(parseLineSummaryLine(line));
             break;
         case ProfilerSection.Tracing:
-            rawData.TracingData.push(parseTracingLine(line));
+            if (useTracingData) rawData.TracingData.push(parseTracingLine(line));
             break;
         case ProfilerSection.Coverage:
             // Coverage Data Section - not used
@@ -96,7 +108,7 @@ export function parseRawDataLine(section: ProfilerSection, line: string, rawData
             // Statistics Section - not used
             break;
         case ProfilerSection.CallTree:
-            rawData.CallTreeData.push(parseCallTreeLine(line));
+            if (!useTracingData) rawData.CallTreeData.push(parseCallTreeLine(line));
             break;
         case ProfilerSection.UserData:
             // User Data Section - not used
