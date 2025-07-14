@@ -57,7 +57,7 @@ export class FileHandler {
           `xRef file not found: ${xRefFile}\nLine position might be incorrect`
         );
       } else {
-        const xRefPath = list[0].path.slice(1);
+        const xRefPath = list[0].fsPath;
         const includeFiles = profilerService.getIncludeFilesFromXref(xRefPath);
   
         ({ fileName, lineNumber } = await this.getAdjustedInfo(
@@ -95,7 +95,7 @@ export class FileHandler {
             includeFile.includeFileName
           );
           let includeLineCount = this.countLinesInFile(
-            includeFilePath.path.slice(1)
+            includeFilePath.fsPath
           );
   
           let includeEndLine = includeLineCount + includeFile.includeLine;
@@ -192,7 +192,7 @@ export class FileHandler {
           break;
       }
 
-        const fileContent = await this.readFile(filePath.path.slice(1));
+        const fileContent = await this.readFile(filePath.fsPath);
         if(fileType === OpenFileTypeEnum.XREF)
           return fileContent;
 
