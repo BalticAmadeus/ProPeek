@@ -60,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
     .onDidChange((uri) => updatePropath(uri));
 
   function updatePropath(uri: vscode.Uri) {
-    const fileContent: string = readFile(uri.path);
+    const fileContent: string = readFile(uri.fsPath);
     const buildPaths = getBuildPaths(fileContent);
 
     context.workspaceState.update(
@@ -72,10 +72,9 @@ export function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.commands.registerCommand(
     "vsc-profiler.profiler",
     async (uri: vscode.Uri) => {
-      const filePath = uri.path;
-      const updatedPath = filePath.replace(/\\/g, "/").slice(1);
-      const fileName = vscode.workspace.asRelativePath(updatedPath);
-      new ProfilerViewer(context, fileName, updatedPath);
+      const filePath = uri.fsPath;
+      const fileName = vscode.workspace.asRelativePath(filePath);
+      new ProfilerViewer(context, fileName, filePath);
     }
   );
 
@@ -115,4 +114,4 @@ const getPathFromTaskArgs = (args: Array<string>): string => {
 };
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
