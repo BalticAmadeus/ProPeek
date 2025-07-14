@@ -20,24 +20,22 @@ There are 3 option how to open view:
 
 - Load and view _.prof_ and _.out_ profiler file
   - View Module details.
-    - Jump to code.
-    - Jump to line.
-    - Jump to listings file (_New_).
-  - View Calling module details.
-  - View Called module details.
+    - Jump to code (double click module name or line number).
+    - Jump to listing file (files must be under ~/listing/ directory).
+  - View Calling/Called module details.
   - View Line Summary.
   - View Code in Monaco Editor.
 - Treeview.
-  - Jump to module details using double click
+  - Jump to module details (double click)
+  - Jump to code (CTRL + left click)
 - Flamegraph.
-  - Ability to sort out procedure names by text.
-  - Ability to sort out by constructor and destructor.
+  - Ability to filter modules by text.
+  - Ability to filter modules by constructor and destructor.
   - Ability to toggle graph type.
-  - Jump to module details using double click
-  - Jump to code using CTRL + left click
+  - Jump to module details (double click)
+  - Jump to code (CTRL + left click)
 - Compare tab for multiple profilers.
   - View differences between each module.
-  - View differences for Calling/Called modules.
   - Switch between profilers.
   - Ability to see difference in percentage.
 - Profiler Start/Stop Snippets.
