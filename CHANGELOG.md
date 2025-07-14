@@ -1,3 +1,9 @@
+## 1.4.2 (2025-07-14)
+
+### Changed
+
+- Fixed file paths to be compatible with all operating systems
+
 ## 1.4.1 (2025-06-12)
 
 ### Changed
