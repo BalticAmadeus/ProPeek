@@ -135,6 +135,7 @@
         "@emotion/styled": "^11.10.0",
         "@mui/icons-material": "^5.10.2",
         "@mui/material": "^5.14.2",
+        "@vscode/extension-telemetry": "^1.0.0",
         "esbuild": "^0.17.5",
         "react": "^18.1.0",
         "react-data-grid": "7.0.0-beta.13",
