@@ -5,6 +5,7 @@ import { ComparedData, PresentationData } from "../common/PresentationData";
 import { getIncludeFiles } from "./helper/xRefParser";
 import { ParserLogger } from "./parser/ParserLogger";
 import { compareData } from "./parser/compareData";
+import { Telemetry } from "../view/app/utils/Telemetry";
 
 export class ProfilerService {
   private profilerTitle: string = "";
@@ -18,6 +19,8 @@ export class ProfilerService {
     fileName: string,
     useTracingData: boolean
   ): Promise<PresentationData> {
+    const parsingTimeStart = Date.now();
+
     ParserLogger.resetErrors();
 
     try {
@@ -34,6 +37,17 @@ export class ProfilerService {
       return transformedData;
     } catch (error) {
       throw error;
+    } finally {
+      const parsingTimeEnd = Date.now();
+      const parsingTime = parsingTimeEnd - parsingTimeStart;
+      const fileStats = require("fs").statSync(fileName);
+      const fileSizeInKB = fileStats.size / 1024;
+
+      Telemetry.setFileSize(fileSizeInKB);
+      Telemetry.setParsingTime(parsingTime);
+
+      Telemetry.TelemetryDebugLog();
+      Telemetry.sendParsingMetrics();
     }
   }
 
