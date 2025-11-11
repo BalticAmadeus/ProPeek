@@ -1,4 +1,5 @@
 import { TelemetryReporter } from "@vscode/extension-telemetry";
+import * as vscode from "vscode";
 
 interface ParserMetrics {
     [key: string]: number;
@@ -59,6 +60,8 @@ export class Telemetry {
     }
 
     public static setLinesOfCode(linesOfCode: number): void {
+        if (!this.isTelemetryEnabled()) return;
+
         if (!this.parserMetrics) {
             this.parserMetrics = {} as ParserMetrics;
         }
