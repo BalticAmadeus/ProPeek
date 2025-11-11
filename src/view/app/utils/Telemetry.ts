@@ -3,8 +3,8 @@ import { TelemetryReporter } from "@vscode/extension-telemetry";
 interface ParserMetrics {
     [key: string]: number;
     parsingTime: number; // in milliseconds
-    fileSize: number; // in KB
-    linesOfCode: number; // **Not implemented** total lines of code in the profiler file
+    fileSize: number; // in MB
+    linesOfCode: number; // total lines of code in the profiler file
 }
 
 export class Telemetry {
@@ -21,10 +21,25 @@ export class Telemetry {
         return Telemetry.instance;
     }
 
+    private static isTelemetryEnabled(): boolean {
+        const isFormatterTelemetryOn = vscode.workspace
+            .getConfiguration("Telemetry")
+            .get("propeekTelemetry") as boolean;
+        const isGlobalTelemetryOn = vscode.env.isTelemetryEnabled;
+        const isKeyInjected = this.TELEMETRY_KEY.startsWith(
+            "InstrumentationKey="
+        );
+
+        return isKeyInjected && isFormatterTelemetryOn && isGlobalTelemetryOn;
+    }
+
     public static sendParsingMetrics(): void {
+        if (!this.isTelemetryEnabled()) return;
+
         if (!this.instance) {
             this.getInstance();
         }
+
         if (this.parserMetrics) {
             this.instance.sendTelemetryEvent(
                 "ParserMetrics",
@@ -32,10 +47,11 @@ export class Telemetry {
                 this.parserMetrics
             );
         }
-
     }
 
     public static setParsingTime(parsingTime: number): void {
+        if (!this.isTelemetryEnabled()) return;
+
         if (!this.parserMetrics) {
             this.parserMetrics = {} as ParserMetrics;
         }
@@ -50,20 +66,24 @@ export class Telemetry {
     }
 
     public static setFileSize(fileSize: number): void {
+        if (!this.isTelemetryEnabled()) return;
+
         if (!this.parserMetrics) {
             this.parserMetrics = {} as ParserMetrics;
         }
         this.parserMetrics.fileSize = fileSize;
     }
 
-    public static TelemetryDebugLog(): void {
+    public static TelemetryDebugLog(message?: String): void {
         console.log("/-------*Telemetry Debug*-------/");
         console.log("instance created? " + this.instance);
         console.log("/--*parserMetrics*--/");
-        console.log("filesize:    ", this.parserMetrics.fileSize);
+        console.log("filesize:    ", this.parserMetrics.fileSize, " MB");
         console.log("parsingTime: ", this.parserMetrics.parsingTime);
         console.log("linesofCode: ", this.parserMetrics.linesOfCode);
         console.log("/-------------------/");
+        if (message)
+            console.log("Message: ", message);
         console.log("/-------------------------------/");
     }
 }

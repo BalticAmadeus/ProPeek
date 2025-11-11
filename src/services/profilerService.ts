@@ -41,12 +41,11 @@ export class ProfilerService {
       const parsingTimeEnd = Date.now();
       const parsingTime = parsingTimeEnd - parsingTimeStart;
       const fileStats = require("fs").statSync(fileName);
-      const fileSizeInKB = fileStats.size / 1024;
+      const fileSizeInMB = fileStats.size / 1024 / 1024; // Convert bytes to MB
 
-      Telemetry.setFileSize(fileSizeInKB);
+      Telemetry.setFileSize(fileSizeInMB);
       Telemetry.setParsingTime(parsingTime);
 
-      Telemetry.TelemetryDebugLog();
       Telemetry.sendParsingMetrics();
     }
   }
