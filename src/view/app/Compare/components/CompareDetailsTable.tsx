@@ -12,6 +12,7 @@ import {
   Box,
   SelectChangeEvent,
   Typography,
+  useTheme,
 } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
@@ -38,6 +39,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
   const [rows, setRows] = useState(otherProps.rows);
   const [filters, setFilters] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const theme = useTheme();
 
   React.useEffect(() => {
     applyFilter(filters, statusFilter);
@@ -108,7 +110,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
               icon = (
                 <AddCircleIcon
                   style={{
-                    color: "green",
+                    color: theme.palette.success.main,
                     fontSize: 16,
                     position: "relative",
                     top: "5px",
@@ -120,7 +122,7 @@ const CompareDetailsTable: React.FC<CompareDetailsTableProps> = ({
               icon = (
                 <RemoveCircleIcon
                   style={{
-                    color: "red",
+                    color: theme.palette.error.main,
                     fontSize: 16,
                     position: "relative",
                     top: "5px",

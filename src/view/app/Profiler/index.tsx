@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import "./profiler.css";
 import ProfilerForm from "./profilerForm";
+import MuiThemeProvider from "../MuiTheming/MuiThemeProvider";
 
 declare global {
   interface Window {
@@ -11,4 +12,8 @@ declare global {
 }
 
 const root = createRoot(document.getElementById("root"));
-root.render(<ProfilerForm />);
+root.render(
+  <MuiThemeProvider>
+    <ProfilerForm />
+  </MuiThemeProvider>,
+);

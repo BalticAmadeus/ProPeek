@@ -5,7 +5,7 @@ import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
-import { Box, Typography } from "@mui/material";
+import { Box, TextField, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography, useTheme } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
@@ -34,7 +34,7 @@ interface IConfigProps {
   showStartTime: boolean;
 }
 
-export enum SearchTypes {
+enum SearchTypes {
   Length = "Length",
   ConstructorOrDestructor = "ConstructorOrDestructor",
   Search = "Search",
@@ -45,6 +45,11 @@ const SearchTypesLabels: { [key in keyof typeof SearchTypes]: string } = {
   ConstructorOrDestructor: "Constructor or Destructor",
   Search: "Search",
 };
+
+enum GraphType {
+  Summary = "Summary",
+  Detailed = "Detailed",
+}
 
 const MAX_INSTANCES_TO_COUNT = 99999;
 
@@ -57,6 +62,7 @@ function ProfilerFlameGraph({
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState<SearchTypes>(null);
+  const [graphType, setGraphType] = React.useState<GraphType>(GraphType.Summary);
 
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
@@ -72,6 +78,7 @@ function ProfilerFlameGraph({
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
+  const theme = useTheme();
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -175,8 +182,10 @@ function ProfilerFlameGraph({
   };
 
   const handleGraphTypeChange = (event) => {
+    const value = event.target.value;
+    setGraphType(value);
     setIsLoading(true);
-    showStartTime = event.target.value !== "Combined";
+    showStartTime = value !== GraphType.Summary;
     vscode.postMessage({
       type: "GRAPH_TYPE_CHANGE",
       showStartTime: showStartTime,
@@ -217,69 +226,61 @@ function ProfilerFlameGraph({
     <React.Fragment>
       {isLoading && <LoadingOverlay></LoadingOverlay>}
       <div className="flex-row-container">
-        <div className="checkbox">
-          <label>
-            <b>Search Type:</b>
-          </label>
-          <br />
-          <br />
-          {Object.keys(SearchTypes)
-            .filter((key: SearchTypes) => Number.isNaN(+key))
-            .map((key: SearchTypes) => (
-              <label className="radioBtn" key={key}>
-                <input
-                  type="radio"
-                  name="exportdata"
-                  onChange={(e) => {
-                    handleChange(e);
-                    setSelectedSearchType(key);
-                  }}
+        <FormControl>
+          <FormLabel id="search-type">Search Type</FormLabel>
+          <RadioGroup
+            row
+            value={selectedSearchType || SearchTypes[SearchTypes.Length]}
+            onChange={(e) => {
+              handleChange(e);
+              setSelectedSearchType(e.target.value as SearchTypes);
+            }}
+          >
+            {Object.keys(SearchTypes)
+              .filter((key: SearchTypes) => Number.isNaN(+key))
+              .map((key: SearchTypes) => (
+                <FormControlLabel
+                  key={key}
                   value={key}
-                  defaultChecked={SearchTypes[key] === SearchTypes.Length}
+                  control={<Radio />}
+                  label={SearchTypesLabels[key]}
                 />
-                {SearchTypesLabels[key]}
-              </label>
-            ))}
-        </div>
-        <div className="graph-type-selects">
-          <label>
-            <b>Graph Type:</b>
-            <ToolTip message={handleTooltipText()} style={{color: "#ffc107"}} show={!hasTracingData || presentationData.isTracingLimitExceeded} iconSize="12px" />
-          </label>
-          <br />
-          <br />
-          <label>
-            <input
-              type="radio"
-              name="graphType"
-              value="Combined"
-              onChange={handleGraphTypeChange}
-              defaultChecked={!showStartTime}
+              ))}
+          </RadioGroup>
+        </FormControl>
+        <FormControl component={"div"} className="graph-type-selects">
+          <Box>
+            <FormLabel id="graph-type">Graph Type</FormLabel>
+            <ToolTip message={handleTooltipText()} style={{color: theme.palette.warning.main}} show={!hasTracingData || presentationData.isTracingLimitExceeded} iconSize="12px" />
+          </Box>
+          <RadioGroup
+            row
+            value={graphType}
+            onChange={handleGraphTypeChange}
+          >
+            <FormControlLabel
+              value={GraphType.Summary}
+              control={<Radio />}
+              label={GraphType.Summary}
             />
-            Summary
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="graphType"
-              value="Separate"
-              onChange={handleGraphTypeChange}
-              defaultChecked={showStartTime}
+            <FormControlLabel
+              value={GraphType.Detailed}
+              control={<Radio />}
+              label={GraphType.Detailed}
               disabled={!hasTracingData || presentationData.isTracingLimitExceeded}
             />
-            Detailed
-          </label>
-
-        </div>
+          </RadioGroup>
+        </FormControl>
       </div>
 
       {selectedSearchType === SearchTypes.Search && (
-        <Box className="input-box">
-          <input
+        <Box className="input-box" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TextField
             id="input"
             className="textInputQuery"
-            type="text"
-            style={{marginRight: "8px"}}
+            variant="outlined"
+            label="Search"
+            size="small"
             value={searchPhrase}
             onChange={(event) => {
               setSearchPhrase(event.target.value);
@@ -291,6 +292,7 @@ function ProfilerFlameGraph({
                 )
               );
             }}
+            sx={{ mr: "8px" }}
           />
           <NumberOfInstances numberValue={numInstancesInNestedStructure} />
         </Box>
@@ -340,14 +342,15 @@ const NumberOfInstances = ({ numberValue }: { numberValue: number }) => {
   }
 
   return (
-    <Typography variant="caption">
+    <Typography variant="caption" sx={{ fontSize: "0.9rem" }}>
       Nodes found:{" "}
       <Typography
         variant="caption"
         component="span"
         sx={{
           color: textColor,
-          fontWeight: "bold"
+          fontWeight: "bold",
+          fontSize: "0.9rem"
         }}
       >
         {numberValue > MAX_INSTANCES_TO_COUNT ? ">" : ""}
