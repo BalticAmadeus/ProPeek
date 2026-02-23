@@ -40,6 +40,12 @@ export enum SearchTypes {
   Search = "Search",
 }
 
+const SearchTypesLabels: { [key in keyof typeof SearchTypes]: string } = {
+  Length: "Length",
+  ConstructorOrDestructor: "Constructor or Destructor",
+  Search: "Search",
+};
+
 const MAX_INSTANCES_TO_COUNT = 99999;
 
 function ProfilerFlameGraph({
@@ -199,7 +205,7 @@ function ProfilerFlameGraph({
         "Tracing data section is too large to show in detail."
       );
     }
-    if (!hasTracingData){ 
+    if (!hasTracingData) {
       tooltipText.push(
         "Profiler needs to contain tracing section to show detailed timing information."
       );
@@ -231,7 +237,7 @@ function ProfilerFlameGraph({
                   value={key}
                   defaultChecked={SearchTypes[key] === SearchTypes.Length}
                 />
-                {key}
+                {SearchTypesLabels[key]}
               </label>
             ))}
         </div>
@@ -332,13 +338,13 @@ const NumberOfInstances = ({ numberValue }: { numberValue: number }) => {
   } else if (numberValue > 0) {
     textColor = 'success.light';
   }
-  
+
   return (
     <Typography variant="caption">
       Nodes found:{" "}
-      <Typography 
+      <Typography
         variant="caption"
-        component="span" 
+        component="span"
         sx={{
           color: textColor,
           fontWeight: "bold"
@@ -368,15 +374,19 @@ function convertToNestedStructure(
   };
 
   for (const node of data) {
+    const numberOfCallsLabel =
+      node.numCalls && node.numCalls > 0
+        ? `
+Number of Calls: ${node.numCalls}`
+        : "";
+
     nodeMap[node.nodeID] = {
       name: node.moduleName,
       value: node.pcntOfSession,
       backgroundColor: giveColor(mode, node, searchPhrase),
-      tooltip: `Name: ${
-        node.moduleName
-      } Percentage of Session: ${node.pcntOfSession.toFixed(
-        2
-      )}% Cumulative Time: ${node.cumulativeTime}`,
+      tooltip: `Name: ${node.moduleName}
+Percentage of Session: ${node.pcntOfSession.toFixed(2)}%
+Cumulative Time: ${node.cumulativeTime}${numberOfCallsLabel}`,
       moduleID: node.moduleID,
       cumulativeTime: node.cumulativeTime,
       children: [],
@@ -479,7 +489,7 @@ function getNumInstancesInNestedStructure(nestedStructure: FlameGraphNode, searc
   });
 
   return count;
-} 
+}
 
 function includesString(mainString: string, searchString: string): boolean {
   return mainString.toLowerCase().includes(searchString.toLowerCase());
