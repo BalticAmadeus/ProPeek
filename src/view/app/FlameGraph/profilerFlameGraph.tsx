@@ -5,7 +5,7 @@ import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
@@ -35,10 +35,12 @@ interface IConfigProps {
 }
 
 export enum SearchTypes {
-  Length,
-  ConstructorOrDestructor,
-  Search,
+  Length = "Length",
+  ConstructorOrDestructor = "ConstructorOrDestructor",
+  Search = "Search",
 }
+
+const MAX_INSTANCES_TO_COUNT = 99999;
 
 function ProfilerFlameGraph({
   presentationData,
@@ -48,7 +50,7 @@ function ProfilerFlameGraph({
   showStartTime,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
-  const [selectedSearchType, setSelectedSearchType] = React.useState("");
+  const [selectedSearchType, setSelectedSearchType] = React.useState<SearchTypes>(null);
 
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
@@ -60,6 +62,7 @@ function ProfilerFlameGraph({
   const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
     callTree[0]?.cumulativeTime ?? 0
   );
+  const [numInstancesInNestedStructure, setNumInstancesInNestedStructure] = React.useState<number>(0);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
@@ -100,6 +103,11 @@ function ProfilerFlameGraph({
       settingsContext.setOpenFileType(OpenFileTypeEnum.LISTING);
     }
   }, [presentationData.hasXREFs, presentationData.hasListings]);
+
+  React.useEffect(() => {
+    const count = getNumInstancesInNestedStructure(nestedStructure.children[0], searchPhrase);
+    setNumInstancesInNestedStructure(count);
+  }, [nestedStructure, searchPhrase]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -210,8 +218,8 @@ function ProfilerFlameGraph({
           <br />
           <br />
           {Object.keys(SearchTypes)
-            .filter((key) => Number.isNaN(+key))
-            .map((key) => (
+            .filter((key: SearchTypes) => Number.isNaN(+key))
+            .map((key: SearchTypes) => (
               <label className="radioBtn" key={key}>
                 <input
                   type="radio"
@@ -259,12 +267,13 @@ function ProfilerFlameGraph({
         </div>
       </div>
 
-      {selectedSearchType === "Search" && (
-        <div className="input-box">
+      {selectedSearchType === SearchTypes.Search && (
+        <Box className="input-box">
           <input
             id="input"
             className="textInputQuery"
             type="text"
+            style={{marginRight: "8px"}}
             value={searchPhrase}
             onChange={(event) => {
               setSearchPhrase(event.target.value);
@@ -277,7 +286,8 @@ function ProfilerFlameGraph({
               );
             }}
           />
-        </div>
+          <NumberOfInstances numberValue={numInstancesInNestedStructure} />
+        </Box>
       )}
 
       <div>
@@ -313,6 +323,33 @@ function ProfilerFlameGraph({
   );
 }
 export default ProfilerFlameGraph;
+
+const NumberOfInstances = ({ numberValue }: { numberValue: number }) => {
+  let textColor: string;
+
+  if (numberValue > MAX_INSTANCES_TO_COUNT) {
+    textColor = 'error.main';
+  } else if (numberValue > 0) {
+    textColor = 'success.light';
+  }
+  
+  return (
+    <Typography variant="caption">
+      Nodes found:{" "}
+      <Typography 
+        variant="caption"
+        component="span" 
+        sx={{
+          color: textColor,
+          fontWeight: "bold"
+        }}
+      >
+        {numberValue > MAX_INSTANCES_TO_COUNT ? ">" : ""}
+        {numberValue}
+      </Typography>
+    </Typography>
+  );
+};
 
 function convertToNestedStructure(
   data: CallTree[],
@@ -400,7 +437,7 @@ function giveColorConstructorOrDestructor(item: CallTree): string {
 }
 
 function giveColorSearch(item: CallTree, searchPhrase: string): string {
-  return item.moduleName.includes(searchPhrase) ? "#00c030" : "#bcb8b8";
+  return includesString(item.moduleName, searchPhrase) ? "#00c030" : "#bcb8b8";
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
@@ -419,4 +456,31 @@ function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
   }
 
   return ConstructorDestructorType.None;
+}
+
+function getNumInstancesInNestedStructure(nestedStructure: FlameGraphNode, searchPhrase: string): number {
+  let count = 0;
+
+  if (includesString(nestedStructure.name, searchPhrase)) {
+    count++;
+  }
+
+  let children = nestedStructure.children;
+
+  if (!children || children.length === 0) {
+    return count;
+  }
+
+  children.forEach((child) => {
+    count += getNumInstancesInNestedStructure(child, searchPhrase);
+    if (count > MAX_INSTANCES_TO_COUNT) {
+      return;
+    }
+  });
+
+  return count;
+} 
+
+function includesString(mainString: string, searchString: string): boolean {
+  return mainString.toLowerCase().includes(searchString.toLowerCase());
 }
