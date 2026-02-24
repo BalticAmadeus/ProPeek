@@ -78,7 +78,7 @@ export function parseProfilerData(lineGenerator: Generator<string>, useTracingDa
         rawData.isTracingLimitExceeded = true;
     }
 
-    Telemetry.setLinesOfCode(tracingLineCount);
+    Telemetry.ParsingData.setLinesOfCode(tracingLineCount);
 
     return rawData;
 }
