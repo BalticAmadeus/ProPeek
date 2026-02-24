@@ -62,7 +62,6 @@ function ProfilerFlameGraph({
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
   const [selectedSearchType, setSelectedSearchType] = React.useState<SearchTypes>(null);
-  const [graphType, setGraphType] = React.useState<GraphType>(GraphType.Summary);
 
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
@@ -183,7 +182,6 @@ function ProfilerFlameGraph({
 
   const handleGraphTypeChange = (event) => {
     const value = event.target.value;
-    setGraphType(value);
     setIsLoading(true);
     showStartTime = value !== GraphType.Summary;
     vscode.postMessage({
@@ -255,7 +253,7 @@ function ProfilerFlameGraph({
           </Box>
           <RadioGroup
             row
-            value={graphType}
+            value={showStartTime ? GraphType.Detailed : GraphType.Summary}
             onChange={handleGraphTypeChange}
           >
             <FormControlLabel

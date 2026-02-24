@@ -1,6 +1,7 @@
 import { Constants } from "../../../common/Constants";
 import { ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
+import { DescriptionData } from "../raw/descriptionData";
 import { ModuleData } from "../raw/moduleData";
 import { checkModuleFileExists, getFileAndProcedureName, getWorkspaceConfig } from "./common";
 
@@ -16,7 +17,7 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
 
   const moduleDetailsList = [getSessionModuleDetails()] as ModuleDetails[];
 
-  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
+  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData, rawData.DescriptionData);
 
   for(const module of rawData.ModuleData) {
     const listingFile = getListingFile(module, listingFileFilterList);
@@ -101,15 +102,19 @@ export const getListingFile = (moduleData: ModuleData, listingFileFilterList: Li
 /**
  * Filters out the listing files and returns the array
  * @param {ModuleData[]} moduleDataList module data list 
+ * @param {DescriptionData[]} descriptionData description data
  * @returns {ListingFileFilter[]} listing file filter array
  */
-export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingFileFilter[] => {
+export const getListingFileFilterList = (moduleDataList: ModuleData[], descriptionData: DescriptionData): ListingFileFilter[] => {
+  const listingDirectoryRaw = descriptionData.Information?.Directory ?? "";
+  const listingDirectory = listingDirectoryRaw ? (listingDirectoryRaw.endsWith('/') ? listingDirectoryRaw : listingDirectoryRaw + '/') : "";
+  
   return moduleDataList
   .filter((moduleData) => moduleData.ListingFile)
   .map((moduleData) => { 
     return { 
       fileName: getFileAndProcedureName(moduleData.ModuleName).fileName, 
-      listingFile: moduleData.ListingFile 
+      listingFile: listingDirectory ? listingDirectory + moduleData.ListingFile : moduleData.ListingFile
     } as ListingFileFilter;
   });
 };
