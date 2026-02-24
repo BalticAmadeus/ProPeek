@@ -186,16 +186,20 @@
         "@emotion/react": "^11.10.0",
         "@emotion/styled": "^11.10.0",
         "@monaco-editor/react": "4.6.0",
-        "@mui/icons-material": "^5.10.2",
-        "@mui/material": "^5.14.2",
         "@vscode/extension-telemetry": "^1.0.0",
+        "@mui/icons-material": "^7.3.8",
+        "@mui/material": "^7.3.8",
         "esbuild": "^0.17.5",
         "react": "^18.1.0",
         "react-data-grid": "7.0.0-beta.13",
         "react-dom": "^18.1.0",
         "react-flame-graph": "^1.4.0",
+        "react-is": "^18.1.0",
         "react-virtualized-auto-sizer": "^1.0.20",
         "victory-axis": "^36.9.1",
         "webpack-dev-server": "^4.15.1"
+    },
+    "overrides": {
+        "react-is": "^18.1.0"
     }
 }
