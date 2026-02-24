@@ -8,5 +8,5 @@ If you want to stop sending telemetry use [General VSCode settings](command:toSi
 For purposes of improving ProPeek we gather:
 
 -   **Profiler settings** you use
--   **Parser metrics**: parsing time, lines in profiler file, and its size
+-   **Parser metrics**: parsing time, lines in profiler file, and it's size
 -   **Common Properties** defined in **_[Microsoft VSCode Extension Telemetry](https://github.com/microsoft/vscode-extension-telemetry?tab=readme-ov-file#common-properties)_**

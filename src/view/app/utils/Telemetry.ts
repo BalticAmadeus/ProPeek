@@ -81,9 +81,15 @@ export class Telemetry {
         console.log("/-------*Telemetry Debug*-------/");
         console.log("instance created? " + this.instance);
         console.log("/--*parserMetrics*--/");
+
+        if (this.parserMetrics) {
         console.log("filesize:    ", this.parserMetrics.fileSize, " MB");
         console.log("parsingTime: ", this.parserMetrics.parsingTime);
         console.log("linesofCode: ", this.parserMetrics.linesOfCode);
+        } else {
+            console.log("parserMetrics is not initialized.");
+        }
+
         console.log("/-------------------/");
         if (message)
             console.log("Message: ", message);
