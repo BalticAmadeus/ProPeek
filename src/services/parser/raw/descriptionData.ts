@@ -37,14 +37,18 @@ export function parseDescriptionLine ( line : string ) : DescriptionData {
   };
 
   if (version >= 3) {
-    const informationJson = line.substring(line.indexOf("{")); //could be problematic if description field contains this symbol
-    const escapedJson = informationJson.replace(/\\/g, "\\\\");
-    
-    try {
-      const parsedInformation = JSON.parse(escapedJson);
-      descriptionData.Information = parsedInformation;
-    } catch (error) {
-      ParserLogger.logError("JSON Parsing error", "Unable to parse additional information in profiler description header", error);
+    const containsJsonIndex = line.indexOf("{");
+
+    if (containsJsonIndex >= 0) {
+      const informationJson = line.substring(containsJsonIndex); //could be problematic if description field contains this symbol
+      const escapedJson = informationJson.replace(/\\/g, "\\\\");
+      
+      try {
+        const parsedInformation = JSON.parse(escapedJson);
+        descriptionData.Information = parsedInformation;
+      } catch (error) {
+        ParserLogger.logError("JSON Parsing error", "Unable to parse additional information in profiler description header", error);
+      }
     }
   }
 

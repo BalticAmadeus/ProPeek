@@ -351,8 +351,7 @@ const NumberOfInstances = ({ numberValue }: { numberValue: number }) => {
           fontSize: "0.9rem"
         }}
       >
-        {numberValue > MAX_INSTANCES_TO_COUNT ? ">" : ""}
-        {numberValue}
+        {numberValue > MAX_INSTANCES_TO_COUNT ? `>${MAX_INSTANCES_TO_COUNT}` : numberValue}
       </Typography>
     </Typography>
   );
@@ -472,11 +471,11 @@ function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
 function getNumInstancesInNestedStructure(nestedStructure: FlameGraphNode, searchPhrase: string): number {
   let count = 0;
 
-  if (includesString(nestedStructure.name, searchPhrase)) {
+  if (includesString(nestedStructure?.name || "", searchPhrase)) {
     count++;
   }
 
-  let children = nestedStructure.children;
+  let children = nestedStructure?.children;
 
   if (!children || children.length === 0) {
     return count;
@@ -488,6 +487,10 @@ function getNumInstancesInNestedStructure(nestedStructure: FlameGraphNode, searc
       return;
     }
   });
+
+  if (count > MAX_INSTANCES_TO_COUNT) {
+    return MAX_INSTANCES_TO_COUNT + 1;
+  }
 
   return count;
 }
