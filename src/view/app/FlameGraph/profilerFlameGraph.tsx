@@ -471,11 +471,11 @@ function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
 function getNumInstancesInNestedStructure(nestedStructure: FlameGraphNode, searchPhrase: string): number {
   let count = 0;
 
-  if (includesString(nestedStructure.name, searchPhrase)) {
+  if (includesString(nestedStructure?.name || "", searchPhrase)) {
     count++;
   }
 
-  let children = nestedStructure.children;
+  let children = nestedStructure?.children;
 
   if (!children || children.length === 0) {
     return count;
