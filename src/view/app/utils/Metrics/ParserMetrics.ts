@@ -11,7 +11,6 @@ export class ParserMetrics {
 
     end(): Record<string, number> | null {
         if (!this.active) return null;
-        this.active = false;
 
         const snapshot = this.getSnapshot();
         this.reset();
