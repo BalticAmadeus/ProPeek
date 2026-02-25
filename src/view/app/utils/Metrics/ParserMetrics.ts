@@ -46,6 +46,7 @@ export class ParserMetrics {
     }
 
     private getSnapshot(): Record<string, number> {
+        if (!this.active) return {};
         return {
             parsingTime: this.parsingTime,
             fileSize: this.fileSize,
@@ -57,5 +58,6 @@ export class ParserMetrics {
         this.parsingTime = 0;
         this.fileSize = 0;
         this.linesOfCode = 0;
+        this.active = false;
     }
 }
