@@ -9,8 +9,8 @@ export class ParserMetrics {
         this.active = true;
     }
 
-    end(): Record<string, number> | undefined {
-        if (!this.active) return undefined;
+    end(): Record<string, number> | null {
+        if (!this.active) return null;
         this.active = false;
 
         const snapshot = this.getSnapshot();
@@ -45,7 +45,7 @@ export class ParserMetrics {
         console.log("/-----------------------------------/");
     }
 
-    private getSnapshot(): Record<string, number> {
+    private getSnapshot(): Record<string, number> | null {
         if (!this.active) return null;
         return {
             parsingTime: this.parsingTime,
