@@ -1,3 +1,16 @@
+## 1.4.3 (2026-02-25)
+
+### Changed
+
+- Listing files will now be read from 'Directory' attribute in profiler header
+- Updated MUI components to match VSCode themes
+
+### Added
+
+- Telemetry data collection
+- Number of calls information on flame graph nodes
+- Number of nodes found information when searching in flame graph
+
 ## 1.4.2 (2025-07-14)
 
 ### Changed

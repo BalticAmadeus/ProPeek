@@ -1,10 +1,22 @@
+import { ParserLogger } from "../ParserLogger";
+
 export interface DescriptionData {
   Version     : number,
   Date        : string,
   Description : string,
   SystemTime  : string,
   UnusedString: string,
-  Information?: string
+  Information?: DescriptionInformation
+}
+
+export interface DescriptionInformation {
+  StmtCnt   : number,
+  DataPts   : number,
+  NumWrites : number,
+  TotalTime : number,
+  BufferSize: number,
+  Directory : string,
+  Propath   : string,
 }
 
 /**
@@ -25,7 +37,19 @@ export function parseDescriptionLine ( line : string ) : DescriptionData {
   };
 
   if (version >= 3) {
-    descriptionData.Information = line.substring(line.indexOf("{")) //could be problematic if description field contains this symbol
+    const containsJsonIndex = line.indexOf("{");
+
+    if (containsJsonIndex >= 0) {
+      const informationJson = line.substring(containsJsonIndex); //could be problematic if description field contains this symbol
+      const escapedJson = informationJson.replace(/\\/g, "\\\\");
+      
+      try {
+        const parsedInformation = JSON.parse(escapedJson);
+        descriptionData.Information = parsedInformation;
+      } catch (error) {
+        ParserLogger.logError("JSON Parsing error", "Unable to parse additional information in profiler description header", error);
+      }
+    }
   }
 
   return descriptionData;

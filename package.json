@@ -2,7 +2,7 @@
     "name": "pro-peek",
     "displayName": "ProPeek",
     "description": "Profiler app for OpenEdge ABL",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "publisher": "BalticAmadeus",
     "engines": {
         "vscode": "^1.78.0"
@@ -87,11 +87,63 @@
                     "when": "resourceExtname == .prof || resourceExtname == .out"
                 }
             ]
-        }
+        },
+        "configuration": {
+            "title": "ProPeek",
+            "properties": {
+                "Telemetry.propeekTelemetry": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable telemetry",
+                    "tags": [
+                        "usesOnlineServices",
+                        "telemetry"
+                    ]
+                }
+            }
+        },
+        "walkthroughs": [
+            {
+                "id": "pro-peek",
+                "title": "ProPeek",
+                "description": "An extension for Progress Openedge Profiler.",
+                "steps": [
+                    {
+                        "id": "telemetryNotice",
+                        "title": "Telemetry notice for ProPeek",
+                        "description": "How and What data is collected by this extension\n [Learn More](https://code.visualstudio.com/docs/editor/telemetry#:~:text=Visual%20Studio%20Code%20collects%20telemetry%20data%2C%20which%20is,slow%20start-up%20times%2C%20and%20to%20prioritize%20new%20features.)",
+                        "media": {
+                            "markdown": "resources/markdown/telemetry_notice.md"
+                        }
+                    },
+                    {
+                        "id": "DisableGlobalTelemetry",
+                        "title": "How to disable all Telemetry",
+                        "description": "Disabling all telemetry that VSCode sends.\n[Global Telemetry Setting](command:toSide:workbench.action.openSettings?%22@tag:telemetry%22)",
+                        "media": {
+                            "image": "resources/images/DisableGlobalTelemetry.png",
+                            "altText": "Settings for disabling all telemetry sent by VSCode can be found in settings with @tag:telemetry tag"
+                        }
+                    },
+                    {
+                        "id": "DisableProPeekTelemetry",
+                        "title": "How to disable only ProPeek Telemetry",
+                        "description": "If global setting for telemetry is \"off\" then this setting is ignored and no telemetry is sent.\n[ProPeek Telemetry Setting](command:toSide:workbench.action.openSettings?%22Telemetry.propeekTelemetry%22)",
+                        "media": {
+                            "image": "resources/images/DisableProPeekTelemetry.png",
+                            "altText": "Settings for disabling telemetry sent by OpenEdge ABL Formatter can be found in settings with @tag:telemetry tag"
+                        }
+                    }
+                ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run esbuild-base -- --minify",
-        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+        "package": "npx vsce package && npm run reset-telemetry-key",
+        "inject-telemetry-key": "replace-in-file \"__TELEMETRY_KEY__\"  \"InstrumentationKey=5ee68587-b91d-41b6-ba02-4c65e5348310;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/;ApplicationId=b19474b9-14c6-4c39-b5ba-0c843036cbb0\" ./out/extension.js",
+        "reset-telemetry-key": "replace-in-file \"InstrumentationKey=5ee68587-b91d-41b6-ba02-4c65e5348310;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/;ApplicationId=b19474b9-14c6-4c39-b5ba-0c843036cbb0\" \"__TELEMETRY_KEY__\" ./out/extension.js",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node && npm run inject-telemetry-key",
         "esbuild": "npm run esbuild-base -- --sourcemap",
         "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
         "test-compile": "tsc -p ./",
@@ -117,6 +169,7 @@
         "@typescript-eslint/eslint-plugin": "^5.21.0",
         "@typescript-eslint/parser": "^5.21.0",
         "@vscode/test-electron": "^2.1.3",
+        "@vscode/vsce": "2.22.0",
         "css-loader": "^6.8.1",
         "eslint": "^8.14.0",
         "glob": "^8.0.1",
@@ -126,22 +179,27 @@
         "ts-loader": "^9.3.0",
         "typescript": "^4.6.4",
         "webpack": "^5.88.2",
-        "webpack-cli": "^4.10.0",
-        "@vscode/vsce": "2.22.0"
+        "replace-in-file": "^6.3.5",
+        "webpack-cli": "^4.10.0"
     },
     "dependencies": {
         "@emotion/react": "^11.10.0",
-        "@monaco-editor/react": "4.6.0",
         "@emotion/styled": "^11.10.0",
-        "@mui/icons-material": "^5.10.2",
-        "@mui/material": "^5.14.2",
+        "@monaco-editor/react": "4.6.0",
+        "@vscode/extension-telemetry": "^1.0.0",
+        "@mui/icons-material": "^7.3.8",
+        "@mui/material": "^7.3.8",
         "esbuild": "^0.17.5",
         "react": "^18.1.0",
         "react-data-grid": "7.0.0-beta.13",
         "react-dom": "^18.1.0",
         "react-flame-graph": "^1.4.0",
+        "react-is": "^18.1.0",
         "react-virtualized-auto-sizer": "^1.0.20",
         "victory-axis": "^36.9.1",
         "webpack-dev-server": "^4.15.1"
+    },
+    "overrides": {
+        "react-is": "^18.1.0"
     }
 }

@@ -11,7 +11,7 @@ import columnDefinition from "./column.json";
 import "./compareModuleDetails.css";
 import CompareDetailsTable from "./components/CompareDetailsTable";
 import { getVSCodeAPI } from "../utils/vscode";
-import { Box, FormControlLabel, Switch } from "@mui/material";
+import { Box, FormControlLabel, Switch, useTheme } from "@mui/material";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import ProfilerSummary from "./components/ProfilerSummary";
 import DataGrid from "react-data-grid";
@@ -258,6 +258,8 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
 
   const [isLoading, setIsLoading] = useState<boolean>(null);
 
+  const theme = useTheme();
+
   const vscode = getVSCodeAPI();
 
   const [isPercentageView, setIsPercentageView] = useState(() => {
@@ -321,7 +323,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
               icon = (
                 <AddCircleIcon
                   style={{
-                    color: "green",
+                    color: theme.palette.success.main,
                     fontSize: 16,
                     position: "relative",
                     top: "5px",
@@ -333,7 +335,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
               icon = (
                 <RemoveCircleIcon
                   style={{
-                    color: "red",
+                    color: theme.palette.error.main,
                     fontSize: 16,
                     position: "relative",
                     top: "5px",
@@ -506,7 +508,7 @@ const CompareModuleDetails: React.FC<CompareModuleDetailsProps> = ({
               checked={isPercentageView}
               onChange={handleToggleView}
               size="small"
-              sx={{ color: "-var(--vscode-editor-foreground)", ml: 1 }}
+              sx={{ ml: 1 }}
             />
           }
           label="Show Percentage"

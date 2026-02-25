@@ -11,6 +11,7 @@ import { IncludeFile } from "../common/XRefData";
 import * as fs from "fs";
 import { Constants } from "../common/Constants";
 import { OpenFileTypeEnum } from "../common/openFile";
+import path from "path";
 
 export class FileHandler {
 
@@ -21,18 +22,34 @@ export class FileHandler {
       if (!listingFile) {
         return;
       }
-  
-      const listingFilePath = getListingFilePath(listingFile);
-  
-      const list = await vscode.workspace.findFiles(listingFilePath);
-      if (list.length === 0) {
-        vscode.window.showWarningMessage(
-          `Listing file not found: ${listingFilePath}\n`
-        );
+      
+      const list = await FileHandler.findListingFile(listingFile);
+      if (!list || (Array.isArray(list) && list.length === 0)) {
         return;
       }
-  
-      await this.openFile(list[0], lineNumber > 0 ? lineNumber : 1);
+
+      if (Array.isArray(list) && list.length > 0) {
+        await this.openFile(list[0], lineNumber > 0 ? lineNumber : 1);
+      } else if (list) {
+        await this.openFile(list as vscode.Uri, lineNumber > 0 ? lineNumber : 1);
+      }
+    }
+
+    static async findListingFile(
+      listingFile: string
+    ): Promise<vscode.Uri | vscode.Uri[] | null> {
+      
+      if (!listingFile) {
+        return null;
+      }
+        
+      if (fs.existsSync(listingFile)) {
+        return vscode.Uri.file(listingFile);
+      } else {
+        const baseFileName = path.basename(listingFile);
+        const listingFilePath = getListingFilePath(baseFileName);
+        return vscode.workspace.findFiles(listingFilePath);
+      }
     }
   
     static async open(
@@ -182,14 +199,18 @@ export class FileHandler {
             }
           }
           break;
-        case OpenFileTypeEnum.LISTING:
-          const listingFiles = await vscode.workspace.findFiles(getListingFilePath(listingFile));
-          if(listingFiles.length > 0){
+        case OpenFileTypeEnum.LISTING: {
+          const listingFiles = await FileHandler.findListingFile(listingFile);
+
+          if (Array.isArray(listingFiles) && listingFiles.length > 0) {
             filePath = listingFiles[0];
+          } else if (listingFiles) {
+            filePath = listingFiles as vscode.Uri;
           } else {
             throw new Error('File not found: ' + filePath);
           }
           break;
+        }
       }
 
         const fileContent = await this.readFile(filePath.fsPath);

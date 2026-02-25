@@ -8,6 +8,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  useTheme,
 } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
@@ -31,6 +32,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
 }) => {
   const [value, setValue] = useState<string>(searchValue ?? "");
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const theme = useTheme();
 
   React.useEffect(() => {
     setValue(searchValue ?? "");
@@ -56,7 +58,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
         return (
           <div className="statusFilterOption">
             <AddCircleIcon
-              style={{ color: "green", fontSize: 19, marginTop: "0.1rem" }}
+              style={{ color: theme.palette.success.main, fontSize: 19, marginTop: "0.1rem" }}
             />
           </div>
         );
@@ -64,7 +66,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
         return (
           <div className="statusFilterOption">
             <RemoveCircleIcon
-              style={{ color: "red", fontSize: 19, marginTop: "0.1rem" }}
+              style={{ color: theme.palette.error.main, fontSize: 19, marginTop: "0.1rem" }}
             />
           </div>
         );
@@ -96,11 +98,8 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
             inlineSize: "100%",
             fontSize: "14px",
             height: "30px",
-            color: "var(--vscode-input-foreground)",
-            border: "1px solid var(--vscode-input-border)",
             borderRadius: "4px",
             padding: "4px 8px",
-            backgroundColor: "var(--vscode-input-background)",
           }}
           value={value}
           onChange={handleChange}
@@ -114,9 +113,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
               minWidth: 65,
               height: 30,
               border: "none",
-              color: "var(--vscode-input-foreground)",
               ml: 0.5,
-              backgroundColor: "var(--vscode-input-background)",
             }}
           >
             <Select
@@ -125,17 +122,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
               renderValue={renderValue}
               sx={{
                 height: "100%",
-                color: "var(--rdg-checkbox-focus-color)",
                 border: "none",
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "var(--vscode-input-background)",
-                    color: "var(--vscode-input-foreground)",
-                    border: "1px solid var(--vscode-input-border)",
-                  },
-                },
               }}
             >
               <MenuItem value="all">
@@ -145,7 +132,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
                 <ListItemIcon>
                   <AddCircleIcon
                     style={{
-                      color: "green",
+                      color: theme.palette.success.main,
                       fontSize: 16,
                       marginTop: "0.5rem",
                     }}
@@ -156,7 +143,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
               <MenuItem value="removed">
                 <ListItemIcon>
                   <RemoveCircleIcon
-                    style={{ color: "red", fontSize: 16, marginTop: "0.5rem" }}
+                    style={{ color: theme.palette.error.main, fontSize: 16, marginTop: "0.5rem" }}
                   />
                 </ListItemIcon>
                 <ListItemText primary="Removed" />

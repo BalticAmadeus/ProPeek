@@ -9,7 +9,7 @@ export async function calculateLineSummary(rawData: ProfilerRawData, profilerTit
 
   const lineSummaryList = [] as LineSummary[];
 
-  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
+  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData, rawData.DescriptionData);
 
   for(const module of rawData.ModuleData) {
     const listingFile = getListingFile(module, listingFileFilterList);

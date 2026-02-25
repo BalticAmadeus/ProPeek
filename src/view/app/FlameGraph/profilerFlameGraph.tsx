@@ -5,7 +5,7 @@ import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
-import { Box } from "@mui/material";
+import { Box, TextField, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography, useTheme } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
@@ -34,11 +34,24 @@ interface IConfigProps {
   showStartTime: boolean;
 }
 
-export enum SearchTypes {
-  Length,
-  ConstructorOrDestructor,
-  Search,
+enum SearchTypes {
+  Length = "Length",
+  ConstructorOrDestructor = "ConstructorOrDestructor",
+  Search = "Search",
 }
+
+const SearchTypesLabels: { [key in keyof typeof SearchTypes]: string } = {
+  Length: "Length",
+  ConstructorOrDestructor: "Constructor or Destructor",
+  Search: "Search",
+};
+
+enum GraphType {
+  Summary = "Summary",
+  Detailed = "Detailed",
+}
+
+const MAX_INSTANCES_TO_COUNT = 99999;
 
 function ProfilerFlameGraph({
   presentationData,
@@ -48,7 +61,7 @@ function ProfilerFlameGraph({
   showStartTime,
 }: IConfigProps) {
   const [searchPhrase, setSearchPhrase] = React.useState<string>("");
-  const [selectedSearchType, setSelectedSearchType] = React.useState("");
+  const [selectedSearchType, setSelectedSearchType] = React.useState<SearchTypes>(null);
 
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
@@ -60,9 +73,11 @@ function ProfilerFlameGraph({
   const [timeRibbonEndValue, setTimeRibbonEndValue] = React.useState<number>(
     callTree[0]?.cumulativeTime ?? 0
   );
+  const [numInstancesInNestedStructure, setNumInstancesInNestedStructure] = React.useState<number>(0);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
+  const theme = useTheme();
 
   const windowResize = () => {
     setWindowWidth(window.innerWidth);
@@ -100,6 +115,11 @@ function ProfilerFlameGraph({
       settingsContext.setOpenFileType(OpenFileTypeEnum.LISTING);
     }
   }, [presentationData.hasXREFs, presentationData.hasListings]);
+
+  React.useEffect(() => {
+    const count = getNumInstancesInNestedStructure(nestedStructure.children[0], searchPhrase);
+    setNumInstancesInNestedStructure(count);
+  }, [nestedStructure, searchPhrase]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -161,8 +181,9 @@ function ProfilerFlameGraph({
   };
 
   const handleGraphTypeChange = (event) => {
+    const value = event.target.value;
     setIsLoading(true);
-    showStartTime = event.target.value !== "Combined";
+    showStartTime = value !== GraphType.Summary;
     vscode.postMessage({
       type: "GRAPH_TYPE_CHANGE",
       showStartTime: showStartTime,
@@ -191,7 +212,7 @@ function ProfilerFlameGraph({
         "Tracing data section is too large to show in detail."
       );
     }
-    if (!hasTracingData){ 
+    if (!hasTracingData) {
       tooltipText.push(
         "Profiler needs to contain tracing section to show detailed timing information."
       );
@@ -203,68 +224,61 @@ function ProfilerFlameGraph({
     <React.Fragment>
       {isLoading && <LoadingOverlay></LoadingOverlay>}
       <div className="flex-row-container">
-        <div className="checkbox">
-          <label>
-            <b>Search Type:</b>
-          </label>
-          <br />
-          <br />
-          {Object.keys(SearchTypes)
-            .filter((key) => Number.isNaN(+key))
-            .map((key) => (
-              <label className="radioBtn" key={key}>
-                <input
-                  type="radio"
-                  name="exportdata"
-                  onChange={(e) => {
-                    handleChange(e);
-                    setSelectedSearchType(key);
-                  }}
+        <FormControl>
+          <FormLabel id="search-type">Search Type</FormLabel>
+          <RadioGroup
+            row
+            value={selectedSearchType || SearchTypes[SearchTypes.Length]}
+            onChange={(e) => {
+              handleChange(e);
+              setSelectedSearchType(e.target.value as SearchTypes);
+            }}
+          >
+            {Object.keys(SearchTypes)
+              .filter((key: SearchTypes) => Number.isNaN(+key))
+              .map((key: SearchTypes) => (
+                <FormControlLabel
+                  key={key}
                   value={key}
-                  defaultChecked={SearchTypes[key] === SearchTypes.Length}
+                  control={<Radio />}
+                  label={SearchTypesLabels[key]}
                 />
-                {key}
-              </label>
-            ))}
-        </div>
-        <div className="graph-type-selects">
-          <label>
-            <b>Graph Type:</b>
-            <ToolTip message={handleTooltipText()} style={{color: "#ffc107"}} show={!hasTracingData || presentationData.isTracingLimitExceeded} iconSize="12px" />
-          </label>
-          <br />
-          <br />
-          <label>
-            <input
-              type="radio"
-              name="graphType"
-              value="Combined"
-              onChange={handleGraphTypeChange}
-              defaultChecked={!showStartTime}
+              ))}
+          </RadioGroup>
+        </FormControl>
+        <FormControl component={"div"} className="graph-type-selects">
+          <Box>
+            <FormLabel id="graph-type">Graph Type</FormLabel>
+            <ToolTip message={handleTooltipText()} style={{color: theme.palette.warning.main}} show={!hasTracingData || presentationData.isTracingLimitExceeded} iconSize="12px" />
+          </Box>
+          <RadioGroup
+            row
+            value={showStartTime ? GraphType.Detailed : GraphType.Summary}
+            onChange={handleGraphTypeChange}
+          >
+            <FormControlLabel
+              value={GraphType.Summary}
+              control={<Radio />}
+              label={GraphType.Summary}
             />
-            Summary
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="graphType"
-              value="Separate"
-              onChange={handleGraphTypeChange}
-              defaultChecked={showStartTime}
+            <FormControlLabel
+              value={GraphType.Detailed}
+              control={<Radio />}
+              label={GraphType.Detailed}
               disabled={!hasTracingData || presentationData.isTracingLimitExceeded}
             />
-            Detailed
-          </label>
-
-        </div>
+          </RadioGroup>
+        </FormControl>
       </div>
 
-      {selectedSearchType === "Search" && (
-        <div className="input-box">
-          <input
+      {selectedSearchType === SearchTypes.Search && (
+        <Box className="input-box" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TextField
             id="input"
             className="textInputQuery"
-            type="text"
+            variant="outlined"
+            label="Search"
+            size="small"
             value={searchPhrase}
             onChange={(event) => {
               setSearchPhrase(event.target.value);
@@ -276,8 +290,10 @@ function ProfilerFlameGraph({
                 )
               );
             }}
+            sx={{ mr: "8px" }}
           />
-        </div>
+          <NumberOfInstances numberValue={numInstancesInNestedStructure} />
+        </Box>
       )}
 
       <div>
@@ -314,6 +330,33 @@ function ProfilerFlameGraph({
 }
 export default ProfilerFlameGraph;
 
+const NumberOfInstances = ({ numberValue }: { numberValue: number }) => {
+  let textColor: string;
+
+  if (numberValue > MAX_INSTANCES_TO_COUNT) {
+    textColor = 'error.main';
+  } else if (numberValue > 0) {
+    textColor = 'success.light';
+  }
+
+  return (
+    <Typography variant="caption" sx={{ fontSize: "0.9rem" }}>
+      Nodes found:{" "}
+      <Typography
+        variant="caption"
+        component="span"
+        sx={{
+          color: textColor,
+          fontWeight: "bold",
+          fontSize: "0.9rem"
+        }}
+      >
+        {numberValue > MAX_INSTANCES_TO_COUNT ? `>${MAX_INSTANCES_TO_COUNT}` : numberValue}
+      </Typography>
+    </Typography>
+  );
+};
+
 function convertToNestedStructure(
   data: CallTree[],
   mode: Mode,
@@ -331,15 +374,19 @@ function convertToNestedStructure(
   };
 
   for (const node of data) {
+    const numberOfCallsLabel =
+      node.numCalls && node.numCalls > 0
+        ? `
+Number of Calls: ${node.numCalls}`
+        : "";
+
     nodeMap[node.nodeID] = {
       name: node.moduleName,
       value: node.pcntOfSession,
       backgroundColor: giveColor(mode, node, searchPhrase),
-      tooltip: `Name: ${
-        node.moduleName
-      } Percentage of Session: ${node.pcntOfSession.toFixed(
-        2
-      )}% Cumulative Time: ${node.cumulativeTime}`,
+      tooltip: `Name: ${node.moduleName}
+Percentage of Session: ${node.pcntOfSession.toFixed(2)}%
+Cumulative Time: ${node.cumulativeTime}${numberOfCallsLabel}`,
       moduleID: node.moduleID,
       cumulativeTime: node.cumulativeTime,
       children: [],
@@ -400,7 +447,7 @@ function giveColorConstructorOrDestructor(item: CallTree): string {
 }
 
 function giveColorSearch(item: CallTree, searchPhrase: string): string {
-  return item.moduleName.includes(searchPhrase) ? "#00c030" : "#bcb8b8";
+  return includesString(item.moduleName, searchPhrase) ? "#00c030" : "#bcb8b8";
 }
 
 function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
@@ -419,4 +466,35 @@ function isConstructorOrDestructor(item: CallTree): ConstructorDestructorType {
   }
 
   return ConstructorDestructorType.None;
+}
+
+function getNumInstancesInNestedStructure(nestedStructure: FlameGraphNode, searchPhrase: string): number {
+  let count = 0;
+
+  if (includesString(nestedStructure?.name || "", searchPhrase)) {
+    count++;
+  }
+
+  let children = nestedStructure?.children;
+
+  if (!children || children.length === 0) {
+    return count;
+  }
+
+  children.forEach((child) => {
+    count += getNumInstancesInNestedStructure(child, searchPhrase);
+    if (count > MAX_INSTANCES_TO_COUNT) {
+      return;
+    }
+  });
+
+  if (count > MAX_INSTANCES_TO_COUNT) {
+    return MAX_INSTANCES_TO_COUNT + 1;
+  }
+
+  return count;
+}
+
+function includesString(mainString: string, searchString: string): boolean {
+  return mainString.toLowerCase().includes(searchString.toLowerCase());
 }
