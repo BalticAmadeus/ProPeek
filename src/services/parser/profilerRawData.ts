@@ -4,6 +4,7 @@ import { CallGraphData, parseCallGraphLine } from "./raw/callGraphData";
 import { LineSummaryData, parseLineSummaryLine } from "./raw/lineSummaryData";
 import { TracingData, parseTracingLine } from "./raw/tracingData";
 import { CallTreeData, parseCallTreeLine } from "./raw/callTreeData";
+import { Telemetry } from "../../view/app/utils/Telemetry";
 
 export interface ProfilerRawData {
     DescriptionData: DescriptionData,
@@ -76,6 +77,8 @@ export function parseProfilerData(lineGenerator: Generator<string>, useTracingDa
     if (tracingLineCount > TRACE_DATA_LINE_LIMIT) {
         rawData.isTracingLimitExceeded = true;
     }
+
+    Telemetry.ParsingData.setLinesOfCode(tracingLineCount);
 
     return rawData;
 }
