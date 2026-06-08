@@ -108,18 +108,14 @@ function getNodeNameForLevel(
   }
 }
 
-function getNodeSizeRelMult(displayThreshold: DisplayThreshold): number {
-  switch (displayThreshold) {
-    case "25":
-      return 0.85;
-    case "50":
-      return 0.55;
-    case "75":
-      return 0.4;
-    case "none":
-    default:
-      return 1;
-  }
+function computePercentile(values: number[], percentile: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = (percentile / 100) * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) return sorted[lower];
+  return sorted[lower] + (index - lower) * (sorted[upper] - sorted[lower]);
 }
 
 function transformPresentationDataToGraphData(
@@ -281,15 +277,28 @@ function getNodeSizes(
 
 function getNodeSizeThreshold(displayThreshold: DisplayThreshold): number {
   switch (displayThreshold) {
-    case "25":
-      return 0.4;
-    case "50":
-      return 0.6;
-    case "75":
-      return 0.85;
+    case "low":
+      return 60;
+    case "medium":
+      return 80;
+    case "high":
+      return 93;
     case "none":
     default:
       return 0;
+  }
+}
+
+function getMaxNeighborsToExpand(displayThreshold: DisplayThreshold): number {
+  switch (displayThreshold) {
+    case "low":
+      return 3;
+    case "medium":
+      return 2;
+    case "high":
+      return 1;
+    default:
+      return 5;
   }
 }
 
@@ -335,6 +344,7 @@ function rebuildGraphData(graphData: GraphData): GraphData {
 
 function filterGraphDataByCoreNodesAndNeighbors(
   graphData: GraphData,
+  metricValues: Record<string, number>,
   nodeSizes: Record<string, number>,
   displayThreshold: DisplayThreshold,
 ): GraphData {
@@ -342,27 +352,26 @@ function filterGraphDataByCoreNodesAndNeighbors(
     return rebuildGraphData(graphData);
   }
 
-  const sizeValues = Object.keys(nodeSizes).map((key) => nodeSizes[key]);
-  if (sizeValues.length === 0) {
+  const rawValues = Object.values(metricValues);
+  if (rawValues.length === 0) {
     return rebuildGraphData(graphData);
   }
 
-  const maxNodeSize = Math.max(...sizeValues);
-  const thresholdRatio = getNodeSizeThreshold(displayThreshold);
-  const minNodeSizeRequired = maxNodeSize * thresholdRatio;
+  const percentile = getNodeSizeThreshold(displayThreshold);
+  const minMetricRequired = computePercentile(rawValues, percentile);
 
   const keptNodeIds = new Set<string>();
 
-  // Keep all core nodes
+  // Keep all core nodes above the percentile cutoff
   graphData.nodes.forEach((node) => {
-    if ((nodeSizes[node.id] || 0) >= minNodeSizeRequired) {
+    if ((metricValues[node.id] ?? 0) >= minMetricRequired) {
       keptNodeIds.add(node.id);
     }
   });
 
   // Keep direct neighbors of core nodes,
   // but if there are too many, keep only the top N by node size
-  const MAX_NEIGHBORS_TO_EXPAND = 10;
+  const maxNeighbors = getMaxNeighborsToExpand(displayThreshold);
 
   graphData.nodes.forEach((node) => {
     if (!keptNodeIds.has(node.id)) {
@@ -372,10 +381,10 @@ function filterGraphDataByCoreNodesAndNeighbors(
     const neighbors = node.neighbors || [];
 
     const neighborsToKeep =
-      neighbors.length > MAX_NEIGHBORS_TO_EXPAND
+      neighbors.length > maxNeighbors
         ? [...neighbors]
             .sort((a, b) => (nodeSizes[b.id] || 0) - (nodeSizes[a.id] || 0))
-            .slice(0, MAX_NEIGHBORS_TO_EXPAND)
+            .slice(0, maxNeighbors)
         : neighbors;
 
     neighborsToKeep.forEach((neighbor) => {
@@ -487,20 +496,47 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
     [rawGraphData, NodeMetricMode],
   );
 
+  const rawMetricValues = useMemo(() => {
+    const values: Record<string, number> = {};
+    rawGraphData.nodes.forEach((node) => {
+      values[node.id] = getNodeMetricValue(node, NodeMetricMode);
+    });
+    return values;
+  }, [rawGraphData, NodeMetricMode]);
+
   const graphData = useMemo(
     () =>
       filterGraphDataByCoreNodesAndNeighbors(
         rawGraphData,
+        rawMetricValues,
         rawNodeSizes,
         displayThreshold,
       ),
-    [rawGraphData, rawNodeSizes, displayThreshold],
+    [rawGraphData, rawMetricValues, rawNodeSizes, displayThreshold],
   );
 
   const nodeSizes = useMemo(
     () => getNodeSizes(graphData.nodes, NodeMetricMode, 2, 40),
     [graphData, NodeMetricMode],
   );
+
+  const coreNodeCounts = useMemo(() => {
+    const counts: Record<DisplayThreshold, number> = {
+      none: rawGraphData.nodes.length,
+      low: 0,
+      medium: 0,
+      high: 0,
+    };
+    (["low", "medium", "high"] as const).forEach((t) => {
+      counts[t] = filterGraphDataByCoreNodesAndNeighbors(
+        rawGraphData,
+        rawMetricValues,
+        rawNodeSizes,
+        t,
+      ).nodes.length;
+    });
+    return counts;
+  }, [rawGraphData, rawMetricValues, rawNodeSizes]);
 
   React.useEffect(() => {
     setHoverNode(null);
@@ -582,6 +618,7 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
         onDisplayThresholdChange={setDisplayThreshold}
         nodeMetricMode={NodeMetricMode}
         onNodeMetricModeChange={setNodeMetricMode}
+        coreNodeCounts={coreNodeCounts}
       />
 
       <SelectedNodeInfoPanel selectedNode={pinnedNode} />
@@ -591,7 +628,7 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
         graphData={graphData}
         nodeLabel="name"
         nodeVal={(node) => nodeSizes[node.id] ?? 2}
-        nodeRelSize={NODE_R * getNodeSizeRelMult(displayThreshold)}
+        nodeRelSize={NODE_R}
         onNodeHover={handleNodeHover}
         nodeColor={(node) => {
           const alphaOpacity = getFactoredOpacity(node);
@@ -609,7 +646,7 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
 
           return color;
         }}
-        linkDirectionalArrowLength={7 * getNodeSizeRelMult(displayThreshold)}
+        linkDirectionalArrowLength={7}
         linkDirectionalArrowRelPos={1}
         linkColor={(link) =>
           alpha(

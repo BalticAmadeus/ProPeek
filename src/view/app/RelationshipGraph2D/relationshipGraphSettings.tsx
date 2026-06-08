@@ -16,7 +16,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ProFAB from "../Components/Buttons/ProFAB";
 
 export type RelationshipLevel = "method" | "class" | "package";
-export type DisplayThreshold = "none" | "25" | "50" | "75";
+export type DisplayThreshold = "none" | "low" | "medium" | "high";
 export type NodeMetricMode =
   | "connections"
   | "calls"
@@ -30,6 +30,7 @@ type FloatingSettingsPanelProps = {
   onDisplayThresholdChange: (value: DisplayThreshold) => void;
   nodeMetricMode: NodeMetricMode;
   onNodeMetricModeChange: (value: NodeMetricMode) => void;
+  coreNodeCounts?: Record<DisplayThreshold, number>;
 };
 
 const toggleGroupSx = {
@@ -56,6 +57,7 @@ export default function FloatingSettingsPanel({
   onDisplayThresholdChange,
   nodeMetricMode,
   onNodeMetricModeChange,
+  coreNodeCounts,
 }: FloatingSettingsPanelProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -149,9 +151,9 @@ export default function FloatingSettingsPanel({
                 sx={toggleGroupSx}
               >
                 <ToggleButton value="none">No limit</ToggleButton>
-                <ToggleButton value="25">25%</ToggleButton>
-                <ToggleButton value="50">50%</ToggleButton>
-                <ToggleButton value="75">75%</ToggleButton>
+                <ToggleButton value="low">Low</ToggleButton>
+                <ToggleButton value="medium">Medium</ToggleButton>
+                <ToggleButton value="high">High</ToggleButton>
               </ToggleButtonGroup>
             </SettingsRow>
 
@@ -171,8 +173,8 @@ export default function FloatingSettingsPanel({
               )}
               <Typography variant="body2">
                 {isLimited
-                  ? "Filtering is active; some graph details may be hidden or simplified. Data accuracy is not guaranteed."
-                  : "No filtering is applied."}
+                  ? `Filtering is active${coreNodeCounts ? `; showing ${coreNodeCounts[displayThreshold]} nodes` : ""}. Some graph details may be hidden or simplified.`
+                  : `No filtering is applied. Showing all ${coreNodeCounts?.none ?? ""} nodes.`}
               </Typography>
             </Box>
           </Stack>
