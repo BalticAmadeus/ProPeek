@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { PresentationData } from "../../../common/PresentationData";
 import ForceGraph2D from "react-force-graph-2d";
 import { alpha, Box, useTheme } from "@mui/material";
@@ -10,6 +10,9 @@ import FloatingSettingsPanel, {
 } from "./relationshipGraphSettings";
 import SelectedNodeInfoPanel from "./selectedNodeInfoPanel";
 import GraphStatsPanel from "./graphStatsPanel";
+import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
+import { getVSCodeAPI } from "../utils/vscode";
+import { OpenFileTypeEnum } from "../../../common/openFile";
 
 const TOP_SECTION_HEIGHT = 80;
 
@@ -40,6 +43,7 @@ interface GraphData {
 
 interface IConfigProps {
   presentationData: PresentationData;
+  handleNodeSelection?: (moduleName: string, moduleId: number) => void;
 }
 
 function createEmptyNode(id: string): NodeType {
@@ -453,15 +457,20 @@ function filterGraphDataByCoreNodesAndNeighbors(
   return rebuildGraphData({ nodes, links });
 }
 
-function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
+function ProfilerRelationshipGraph2D({
+  presentationData,
+  handleNodeSelection,
+}: IConfigProps) {
   const NODE_R = 2;
   const theme = useTheme();
+  const vscode = getVSCodeAPI();
+  const settingsContext = useFileTypeSettingsContext();
 
   const [relationshipLevel, setRelationshipLevel] =
     useState<RelationshipLevel>("method");
   const [displayThreshold, setDisplayThreshold] =
     useState<DisplayThreshold>("none");
-  const [NodeMetricMode, setNodeMetricMode] =
+  const [nodeMetricMode, setNodeMetricMode] =
     useState<NodeMetricMode>("sessionPercent");
 
   const [highlightNodes, setHighlightNodes] = useState<Set<NodeType>>(
@@ -492,17 +501,17 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
   );
 
   const rawNodeSizes = useMemo(
-    () => getNodeSizes(rawGraphData.nodes, NodeMetricMode, 2, 40),
-    [rawGraphData, NodeMetricMode],
+    () => getNodeSizes(rawGraphData.nodes, nodeMetricMode, 2, 40),
+    [rawGraphData, nodeMetricMode],
   );
 
   const rawMetricValues = useMemo(() => {
     const values: Record<string, number> = {};
     rawGraphData.nodes.forEach((node) => {
-      values[node.id] = getNodeMetricValue(node, NodeMetricMode);
+      values[node.id] = getNodeMetricValue(node, nodeMetricMode);
     });
     return values;
-  }, [rawGraphData, NodeMetricMode]);
+  }, [rawGraphData, nodeMetricMode]);
 
   const graphData = useMemo(
     () =>
@@ -516,8 +525,8 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
   );
 
   const nodeSizes = useMemo(
-    () => getNodeSizes(graphData.nodes, NodeMetricMode, 2, 40),
-    [graphData, NodeMetricMode],
+    () => getNodeSizes(graphData.nodes, nodeMetricMode, 2, 40),
+    [graphData, nodeMetricMode],
   );
 
   const coreNodeCounts = useMemo(() => {
@@ -567,12 +576,68 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
     applyHighlightForNode(node);
   };
 
-  const handleNodeClick = (node: NodeType) => {
+  const lastClickRef = useRef<{ node: NodeType; time: number } | null>(null);
+
+  const handleNodeDoubleClick = (node: NodeType) => {
+    if (!handleNodeSelection) {
+      return;
+    }
+
+    const candidates = presentationData.moduleDetails.filter(
+      (m) => getNodeNameForLevel(m.moduleName, relationshipLevel) === node.id,
+    );
+    if (candidates.length === 0) {
+      return;
+    }
+
+    const best = candidates.reduce((prev, curr) =>
+      (curr.totalTime || 0) > (prev.totalTime || 0) ? curr : prev,
+    );
+
+    handleNodeSelection(node.id, best.moduleID);
+  };
+
+  const openFileForNode = (node: NodeType) => {
+    const candidates = presentationData.moduleDetails.filter(
+      (m) => getNodeNameForLevel(m.moduleName, relationshipLevel) === node.id,
+    );
+    const linkable = candidates.find((m) => m.hasLink);
+    if (!linkable) {
+      return;
+    }
+    const type = linkable.listingFile
+      ? OpenFileTypeEnum.LISTING
+      : settingsContext.openFileType;
+    vscode.postMessage({
+      type,
+      name: linkable.moduleName,
+      listingFile: linkable.listingFile,
+      lineNumber: linkable.startLineNum,
+    });
+  };
+
+  const handleNodeClick = (node: NodeType, event: MouseEvent) => {
+    if (event.ctrlKey) {
+      openFileForNode(node);
+      return;
+    }
+
+    const now = Date.now();
+    const last = lastClickRef.current;
+
+    if (last && last.node.id === node.id && now - last.time < 300) {
+      lastClickRef.current = null;
+      handleNodeDoubleClick(node);
+      return;
+    }
+
+    lastClickRef.current = { node, time: now };
     setPinnedNode(node);
     applyHighlightForNode(node);
   };
 
   const handleBackgroundClick = () => {
+    lastClickRef.current = null;
     setPinnedNode(null);
     setHoverNode(null);
     setHighlightNodes(new Set());
@@ -616,7 +681,7 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
         onRelationshipLevelChange={setRelationshipLevel}
         displayThreshold={displayThreshold}
         onDisplayThresholdChange={setDisplayThreshold}
-        nodeMetricMode={NodeMetricMode}
+        nodeMetricMode={nodeMetricMode}
         onNodeMetricModeChange={setNodeMetricMode}
         coreNodeCounts={coreNodeCounts}
       />
@@ -624,7 +689,7 @@ function ProfilerRelationshipGraph2D({ presentationData }: IConfigProps) {
       <SelectedNodeInfoPanel selectedNode={pinnedNode} />
 
       <ForceGraph2D
-        key={`${relationshipLevel}-${displayThreshold}-${NodeMetricMode}`}
+        key={`${relationshipLevel}-${displayThreshold}-${nodeMetricMode}`}
         graphData={graphData}
         nodeLabel="name"
         nodeVal={(node) => nodeSizes[node.id] ?? 2}

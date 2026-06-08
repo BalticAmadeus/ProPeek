@@ -133,7 +133,12 @@ const ProfilerForm: React.FC = () => {
   const RelationshipGraphTab: React.FC = () => {
     return (
       <div>
-        <ProfilerRelationshipGraph2D presentationData={presentationData} />
+        <FileTypeSettingsContextProvider>
+          <ProfilerRelationshipGraph2D
+            presentationData={presentationData}
+            handleNodeSelection={handleNodeSelection}
+          />
+        </FileTypeSettingsContextProvider>
       </div>
     );
   };
