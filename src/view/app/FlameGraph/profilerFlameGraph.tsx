@@ -5,7 +5,8 @@ import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
-import { Box, TextField, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography, useTheme } from "@mui/material";
+import { Box, TextField, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography, useTheme, InputAdornment } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
@@ -290,7 +291,16 @@ function ProfilerFlameGraph({
                 )
               );
             }}
-            sx={{ mr: "8px" }}
+            sx={{ mr: "8px", width: "300px" }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" sx={{ color: "text.secondary" }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
           <NumberOfInstances numberValue={numInstancesInNestedStructure} />
         </Box>

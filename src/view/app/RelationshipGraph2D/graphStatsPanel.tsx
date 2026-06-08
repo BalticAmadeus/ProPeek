@@ -1,13 +1,26 @@
 import React from "react";
-import { Box, Paper, Typography, Divider, Fade } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Typography,
+  Divider,
+  Fade,
+  TextField,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 import ProFAB from "../Components/Buttons/ProFAB";
 
 type GraphStatsPanelProps = {
   totalSessionTime: number;
   nodeCount: number;
   linkCount: number;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 };
 
 function formatTime(value?: number): string {
@@ -45,6 +58,8 @@ export default function GraphStatsPanel({
   totalSessionTime,
   nodeCount,
   linkCount,
+  searchQuery,
+  onSearchChange,
 }: GraphStatsPanelProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -55,6 +70,9 @@ export default function GraphStatsPanel({
         top: 80,
         left: 16,
         zIndex: 1200,
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
       }}
     >
       <ProFAB
@@ -66,6 +84,7 @@ export default function GraphStatsPanel({
         tooltipPlacement="right"
         size="small"
         sx={(theme) => ({
+          flexShrink: 0,
           bgcolor: theme.palette.background.paper,
           color: theme.palette.text.primary,
           boxShadow: theme.shadows[5],
@@ -74,6 +93,35 @@ export default function GraphStatsPanel({
             boxShadow: theme.shadows[7],
           },
         })}
+      />
+
+      <TextField
+        size="small"
+        label="Search"
+        variant="outlined"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        sx={{ width: 350 }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: "text.secondary" }} />
+              </InputAdornment>
+            ),
+            endAdornment: searchQuery ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={() => onSearchChange("")}
+                  edge="end"
+                >
+                  <ClearIcon fontSize="small" sx={{ color: "text.secondary" }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          },
+        }}
       />
 
       <Fade in={open} unmountOnExit>

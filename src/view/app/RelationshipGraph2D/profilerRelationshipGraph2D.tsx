@@ -481,6 +481,7 @@ function ProfilerRelationshipGraph2D({
   );
   const [hoverNode, setHoverNode] = useState<NodeType | null>(null);
   const [pinnedNode, setPinnedNode] = useState<NodeType | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const totalSessionTime = useMemo(() => {
     return presentationData.moduleDetails.reduce(
@@ -675,6 +676,8 @@ function ProfilerRelationshipGraph2D({
         totalSessionTime={totalSessionTime}
         nodeCount={graphData.nodes.length}
         linkCount={graphData.links.length}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
       <FloatingSettingsPanel
         relationshipLevel={relationshipLevel}
@@ -697,19 +700,24 @@ function ProfilerRelationshipGraph2D({
         onNodeHover={handleNodeHover}
         nodeColor={(node) => {
           const alphaOpacity = getFactoredOpacity(node);
-          let color = alpha(theme.palette.primary.main, alphaOpacity);
-
-          if (alphaOpacity > 0.85) {
-            color = alpha(theme.palette.primary.light, alphaOpacity);
-          }
 
           if (node === hoverNode) {
-            color = theme.palette.error.main;
-          } else if (highlightNodes.has(node)) {
-            color = alpha(theme.palette.warning.main, alphaOpacity);
+            return theme.palette.error.main;
           }
-
-          return color;
+          if (highlightNodes.has(node)) {
+            return alpha(theme.palette.warning.main, alphaOpacity);
+          }
+          if (searchQuery) {
+            const matches = node.name
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase());
+            return matches
+              ? alpha(theme.palette.success.main, alphaOpacity)
+              : alpha(theme.palette.text.disabled, 0.25);
+          }
+          return alphaOpacity > 0.85
+            ? alpha(theme.palette.primary.light, alphaOpacity)
+            : alpha(theme.palette.primary.main, alphaOpacity);
         }}
         linkDirectionalArrowLength={7}
         linkDirectionalArrowRelPos={1}
