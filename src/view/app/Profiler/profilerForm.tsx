@@ -229,11 +229,11 @@ const ProfilerForm: React.FC = () => {
             <ProToggleButton value={ProfilerTab.FlameGraph}>
               Flame Graph
             </ProToggleButton>
+            <ProToggleButton value={ProfilerTab.RelationshipGraph2D}>
+              Call Graph
+            </ProToggleButton>
             <ProToggleButton value={ProfilerTab.Compare}>
               Compare
-            </ProToggleButton>
-            <ProToggleButton value={ProfilerTab.RelationshipGraph2D}>
-              Relationship Graph
             </ProToggleButton>
           </ToggleButtonGroup>
         </div>
