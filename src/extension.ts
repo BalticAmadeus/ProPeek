@@ -69,12 +69,30 @@ export function activate(context: vscode.ExtensionContext) {
     );
   }
 
+  async function showWebinarPromoPopup(): Promise<void> {
+    if (!context.globalState.get(Constants.webinarPromoShownKey)) {
+      const result = await vscode.window.showInformationMessage(
+        "FREE WEBINAR | ONLINE — Discover how ProPeek helps you pinpoint OpenEdge performance bottlenecks in a live session on 10 September 2026, 14:00–15:00 EEST; register now to reserve your spot and receive the recording even if you can't attend live.",
+        "Register Now",
+        "Dismiss"
+      );
+
+      if (result === "Register Now") {
+        vscode.env.openExternal(vscode.Uri.parse(Constants.webinarInfoURL));
+      }
+
+      context.globalState.update(Constants.webinarPromoShownKey, true);
+    }
+  };
+
   let disposable = vscode.commands.registerCommand(
     "vsc-profiler.profiler",
     async (uri: vscode.Uri) => {
       const filePath = uri.fsPath;
       const fileName = vscode.workspace.asRelativePath(filePath);
       new ProfilerViewer(context, fileName, filePath);
+
+      showWebinarPromoPopup();
     }
   );
 

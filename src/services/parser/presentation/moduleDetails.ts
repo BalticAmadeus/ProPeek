@@ -17,10 +17,10 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
 
   const moduleDetailsList = [getSessionModuleDetails()] as ModuleDetails[];
 
-  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData, rawData.DescriptionData);
+  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
 
   for(const module of rawData.ModuleData) {
-    const listingFile = getListingFile(module, listingFileFilterList);
+    const listingFile = getListingFile(module, rawData.DescriptionData, listingFileFilterList);
     const hasListing = hasListings && listingFile.length > 0;
 
     const moduleDetails: ModuleDetails = {
@@ -82,21 +82,25 @@ const getSessionModuleDetails = (): ModuleDetails => {
  * Gets the listing file. If the module does not have a listing file, tries to get it from the module,
  * which has the listing file assigned to it by fileName.
  * @param {ModuleData} moduleData module data
+ * @param {DescriptionData} descriptionData description data
  * @param {ListingFileFilter[]} listingFileFilterList listing file filter array 
  * @returns {string} listing file name
  */
-export const getListingFile = (moduleData: ModuleData, listingFileFilterList: ListingFileFilter[]): string => {
+export const getListingFile = (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterList: ListingFileFilter[]): string => {
+  const listingDirectoryRaw = descriptionData.Information?.Directory ?? "";
+  const listingDirectory = listingDirectoryRaw ? (listingDirectoryRaw.endsWith('/') ? listingDirectoryRaw : listingDirectoryRaw + '/') : "";
+
   if (!moduleData.ListingFile) {
     const { fileName } = getFileAndProcedureName(moduleData.ModuleName);
-    
+
     const matchedFile = listingFileFilterList.find((item) => item.fileName === fileName);
 
-    if (matchedFile && matchedFile.listingFile) {
-      return matchedFile.listingFile;
+    if (matchedFile?.listingFile) {
+      return listingDirectory + matchedFile.listingFile;
     }
   }
 
-  return moduleData.ListingFile ?? "";
+  return listingDirectory ? listingDirectory + moduleData.ListingFile : moduleData.ListingFile ?? "";
 };
 
 /**
@@ -105,18 +109,15 @@ export const getListingFile = (moduleData: ModuleData, listingFileFilterList: Li
  * @param {DescriptionData[]} descriptionData description data
  * @returns {ListingFileFilter[]} listing file filter array
  */
-export const getListingFileFilterList = (moduleDataList: ModuleData[], descriptionData: DescriptionData): ListingFileFilter[] => {
-  const listingDirectoryRaw = descriptionData.Information?.Directory ?? "";
-  const listingDirectory = listingDirectoryRaw ? (listingDirectoryRaw.endsWith('/') ? listingDirectoryRaw : listingDirectoryRaw + '/') : "";
-  
+export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingFileFilter[] => {
   return moduleDataList
-  .filter((moduleData) => moduleData.ListingFile)
-  .map((moduleData) => { 
-    return { 
-      fileName: getFileAndProcedureName(moduleData.ModuleName).fileName, 
-      listingFile: listingDirectory ? listingDirectory + moduleData.ListingFile : moduleData.ListingFile
-    } as ListingFileFilter;
-  });
+    .filter((moduleData) => moduleData.ListingFile)
+    .map((moduleData) => {
+      return { 
+        fileName: getFileAndProcedureName(moduleData.ModuleName).fileName, 
+        listingFile: moduleData.ListingFile
+      } as ListingFileFilter;
+    });
 };
 
 /**
