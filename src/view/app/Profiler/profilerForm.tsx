@@ -13,6 +13,8 @@ import LoadingOverlay from "../../../../src/components/loadingOverlay/loadingOve
 import { getVSCodeAPI } from "../utils/vscode";
 import FileTypeSettingsContextProvider from "../Components/FileTypeSettingsContext";
 import ProToggleButton from "../Components/Buttons/ProToggleButton";
+import ProfilerRelationshipGraph2D from "../RelationshipGraph2D/profilerRelationshipGraph2D";
+
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
   calledModules: [],
@@ -27,13 +29,14 @@ enum ProfilerTab {
   TreeView = "TreeView",
   FlameGraph = "FlameGraph",
   Compare = "Compare",
+  RelationshipGraph2D = "RelationshipGraph",
 }
 const ProfilerForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ProfilerTab>(
-    ProfilerTab.ModuleDetails
+    ProfilerTab.ModuleDetails,
   );
   const [presentationData, setPresentationData] = useState<PresentationData>(
-    defaultPresentationData
+    defaultPresentationData,
   );
   const [showStartTime, setShowStartTime] = useState<boolean>(false);
   const [comparedData, setComparedData] = useState<ComparedData>(null);
@@ -127,11 +130,23 @@ const ProfilerForm: React.FC = () => {
       </div>
     );
   };
+  const RelationshipGraphTab: React.FC = () => {
+    return (
+      <div>
+        <FileTypeSettingsContextProvider>
+          <ProfilerRelationshipGraph2D
+            presentationData={presentationData}
+            handleNodeSelection={handleNodeSelection}
+          />
+        </FileTypeSettingsContextProvider>
+      </div>
+    );
+  };
 
   let content: JSX.Element | null = null;
   const onTabChange = async (
     event: React.MouseEvent<HTMLElement>,
-    tab: ProfilerTab | null
+    tab: ProfilerTab | null,
   ) => {
     if (!tab) return;
     else if (tab === ProfilerTab.Compare && !comparedData) {
@@ -152,7 +167,7 @@ const ProfilerForm: React.FC = () => {
 
   const handleNodeSelection = (
     moduleName: string,
-    selectedModuleId: number
+    selectedModuleId: number,
   ) => {
     setModuleName(moduleName);
     setSelectedModuleId(selectedModuleId);
@@ -178,6 +193,9 @@ const ProfilerForm: React.FC = () => {
       break;
     case ProfilerTab.Compare:
       content = <Compare />;
+      break;
+    case ProfilerTab.RelationshipGraph2D:
+      content = <RelationshipGraphTab />;
       break;
   }
   return (
@@ -210,6 +228,9 @@ const ProfilerForm: React.FC = () => {
             </ProToggleButton>
             <ProToggleButton value={ProfilerTab.FlameGraph}>
               Flame Graph
+            </ProToggleButton>
+            <ProToggleButton value={ProfilerTab.RelationshipGraph2D}>
+              Call Graph
             </ProToggleButton>
             <ProToggleButton value={ProfilerTab.Compare}>
               Compare
