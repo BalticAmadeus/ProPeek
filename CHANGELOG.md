@@ -1,3 +1,9 @@
+## 1.5.0 (2026-06-12)
+
+### Added
+
+- New Call Graph tab, which visualizes relationship between modules
+
 ## 1.4.3 (2026-02-25)
 
 ### Changed

@@ -25,15 +25,18 @@ There are 3 option how to open view:
   - View Calling/Called module details.
   - View Line Summary.
   - View Code in Monaco Editor.
-- Treeview.
-  - Jump to module details (double click)
-  - Jump to code (CTRL + left click)
-- Flamegraph.
-  - Ability to filter modules by text.
-  - Ability to filter modules by constructor and destructor.
-  - Ability to toggle graph type.
-  - Jump to module details (double click)
-  - Jump to code (CTRL + left click)
+- Tree View.
+  - Jump from node to Module Details (double click) or directly to code (CTRL + left click).
+- Flame Graph.
+  - View module call tree displayed as a flame graph.
+  - Filter modules by specific text or constructors and destructors.
+  - Toggle graph type between Summary (generated from CallTree section) and Detailed (Tracing section).
+  - Jump from node to Module Details (double click) or directly to code (CTRL + left click).
+- Call Graph.
+  - View relationship between modules visualized in a call graph.
+  - Switch graph node display between methods, classes or packages.
+  - Filter the graph by setting display threshold.
+  - Jump from node to Module Details (double click) or directly to code (CTRL + left click).
 - Compare tab for multiple profilers.
   - View differences between each module.
   - Switch between profilers.
