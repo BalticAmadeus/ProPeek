@@ -11,6 +11,13 @@ interface Message {
   moduleName: string;
 }
 
+export interface BannerMessageData {
+  dismissKey: string;
+  message: string;
+  buttonText: string;
+  actionUrl: string;
+}
+
 export class ProfilerViewer {
   private isViewingAlternateProfiler = false;
   private currentViewedProfiler: "main" | "alternate" = "main";
@@ -170,10 +177,27 @@ export class ProfilerViewer {
         case "THEME":
           this.sendThemeToWebview();
           break;
+        case "DISMISS_BANNER":
+          if (message.dismissKey) {
+            this.context.globalState.update(message.dismissKey, true);
+          }
+          break;
+        case "OPEN_BANNER_URL":
+          if (message.url) {
+            vscode.env.openExternal(vscode.Uri.parse(message.url));
+          }
+          break;
         default:
       }
     });
     vscode.window.onDidChangeActiveColorTheme(() => this.sendThemeToWebview());
+  }
+
+  public showBannerMessage(data: BannerMessageData): void {
+    this.webview.panel?.webview.postMessage({
+      type: "showBannerMessage",
+      ...data,
+    });
   }
 
   private sendThemeToWebview() {
@@ -297,11 +321,11 @@ export class ProfilerViewer {
     if (this.proPath2) {
       newTitle = this.isViewingAlternateProfiler
         ? `${path.basename(this.proPath)} \u21C4 ${path.basename(
-            this.proPath2
-          )}`
+          this.proPath2
+        )}`
         : `${path.basename(this.proPath2)} \u21C4 ${path.basename(
-            this.proPath
-          )}`;
+          this.proPath
+        )}`;
     } else {
       newTitle = this.proPath;
     }

@@ -14,6 +14,7 @@ import { getVSCodeAPI } from "../utils/vscode";
 import FileTypeSettingsContextProvider from "../Components/FileTypeSettingsContext";
 import ProToggleButton from "../Components/Buttons/ProToggleButton";
 import ProfilerRelationshipGraph2D from "../RelationshipGraph2D/profilerRelationshipGraph2D";
+import BannerMessage, { BannerMessageProps } from "../Components/BannerMessage";
 
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
@@ -46,6 +47,7 @@ const ProfilerForm: React.FC = () => {
   const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
   const [fileName, setFileName] = useState<string>("");
   const [fileName2, setFileName2] = useState<string>("");
+  const [bannerMessage, setBanner] = useState<BannerMessageProps | null>(null);
   const vscode = getVSCodeAPI();
 
   React.useLayoutEffect(() => {
@@ -63,8 +65,25 @@ const ProfilerForm: React.FC = () => {
       if (event.data.type === "setLoading") {
         setIsLoadingCompare(event.data.isLoading);
       }
+      if (event.data.type === "showBannerMessage") {
+        setBanner({
+          message: event.data.message,
+          buttonText: event.data.buttonText,
+          actionUrl: event.data.actionUrl,
+          dismissKey: event.data.dismissKey,
+          onDismiss: handleBannerDismiss,
+        });
+      }
     });
   });
+
+  const handleBannerDismiss = (dismissKey: string) => {
+    setBanner(null);
+    vscode.postMessage({
+      type: "DISMISS_BANNER",
+      dismissKey,
+    });
+  };
 
   React.useEffect(() => {
     if (presentationData !== defaultPresentationData) {
@@ -202,6 +221,7 @@ const ProfilerForm: React.FC = () => {
     <React.Fragment>
       {(isLoading || isLoadingCompare) && <LoadingOverlay />}
       <div>
+        {bannerMessage && <BannerMessage {...bannerMessage} />}
         <div
           style={{
             position: "sticky",
