@@ -40,11 +40,11 @@ const ProfilerForm: React.FC = () => {
     defaultPresentationData,
   );
   const [showStartTime, setShowStartTime] = useState<boolean>(false);
-  const [comparedData, setComparedData] = useState<ComparedData>(null);
+  const [comparedData, setComparedData] = useState<ComparedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCompare, setIsLoadingCompare] = useState<boolean>(false);
   const [moduleName, setModuleName] = useState<string>("");
-  const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [fileName2, setFileName2] = useState<string>("");
   const [bannerMessage, setBanner] = useState<BannerMessageProps | null>(null);
@@ -141,11 +141,13 @@ const ProfilerForm: React.FC = () => {
   const Compare: React.FC = () => {
     return (
       <div>
-        <CompareModuleDetails
-          comparedData={comparedData}
-          fileName={fileName}
-          fileName2={fileName2}
-        />
+        {comparedData && (
+          <CompareModuleDetails
+            comparedData={comparedData}
+            fileName={fileName}
+            fileName2={fileName2}
+          />
+        )}
       </div>
     );
   };
@@ -167,7 +169,7 @@ const ProfilerForm: React.FC = () => {
     event: React.MouseEvent<HTMLElement>,
     tab: ProfilerTab | null,
   ) => {
-    if (!tab) return;
+    if (!tab) {return;}
     else if (tab === ProfilerTab.Compare && !comparedData) {
       const userWantsToCompare: any = await vscode.postMessage({
         type: "requestCompareFiles",

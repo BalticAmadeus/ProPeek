@@ -1,41 +1,54 @@
-import { Box, ToggleButtonGroup, Tooltip } from "@mui/material";
+import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import * as React from "react";
-import ProToggleButton from "./Buttons/ProToggleButton"; 
 import { useFileTypeSettingsContext } from "./FileTypeSettingsContext";
 import { OpenFileTypeEnum } from "../../../common/openFile";
+import ToolTip from "./ToolTip";
 
-const OpenFileTypeSetting: React.FC = () => {
+interface OpenFileTypeSettingProps {
+  hasXREFs: boolean;
+  hasListings: boolean;
+  infoMessage: string;
+}
+
+const OpenFileTypeSetting: React.FC<OpenFileTypeSettingProps> = ({
+  hasXREFs,
+  hasListings,
+  infoMessage,
+}) => {
   const settingsContext = useFileTypeSettingsContext();
 
   const onChange = (
-    event: React.MouseEvent<HTMLElement>,
-    fileType: OpenFileTypeEnum | null
+    event: React.ChangeEvent<HTMLInputElement>,
+    value: string
   ) => {
-    if (!fileType) {
-      return;
-    }
-
-    settingsContext.setOpenFileType(fileType);
+    settingsContext.setOpenFileType(value as OpenFileTypeEnum);
   };
 
   return (
-    <Box sx={{ marginBottom: "4px" }}>
-      <Tooltip title="Sets the file type to open on module double click">
-        <ToggleButtonGroup
-          size="small"
-          value={settingsContext.openFileType}
-          onChange={onChange}
-          exclusive
-        >
-          <ProToggleButton variant="secondary" value={OpenFileTypeEnum.XREF}>
-            XREF
-          </ProToggleButton>
-          <ProToggleButton variant="secondary" value={OpenFileTypeEnum.LISTING}>
-            LISTING
-          </ProToggleButton>
-        </ToggleButtonGroup>
-      </Tooltip>
-    </Box>
+    <FormControl component={"div"}>
+      <Box>
+        <FormLabel id="code-display">Code display</FormLabel>
+        <ToolTip message={infoMessage} show={true} iconSize="16px" />
+      </Box>
+      <RadioGroup
+        row
+        value={settingsContext.openFileType}
+        onChange={onChange}
+      >
+        <FormControlLabel
+          value={OpenFileTypeEnum.XREF}
+          control={<Radio />}
+          label="Source"
+          disabled={!hasXREFs}
+        />
+        <FormControlLabel
+          value={OpenFileTypeEnum.LISTING}
+          control={<Radio />}
+          label="Listing"
+          disabled={!hasListings}
+        />
+      </RadioGroup>
+    </FormControl>
   );
 };
 

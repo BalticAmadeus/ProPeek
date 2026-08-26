@@ -4,6 +4,15 @@ import * as monaco from "monaco-editor";
 import { getVSCodeAPI } from "../../utils/vscode";
 import { conf, language } from "./abl.config";
 
+const DEFAULT_EDITOR_TEXT = [
+  "// Select a module to view its code here.",
+  "//",
+  "// To enable code viewer:",
+  "// - Listing option: generate listing files when creating the profiler.",
+  "// - Source option: open the profiler from your project directory",
+  "//   (containing openedge-project.json) and generate xref files during compilation.",
+].join("\n");
+
 const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   const [editorInstance, setEditorInstance] =
     useState<monaco.editor.IStandaloneCodeEditor>();
@@ -102,10 +111,14 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   }, [theme, syntaxHighlightRules]);
 
   useEffect(() => {
-    if (editorInstance && lineNumber) {
+    if (!editorInstance || !lineNumber) {
+      return undefined;
+    }
+    const handle = window.setTimeout(() => {
       editorInstance.revealLineInCenterIfOutsideViewport(lineNumber);
       editorInstance.setPosition({ lineNumber, column: 1 });
-    }
+    }, 0);
+    return () => window.clearTimeout(handle);
   }, [lineNumber, editorInstance, selectedModuleCode]);
 
   return (
@@ -114,10 +127,7 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
       width="65%"
       language="abl"
       theme="myCustomTheme"
-      value={
-        selectedModuleCode ||
-        `//Could not find code files or listing files. \n//Check if you created openedge-project.json file in project directory.`
-      }
+      value={selectedModuleCode || DEFAULT_EDITOR_TEXT}
       options={{
         readOnly: true,
         scrollBeyondLastLine: false,

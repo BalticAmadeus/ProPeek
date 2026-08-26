@@ -33,6 +33,11 @@ body.vscode-dark .rdg-row-even {
     --rdg-background-color: rgba(0, 0, 0, 0.4);
 }
 
+html,
+body {
+    overflow-x: hidden;
+}
+
 .tab.active {
     background-color: var(--vscode-list-activeSelectionBackground);
 }
@@ -68,7 +73,7 @@ body.vscode-dark .rdg-row-even {
 
 .details-columns {
     position: relative;
-    width: calc(100% - 30px);
+    width: 100%;
     padding-bottom: 40px;
 }
 
@@ -80,13 +85,13 @@ body.vscode-dark .rdg-row-even {
 
 .called-columns {
     position: relative;
-    width: calc(60% - 30px);
+    width: 60%;
     display: inline-block;
 }
 
 .line-columns {
     position: relative;
-    width: calc(100% - 30px);
+    width: 100%;
     clear: both;
 }
 
