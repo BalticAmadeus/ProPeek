@@ -8,9 +8,9 @@ This open source project is in active development. Our goal is to simplify the a
 
 ## Opening instructions
 
-There are 3 option how to open view:
+There are 3 options how to open view:
 
-- In file explorer right click profiler file and select "Show Profiler"
+- In file explorer right click profiler file (.prof or .out file extension) and select "Show Profiler"
 - In open profiler file right click and select "Show Profiler"
 - In open profiler file click this icon ![image](https://github.com/BalticAmadeus/ProPeek/assets/78811378/85a47e21-5e96-4c15-b5e9-6f2c59eb3afe) on the top right corner
 
@@ -18,13 +18,13 @@ There are 3 option how to open view:
 
 ## Features
 
-- Load and view _.prof_ and _.out_ profiler file
-  - View Module details.
-    - Jump to code (double click module name or line number).
-    - Jump to listing file (files must be under ~/listing/ directory).
+- Module Details.
+  - Lists all modules (internal procedures, methods, functions and triggers) with call counts, total time and average time per call.
+    - Double click a module name to open its source code or listing file; modules that can be opened are underlined.
+    - Source/Listing toggle controls how code is displayed (see Code View section below).
   - View Calling/Called module details.
-  - View Line Summary.
-  - View Code in Monaco Editor.
+  - View Line Summary per module. Double click a line number to open the listing file at that exact line.
+  - View selected module's code in the built-in code editor with ABL syntax highlighting.
 - Tree View.
   - Jump from node to Module Details (double click) or directly to code (CTRL + left click).
 - Flame Graph.
@@ -47,9 +47,24 @@ There are 3 option how to open view:
 
 ![proPeek Monaco](resources/images/MonacoEditor.png)
 
-To be able to view Monaco Editor or use jump to code feature you have to either
-- open profiler from your project directory (with openedge-project.json file in root of your project) or
-- generate profiler with listing files.
+The **Source/Listing** toggle controls how code is opened and displayed:
+
+### Listing display
+
+Shows the compiled code captured in **listing files**.
+
+- Requires the profiler to be generated together with listing files. Listing files must be located either in directory specified by profiler:directory attribute or under the `~/listing/` directory of the current workspace.
+- Line Summary line numbers correspond exactly to listing file lines, so double clicking a line number opens the listing at that position.
+
+### Source display
+
+Shows the real ABL source files of your project, positioned exactly on the selected procedure using compiler-generated cross-reference (**xref**) data.
+
+- Requires both of the following:
+  - the _.prof_ file to be opened from your project directory, which must contain an `openedge-project.json` file defining the build path (PROPATH) where your sources live, and
+  - xref files generated during compilation (found under `.builder/.pct*/...` or `xref/...` inside your project directory).
+
+If neither option is available for a given module, it cannot be opened and no code is displayed for it.
 
 ### Example `openedge-project.json`:
 

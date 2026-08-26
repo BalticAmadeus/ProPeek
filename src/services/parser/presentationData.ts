@@ -1,27 +1,26 @@
 import { ProfilerRawData } from "./profilerRawData";
-import { calculateModuleDetails, getHasListingFiles } from "./presentation/moduleDetails"
+import { calculateModuleDetails, getHasListingFiles } from "./presentation/moduleDetails";
+import { getHasXRefFiles } from "../helper/xRefHelper";
 import { calculateCalledModules } from "./presentation/calledModules";
 import { calculateLineSummary } from "./presentation/lineSummary";
 import { calculateCallTree, calculateCallTreeByTracingData } from "./presentation/callTree";
 import { CallTree, ModuleDetails, PresentationData } from "../../common/PresentationData";
-import { Constants } from "../../common/Constants";
-import * as vscode from "vscode";
 
 /**
  * Transform ProfilerRawData object into PresentationData object
  */
 export async function transformData(rawData: ProfilerRawData, useTracingData: boolean, profilerTitle: string): Promise<PresentationData> {
 
-    const hasXREFs = await hasFiles(`**${Constants.defaultXREFPath}*.xref`);
+    const hasXREFs = await getHasXRefFiles(rawData, profilerTitle);
     const hasListings = getHasListingFiles(rawData);
 
     const totalSessionTime: number = getTotalSessionTime(rawData, useTracingData);
-    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle, hasListings);
+    const moduleDetails: ModuleDetails[] = await calculateModuleDetails(rawData, totalSessionTime, profilerTitle, hasListings, hasXREFs);
 
     const presentationData: PresentationData = {
         moduleDetails: moduleDetails,
         calledModules: calculateCalledModules(rawData, moduleDetails),
-        lineSummary: await calculateLineSummary(rawData, profilerTitle, hasListings),
+        lineSummary: await calculateLineSummary(rawData, profilerTitle, hasListings, hasXREFs, moduleDetails),
         callTree: getCallTree(rawData, moduleDetails, totalSessionTime, useTracingData),
         hasTracingData: rawData.hasTracingData,
         hasXREFs: hasXREFs,
@@ -76,14 +75,4 @@ export function getCallTree(rawData: ProfilerRawData, moduleDetails: ModuleDetai
     } else {
         return calculateCallTreeByTracingData(rawData, moduleDetails);
     }
-}
-
-/**
- * Returns true if finds atleast one file in the workspace following a pattern
- * @param {vscode.GlobPattern} pattern vscode.GlobPattern
- * @returns true if found, else false
- */
-const hasFiles = async (pattern: vscode.GlobPattern): Promise<boolean> => {
-    const files = await vscode.workspace.findFiles(pattern, null, 1);
-    return files.length > 0 ? true : false;
 }

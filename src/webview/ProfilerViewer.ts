@@ -80,19 +80,25 @@ export class ProfilerViewer {
           const receivedModuleName = message.filePath;
           const receivedListingFile = message.listingFile;
           const receivedFileType = message.openFileType;
-          let fileContent;
+          let fileContentResult;
           try {
-            fileContent = await FileHandler.getFileContent(
+            fileContentResult = await FileHandler.getFileContent(
               receivedModuleName,
               receivedListingFile,
-              receivedFileType
+              receivedFileType,
+              this.profilerService?.getDescriptionData(),
+              message.xrefFile,
+              message.lineNumber,
+              message.occurrenceIndex
             );
           } catch (error) {
-            fileContent = null;
+            fileContentResult = null;
           }
           this.webview.panel?.webview.postMessage({
             type: "fileContent",
-            content: fileContent,
+            content: fileContentResult ? fileContentResult.content : null,
+            lineNumber: fileContentResult ? fileContentResult.lineNumber : undefined,
+            token: message.token,
           });
 
           break;
@@ -161,7 +167,9 @@ export class ProfilerViewer {
             await FileHandler.open(
               message.name,
               message.lineNumber,
-              this.profilerService
+              message.xrefFile,
+              this.profilerService.getDescriptionData(),
+              message.occurrenceIndex
             );
           }
           break;
