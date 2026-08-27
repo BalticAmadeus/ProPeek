@@ -1,12 +1,33 @@
+.flame-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.flame-graph-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .flex-row-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    flex-shrink: 0;
 }
 
 .flame-graph-container {
     padding-left: 7px;
+    flex: 1;
+    min-height: 200px;
+    position: relative;
+}
+
+.flame-graph-container * {
+    overflow-x: hidden !important;
 }
 
 .graph-type-selects {

@@ -223,7 +223,14 @@ const ProfilerForm: React.FC = () => {
   return (
     <React.Fragment>
       {(isLoading || isLoadingCompare) && <LoadingOverlay />}
-      <div>
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
         {bannerMessage && <BannerMessage {...bannerMessage} />}
         <div
           style={{
@@ -234,6 +241,7 @@ const ProfilerForm: React.FC = () => {
             width: "100%",
             backgroundColor: "var(--vscode-editor-background)",
             boxShadow: "0 1px 0 var(--vscode-editorWidget-border)",
+            flexShrink: 0,
           }}
         >
           <ToggleButtonGroup
@@ -260,7 +268,17 @@ const ProfilerForm: React.FC = () => {
             </ProToggleButton>
           </ToggleButtonGroup>
         </div>
-        <div style={{ paddingTop: 10 }}>{content}</div>
+        <div
+          style={{
+            paddingTop: 10,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          {content}
+        </div>
       </div>
     </React.Fragment>
   );

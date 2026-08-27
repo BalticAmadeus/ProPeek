@@ -65,8 +65,9 @@ function ProfilerFlameGraph({
   const [selectedSearchType, setSelectedSearchType] = React.useState<SearchTypes>(null);
 
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
-  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
-  const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
+  const chartContainerRef = React.useRef<HTMLDivElement>(null);
+  const [graphHeight, setGraphHeight] = React.useState(400);
+  const [graphWidth, setGraphWidth] = React.useState(0);
   const [nestedStructure, setNestedStructure] =
     React.useState<FlameGraphNodeRoot>(
       convertToNestedStructure(callTree, Mode.Length, searchPhrase)
@@ -79,15 +80,22 @@ function ProfilerFlameGraph({
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
 
-  const windowResize = () => {
-    setWindowWidth(window.innerWidth);
-    setWindowHeight(window.innerHeight);
-  };
   React.useEffect(() => {
-    window.addEventListener("resize", windowResize);
-
+    const el = chartContainerRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      setGraphHeight(window.innerHeight - el.getBoundingClientRect().top);
+      setGraphWidth(el.clientWidth);
+    };
+    update();
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    observer?.observe(document.body);
+    observer?.observe(el);
+    window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener("resize", windowResize);
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
     };
   }, []);
 
@@ -222,7 +230,7 @@ function ProfilerFlameGraph({
   };
 
   return (
-    <React.Fragment>
+    <div className="flame-root">
       {isLoading && <LoadingOverlay></LoadingOverlay>}
       <div className="flex-row-container">
         <FormControl>
@@ -313,14 +321,18 @@ function ProfilerFlameGraph({
         </Box>
       )}
 
-      <div>
+      <div className="flame-graph-section">
         <div className="grid-name">Flame Graph</div>
         {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
-        <Box className={"flame-graph-container"}>
+        <Box
+          className={"flame-graph-container"}
+          ref={chartContainerRef}
+          sx={{ flex: 1, minHeight: 200, overflow: "hidden" }}
+        >
           <FlameGraph
             data={nestedStructure}
-            height={windowHeight}
-            width={windowWidth - 63}
+            height={graphHeight}
+            width={graphWidth}
             onDoubleClick={(node) => {
               handleNodeSelection(
                 node.name,
@@ -337,7 +349,7 @@ function ProfilerFlameGraph({
           />
         </Box>
       </div>
-    </React.Fragment>
+    </div>
   );
 }
 export default ProfilerFlameGraph;

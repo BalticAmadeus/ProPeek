@@ -172,6 +172,25 @@ export const findFileInProPath = async (
 const trimSlashesLocal = (value: string): string => value.replace(/^\/+|\/+$/g, "");
 
 /**
+ * Searches for a listing file under the default listing directories
+ * @param listingFileName listing file name from profiler data
+ * @returns absolute path or empty string when not found
+ */
+export const findDefaultListingFile = async (listingFileName: string): Promise<string> => {
+  if (!listingFileName) {
+    return "";
+  }
+
+  const posixName = toPosixFileName(listingFileName);
+  const baseName = posixName.substring(posixName.lastIndexOf("/") + 1);
+  const found = await vscode.workspace.findFiles(getListingFilePath(baseName), undefined, 1);
+
+  const result = found.length > 0 ? found[0].fsPath : "";
+
+  return result;
+};
+
+/**
  * Returns true or false if file exists
  * @param fileName File name to search
  * @param profilerTitle Profiler file name

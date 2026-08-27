@@ -1,8 +1,9 @@
+import { existsSync } from "fs";
 import { ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
 import { DescriptionData } from "../raw/descriptionData";
 import { ModuleData } from "../raw/moduleData";
-import { checkModuleFileExists, getFileAndProcedureName } from "./common";
+import { checkModuleFileExists, findDefaultListingFile, getFileAndProcedureName } from "./common";
 import { getXRefFile } from "../../helper/xRefHelper";
 
 interface ListingFileFilter {
@@ -29,7 +30,7 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
   }
 
   for (const module of rawData.ModuleData) {
-    const listingFile = hasListings ? getListingFile(module, rawData.DescriptionData, listingFileFilterList) : "";
+    const listingFile = hasListings ? await getListingFile(module, rawData.DescriptionData, listingFileFilterList) : "";
     const xrefFile = hasXREFs ? await getXRefFile(module, rawData.DescriptionData, profilerTitle) : "";
 
     const moduleDetails: ModuleDetails = {
@@ -84,21 +85,26 @@ const getSessionModuleDetails = (): ModuleDetails => {
  * @param {ListingFileFilter[]} listingFileFilterList listing file filter array
  * @returns {string} listing file name
  */
-export const getListingFile = (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterList: ListingFileFilter[]): string => {
+export const getListingFile = async (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterList: ListingFileFilter[]): Promise<string> => {
   const listingDirectoryRaw = descriptionData.Information?.Directory ?? "";
   const listingDirectory = listingDirectoryRaw ? (listingDirectoryRaw.endsWith('/') ? listingDirectoryRaw : listingDirectoryRaw + '/') : "";
 
-  if (!moduleData.ListingFile) {
+  let listingFile = moduleData.ListingFile;
+  if (!listingFile) {
     const { fileName } = getFileAndProcedureName(moduleData.ModuleName);
-
-    const matchedFile = listingFileFilterList.find((item) => item.fileName === fileName);
-
-    if (matchedFile?.listingFile) {
-      return listingDirectory + matchedFile.listingFile;
-    }
+    listingFile = listingFileFilterList.find((item) => item.fileName === fileName)?.listingFile ?? "";
   }
 
-  return listingDirectory ? listingDirectory + moduleData.ListingFile : moduleData.ListingFile ?? "";
+  if (!listingFile) {
+    return "";
+  }
+
+  const listingPath = listingDirectory + listingFile;
+  if (existsSync(listingPath)) {
+    return listingPath;
+  }
+  // fall back to the default listing directory inside the workspace
+  return await findDefaultListingFile(listingFile);
 };
 
 /**

@@ -7,9 +7,7 @@
 .md-root {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  min-height: 820px;
-  overflow-y: auto;
+  height: 100%;
 }
 
 .md-root>.line-columns {
