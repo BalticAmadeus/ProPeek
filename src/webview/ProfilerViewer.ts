@@ -13,6 +13,7 @@ interface Message {
 
 export interface BannerMessageData {
   dismissKey: string;
+  title?: string;
   message: string;
   buttonText: string;
   actionUrl: string;

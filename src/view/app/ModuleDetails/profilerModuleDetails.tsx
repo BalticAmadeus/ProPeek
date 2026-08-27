@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   ModuleDetails,
   CalledModules,
@@ -534,8 +534,25 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     };
   }, []);
 
+  const mdRootRef = useRef<HTMLDivElement>(null);
+  const [mdRootHeight, setMdRootHeight] = useState<number>();
+  useEffect(() => {
+    const update = () => {
+      const el = mdRootRef.current;
+      if (el) setMdRootHeight(window.innerHeight - el.getBoundingClientRect().top);
+    };
+    update();
+    const observer = new ResizeObserver(update); // re-measure when banner/header above changes
+    observer.observe(document.body);
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   return (
-    <div>
+      <div className="md-root" ref={mdRootRef} style={mdRootHeight ? { height: mdRootHeight } : undefined}>
       <div className="details-columns">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div className="grid-name">Module Details</div>
@@ -620,9 +637,9 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
         </div>
       </div>
 
-      <div className="line-columns" style={{ marginBottom: "50px" }}>
+      <div className="line-columns">
         <div className="grid-name">Line Summary</div>
-        <div style={{ display: "flex", flexDirection: "row", width: "100%" }}>
+        <div className="bottom-row">
           <DataGrid
             columns={interactiveLineColumns}
             rows={sortedLineRows}
@@ -630,7 +647,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
               sortable: true,
               resizable: true,
             }}
-            style={{ textAlign: "end", maxHeight: "300px", width: "40%" }}
+            style={{ textAlign: "end", height: "100%", width: "40%" }}
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}

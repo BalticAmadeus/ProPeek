@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { getVSCodeAPI } from "../../utils/vscode";
@@ -121,19 +121,34 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
     return () => window.clearTimeout(handle);
   }, [lineNumber, editorInstance, selectedModuleCode]);
 
+  const codeRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState<number>();
+  useEffect(() => {
+    const el = codeRef.current;
+    if (!el) {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => setEditorHeight(el.clientHeight));
+    observer.observe(el);
+    setEditorHeight(el.clientHeight);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <MonacoEditor
-      height="300px"
-      width="65%"
-      language="abl"
-      theme="myCustomTheme"
-      value={selectedModuleCode || DEFAULT_EDITOR_TEXT}
-      options={{
-        readOnly: true,
-        scrollBeyondLastLine: false,
-      }}
-      onMount={(editor) => setEditorInstance(editor)}
-    />
+    <div className="md-code" ref={codeRef}>
+      <MonacoEditor
+        height={editorHeight ?? "100%"}
+        language="abl"
+        theme="myCustomTheme"
+        value={selectedModuleCode || DEFAULT_EDITOR_TEXT}
+        options={{
+          readOnly: true,
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+        }}
+        onMount={(editor) => setEditorInstance(editor)}
+      />
+    </div>
   );
 };
 

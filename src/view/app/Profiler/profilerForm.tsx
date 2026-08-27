@@ -67,6 +67,7 @@ const ProfilerForm: React.FC = () => {
       }
       if (event.data.type === "showBannerMessage") {
         setBanner({
+          title: event.data.title,
           message: event.data.message,
           buttonText: event.data.buttonText,
           actionUrl: event.data.actionUrl,

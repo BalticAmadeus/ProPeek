@@ -99,6 +99,9 @@ body {
     font-size: 18px;
     padding-bottom: 5px;
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .filter-cell {

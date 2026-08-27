@@ -80,7 +80,9 @@ export function activate(context: vscode.ExtensionContext) {
     ) {
       profilerViewer.showBannerMessage({
         dismissKey: Constants.webinarBannerDismissedKey,
-        message: "FREE WEBINAR | ONLINE — Discover how ProPeek helps you pinpoint OpenEdge performance bottlenecks in a live session on 10 September 2026, 14:00–15:00 EEST; register now to reserve your spot and receive the recording even if you can't attend live.",
+        title: "LAST CHANCE to register for FREE Webinar",
+        message:
+          "Discover how ProPeek helps OpenEdge developers visualize profiler results, compare performance changes, and jump directly to problematic code. Register today and join 10 September 2026 | 14:00 EEST",
         buttonText: "Register Now",
         actionUrl: Constants.webinarInfoURL,
       });

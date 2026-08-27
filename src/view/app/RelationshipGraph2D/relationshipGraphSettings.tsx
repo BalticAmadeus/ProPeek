@@ -66,8 +66,8 @@ export default function FloatingSettingsPanel({
   return (
     <Box
       sx={{
-        position: "fixed",
-        top: 80,
+        position: "absolute",
+        top: 8,
         right: 16,
         zIndex: 1200,
       }}

@@ -4,6 +4,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { getVSCodeAPI } from "../utils/vscode";
 
 export interface BannerMessageProps {
+  title?: string;
   message: string;
   buttonText: string;
   actionUrl: string;
@@ -12,6 +13,7 @@ export interface BannerMessageProps {
 }
 
 const BannerMessage: React.FC<BannerMessageProps> = ({
+  title,
   message,
   buttonText,
   actionUrl,
@@ -39,18 +41,35 @@ const BannerMessage: React.FC<BannerMessageProps> = ({
         boxSizing: "border-box",
       }}
     >
-      <Typography
-        variant="body2"
+      <Box
         sx={{
           flex: 1,
-          color: "var(--vscode-editor-foreground)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
         }}
       >
-        {message}
-      </Typography>
+        {title && (
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: "bold",
+              color: "var(--vscode-editor-foreground)",
+            }}
+          >
+            {title}
+          </Typography>
+        )}
+        <Typography
+          variant="body2"
+          sx={{
+            color: "var(--vscode-editor-foreground)",
+          }}
+        >
+          {message}
+        </Typography>
+      </Box>
       <Button
         size="small"
         variant="contained"
