@@ -1,16 +1,17 @@
-import { readFile, readFileLinesSync } from "./helper/fileReader";
+import { readFileLinesSync } from "./helper/fileReader";
 import { parseProfilerData } from "./parser/profilerRawData";
 import { transformData } from "./parser/presentationData";
 import { ComparedData, PresentationData } from "../common/PresentationData";
-import { getIncludeFiles } from "./helper/xRefParser";
 import { ParserLogger } from "./parser/ParserLogger";
 import { compareData } from "./parser/compareData";
 import { Telemetry } from "../view/app/utils/Telemetry";
 import { statSync } from "fs";
+import { DescriptionData } from "./parser/raw/descriptionData";
 
 export class ProfilerService {
   private profilerTitle: string = "";
   private comparedData: ComparedData | null = null;
+  private descriptionData?: DescriptionData;
 
   constructor(title: string) {
     this.profilerTitle = title;
@@ -29,6 +30,7 @@ export class ProfilerService {
       const lineGenerator = readFileLinesSync(fileName);
 
       const rawData = parseProfilerData(lineGenerator, useTracingData);
+      this.descriptionData = rawData.DescriptionData;
 
       const transformedData = await transformData(
         rawData,
@@ -73,10 +75,8 @@ export class ProfilerService {
     return ParserLogger.getErrors();
   }
 
-  public getIncludeFilesFromXref(fileName: string) {
-    const readData = readFile(fileName);
-    const includeFiles = getIncludeFiles(readData);
 
-    return includeFiles;
+  public getDescriptionData(): DescriptionData | undefined {
+    return this.descriptionData;
   }
 }

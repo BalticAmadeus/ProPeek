@@ -5,7 +5,7 @@ import { FlameGraph } from "react-flame-graph";
 import "./profilerFlameGraph.css";
 import LoadingOverlay from "../../../components/loadingOverlay/loadingOverlay";
 import TimeRibbon from "./TimeRibbon";
-import { Box, TextField, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography, useTheme, InputAdornment } from "@mui/material";
+import { Box, TextField, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import FileTypeSettings from "../Components/FileTypeSettings";
@@ -65,8 +65,9 @@ function ProfilerFlameGraph({
   const [selectedSearchType, setSelectedSearchType] = React.useState<SearchTypes>(null);
 
   const [callTree, setCallTree] = React.useState(presentationData.callTree);
-  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
-  const [windowHeight, setWindowHeight] = React.useState(window.innerHeight);
+  const chartContainerRef = React.useRef<HTMLDivElement>(null);
+  const [graphHeight, setGraphHeight] = React.useState(400);
+  const [graphWidth, setGraphWidth] = React.useState(0);
   const [nestedStructure, setNestedStructure] =
     React.useState<FlameGraphNodeRoot>(
       convertToNestedStructure(callTree, Mode.Length, searchPhrase)
@@ -78,17 +79,23 @@ function ProfilerFlameGraph({
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
   const settingsContext = useFileTypeSettingsContext();
-  const theme = useTheme();
 
-  const windowResize = () => {
-    setWindowWidth(window.innerWidth);
-    setWindowHeight(window.innerHeight);
-  };
   React.useEffect(() => {
-    window.addEventListener("resize", windowResize);
-
+    const el = chartContainerRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      setGraphHeight(window.innerHeight - el.getBoundingClientRect().top);
+      setGraphWidth(el.clientWidth);
+    };
+    update();
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    observer?.observe(document.body);
+    observer?.observe(el);
+    window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener("resize", windowResize);
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
     };
   }, []);
 
@@ -196,12 +203,13 @@ function ProfilerFlameGraph({
       (moduleRow) => moduleRow.moduleID === node.moduleID
     );
 
-    if (!foundModule || !foundModule?.hasLink) return;
+    if (!foundModule || !foundModule?.hasLink) {return;}
 
     vscode.postMessage({
       type: settingsContext.openFileType,
       name: foundModule.moduleName,
       listingFile: foundModule?.listingFile,
+      xrefFile: foundModule?.xrefFile,
       lineNumber: foundModule.startLineNum,
     });
   };
@@ -222,7 +230,7 @@ function ProfilerFlameGraph({
   };
 
   return (
-    <React.Fragment>
+    <div className="flame-root">
       {isLoading && <LoadingOverlay></LoadingOverlay>}
       <div className="flex-row-container">
         <FormControl>
@@ -247,29 +255,36 @@ function ProfilerFlameGraph({
               ))}
           </RadioGroup>
         </FormControl>
-        <FormControl component={"div"} className="graph-type-selects">
-          <Box>
-            <FormLabel id="graph-type">Graph Type</FormLabel>
-            <ToolTip message={handleTooltipText()} style={{color: theme.palette.warning.main}} show={!hasTracingData || presentationData.isTracingLimitExceeded} iconSize="12px" />
-          </Box>
-          <RadioGroup
-            row
-            value={showStartTime ? GraphType.Detailed : GraphType.Summary}
-            onChange={handleGraphTypeChange}
-          >
-            <FormControlLabel
-              value={GraphType.Summary}
-              control={<Radio />}
-              label={GraphType.Summary}
-            />
-            <FormControlLabel
-              value={GraphType.Detailed}
-              control={<Radio />}
-              label={GraphType.Detailed}
-              disabled={!hasTracingData || presentationData.isTracingLimitExceeded}
-            />
-          </RadioGroup>
-        </FormControl>
+        <div style={{ display: "flex", alignItems: "center", gap: "1cm" }}>
+          <FormControl component={"div"} className="graph-type-selects">
+            <Box>
+              <FormLabel id="graph-type">Graph Type</FormLabel>
+              <ToolTip message={handleTooltipText()} show={!hasTracingData || !!presentationData.isTracingLimitExceeded} iconSize="16px" />
+            </Box>
+            <RadioGroup
+              row
+              value={showStartTime ? GraphType.Detailed : GraphType.Summary}
+              onChange={handleGraphTypeChange}
+            >
+              <FormControlLabel
+                value={GraphType.Summary}
+                control={<Radio />}
+                label={GraphType.Summary}
+              />
+              <FormControlLabel
+                value={GraphType.Detailed}
+                control={<Radio />}
+                label={GraphType.Detailed}
+                disabled={!hasTracingData || presentationData.isTracingLimitExceeded}
+              />
+            </RadioGroup>
+          </FormControl>
+          <FileTypeSettings
+            hasXREFs={presentationData.hasXREFs}
+            hasListings={presentationData.hasListings}
+            infoMessage="This toggle controls how source code is displayed when opening a module. CTRL + Click on module name to open source file."
+          />
+        </div>
       </div>
 
       {selectedSearchType === SearchTypes.Search && (
@@ -306,19 +321,18 @@ function ProfilerFlameGraph({
         </Box>
       )}
 
-      <div>
+      <div className="flame-graph-section">
         <div className="grid-name">Flame Graph</div>
         {timeRibbonEndValue > 0 && <TimeRibbon endValue={timeRibbonEndValue} />}
-        <Box className={"flame-graph-container"}>
-          <FileTypeSettings
-            showOpenFileType={
-              presentationData.hasXREFs && presentationData.hasListings
-            }
-          />
+        <Box
+          className={"flame-graph-container"}
+          ref={chartContainerRef}
+          sx={{ flex: 1, minHeight: 200, overflow: "hidden" }}
+        >
           <FlameGraph
             data={nestedStructure}
-            height={windowHeight}
-            width={windowWidth - 63}
+            height={graphHeight}
+            width={graphWidth}
             onDoubleClick={(node) => {
               handleNodeSelection(
                 node.name,
@@ -335,7 +349,7 @@ function ProfilerFlameGraph({
           />
         </Box>
       </div>
-    </React.Fragment>
+    </div>
   );
 }
 export default ProfilerFlameGraph;

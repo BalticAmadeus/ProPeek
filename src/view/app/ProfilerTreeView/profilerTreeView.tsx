@@ -5,6 +5,7 @@ import { CallTree, PresentationData } from "../../../common/PresentationData";
 import { Button } from "@mui/material";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContext";
+import FileTypeSettings from "../Components/FileTypeSettings";
 import "./profilerTreeView.css";
 
 interface IConfigProps {
@@ -46,8 +47,8 @@ function buildTreeView(data: CallTree[]): TreeNode[] {
         id: nodeID,
         moduleID,
         moduleName,
-        lineNum,
-        numCalls,
+        lineNum: lineNum ?? 0,
+        numCalls: numCalls ?? 0,
         cumulativeTime,
         pcntOfSession,
         children: [],
@@ -62,7 +63,7 @@ function buildTreeView(data: CallTree[]): TreeNode[] {
     const parentNode = map[parentID];
 
     if (parentNode) {
-      parentNode.children.push(node);
+      parentNode.children?.push(node);
     } else {
       treeView.push(node);
     }
@@ -103,12 +104,13 @@ function ProfilerTreeView({
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
 
-    if (!foundModule?.hasLink) return;
+    if (!foundModule?.hasLink) {return;}
 
     vscode.postMessage({
       type: settingsContext.openFileType,
       name: foundModule.moduleName,
       listingFile: foundModule?.listingFile,
+      xrefFile: foundModule?.xrefFile,
       lineNumber: foundModule.startLineNum,
     });
   };
@@ -135,7 +137,7 @@ function ProfilerTreeView({
 
     const flattenTree = (node: TreeNode, level: number) => {
       const { children, ...rest } = node;
-      const isExpanded = expandedNodes.includes(node.id);
+      const isExpanded = expandedNodes.indexOf(node.id) !== -1;
 
       rows.push({ ...rest, level, expanded: isExpanded });
 
@@ -152,20 +154,13 @@ function ProfilerTreeView({
 
   return (
     <React.Fragment>
-      <div className="collapse-button">
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => toggleExpansion(null)}
-        >
-          Collapse All
-        </Button>
-      </div>
       <TreeView
         rows={rows}
         toggleExpansion={toggleExpansion}
         handleNodeSelection={handleNodeSelection}
         handleOnClick={(row) => openFileForTreeView(row)}
+        hasXREFs={presentationData.hasXREFs}
+        hasListings={presentationData.hasListings}
       />
     </React.Fragment>
   );
@@ -173,11 +168,13 @@ function ProfilerTreeView({
 
 const TreeView: React.FC<{
   rows: TreeRow[];
-  toggleExpansion: (node: TreeNode) => void;
+  toggleExpansion: (node: TreeNode | null) => void;
   handleNodeSelection: (moduleName: string, selectedModuleId: number) => void;
   handleOnClick: (row: TreeRow) => void;
+  hasXREFs: boolean;
+  hasListings: boolean;
 }> = React.memo(
-  ({ rows, toggleExpansion, handleNodeSelection, handleOnClick }) => {
+  ({ rows, toggleExpansion, handleNodeSelection, handleOnClick, hasXREFs, hasListings }) => {
     const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
 
     const nameFormatter = ({ row }: FormatterProps<TreeRow>) => {
@@ -270,7 +267,23 @@ const TreeView: React.FC<{
     return (
       <React.Fragment>
         <div className="treeview">
-          <div className="grid-name">TreeView</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="grid-name">Tree View</div>
+            <FileTypeSettings
+              hasXREFs={hasXREFs}
+              hasListings={hasListings}
+              infoMessage="This toggle controls how source code is displayed when opening a module. CTRL + Click on module name to open source file."
+            />
+          </div>
+          <div className="collapse-button">
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => toggleExpansion(null)}
+            >
+              Collapse All
+            </Button>
+          </div>
           <DataGrid
             className="treeHeight"
             defaultColumnOptions={{

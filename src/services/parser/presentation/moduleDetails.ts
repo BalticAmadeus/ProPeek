@@ -1,9 +1,10 @@
-import { Constants } from "../../../common/Constants";
+import { existsSync } from "fs";
 import { ModuleDetails } from "../../../common/PresentationData";
 import { ProfilerRawData } from "../profilerRawData";
 import { DescriptionData } from "../raw/descriptionData";
 import { ModuleData } from "../raw/moduleData";
-import { checkModuleFileExists, getFileAndProcedureName, getWorkspaceConfig } from "./common";
+import { checkModuleFileExists, findDefaultListingFile, getFileAndProcedureName } from "./common";
+import { getXRefFile } from "../../helper/xRefHelper";
 
 interface ListingFileFilter {
   fileName: string,
@@ -13,46 +14,44 @@ interface ListingFileFilter {
 /**
  * Transforms raw profiler data into presentable Module Details list
  */
-export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string, hasListings: boolean): Promise<ModuleDetails[]> {
+export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string, hasListings: boolean, hasXREFs: boolean): Promise<ModuleDetails[]> {
 
   const moduleDetailsList = [getSessionModuleDetails()] as ModuleDetails[];
-
   const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
 
-  for(const module of rawData.ModuleData) {
-    const listingFile = getListingFile(module, rawData.DescriptionData, listingFileFilterList);
-    const hasListing = hasListings && listingFile.length > 0;
+  const timesCalledByModuleId = new Map<number, number>();
+  for (const node of rawData.CallGraphData ?? []) {
+    timesCalledByModuleId.set(node.CalleeID, (timesCalledByModuleId.get(node.CalleeID) ?? 0) + node.CallCount);
+  }
+
+  const totalTimeByModuleId = new Map<number, number>();
+  for (const line of rawData.LineSummaryData ?? []) {
+    totalTimeByModuleId.set(line.ModuleID, (totalTimeByModuleId.get(line.ModuleID) ?? 0) + line.ActualTime);
+  }
+
+  for (const module of rawData.ModuleData) {
+    const listingFile = hasListings ? await getListingFile(module, rawData.DescriptionData, listingFileFilterList) : "";
+    const xrefFile = hasXREFs ? await getXRefFile(module, rawData.DescriptionData, profilerTitle) : "";
 
     const moduleDetails: ModuleDetails = {
-      moduleID     : module.ModuleID,
-      moduleName   : module.ModuleName,
-      startLineNum : module.LineNum ? module.LineNum : 0,
-      timesCalled  : 0,
-      totalTime    : 0,
-      listingFile  : listingFile,
-      hasLink      : await getHasLink(rawData.ModuleData.length, module.ModuleName, profilerTitle, hasListing),
+      moduleID: module.ModuleID,
+      moduleName: module.ModuleName,
+      startLineNum: module.LineNum ? module.LineNum : 0,
+      timesCalled: timesCalledByModuleId.get(module.ModuleID) ?? 0,
+      totalTime: 0,
+      listingFile: listingFile,
+      hasLink: await getHasLink(module.ModuleName, profilerTitle, listingFile.length > 0, xrefFile.length > 0),
+      xrefFile: xrefFile,
     };
 
-    for(const node of rawData.CallGraphData) {
-      if (node.CalleeID === module.ModuleID) {
-        moduleDetails.timesCalled = moduleDetails.timesCalled + node.CallCount;
-      }
-    }
-
-    for(const line of rawData.LineSummaryData) {
-      if (line.ModuleID === module.ModuleID) {
-        moduleDetails.totalTime = moduleDetails.totalTime + line.ActualTime;
-      }
-    }
-
-    moduleDetails.totalTime = Number((moduleDetails.totalTime).toFixed(6));
+    moduleDetails.totalTime = Number((totalTimeByModuleId.get(module.ModuleID) ?? 0).toFixed(6));
     moduleDetails.avgTimePerCall = moduleDetails.timesCalled
       ? Number((moduleDetails.totalTime / moduleDetails.timesCalled).toFixed(6))
       : 0;
     moduleDetailsList.push(moduleDetails);
   }
 
-  for(const moduleDetails of moduleDetailsList) {
+  for (const moduleDetails of moduleDetailsList) {
     moduleDetails.pcntOfSession = Number((moduleDetails.totalTime / totalSessionTime * 100).toFixed(4));
   }
 
@@ -66,15 +65,15 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
  */
 const getSessionModuleDetails = (): ModuleDetails => {
   return {
-    moduleID      : 0,
-    moduleName    : "Session",
-    startLineNum  : 0,
-    timesCalled   : 1,
+    moduleID: 0,
+    moduleName: "Session",
+    startLineNum: 0,
+    timesCalled: 1,
     avgTimePerCall: 0,
-    totalTime     : 0,
-    pcntOfSession : 0,
-    listingFile   : "",
-    hasLink       : false,
+    totalTime: 0,
+    pcntOfSession: 0,
+    listingFile: "",
+    hasLink: false,
   } as ModuleDetails;
 };
 
@@ -83,29 +82,34 @@ const getSessionModuleDetails = (): ModuleDetails => {
  * which has the listing file assigned to it by fileName.
  * @param {ModuleData} moduleData module data
  * @param {DescriptionData} descriptionData description data
- * @param {ListingFileFilter[]} listingFileFilterList listing file filter array 
+ * @param {ListingFileFilter[]} listingFileFilterList listing file filter array
  * @returns {string} listing file name
  */
-export const getListingFile = (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterList: ListingFileFilter[]): string => {
+export const getListingFile = async (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterList: ListingFileFilter[]): Promise<string> => {
   const listingDirectoryRaw = descriptionData.Information?.Directory ?? "";
   const listingDirectory = listingDirectoryRaw ? (listingDirectoryRaw.endsWith('/') ? listingDirectoryRaw : listingDirectoryRaw + '/') : "";
 
-  if (!moduleData.ListingFile) {
+  let listingFile = moduleData.ListingFile;
+  if (!listingFile) {
     const { fileName } = getFileAndProcedureName(moduleData.ModuleName);
-
-    const matchedFile = listingFileFilterList.find((item) => item.fileName === fileName);
-
-    if (matchedFile?.listingFile) {
-      return listingDirectory + matchedFile.listingFile;
-    }
+    listingFile = listingFileFilterList.find((item) => item.fileName === fileName)?.listingFile ?? "";
   }
 
-  return listingDirectory ? listingDirectory + moduleData.ListingFile : moduleData.ListingFile ?? "";
+  if (!listingFile) {
+    return "";
+  }
+
+  const listingPath = listingDirectory + listingFile;
+  if (existsSync(listingPath)) {
+    return listingPath;
+  }
+  // fall back to the default listing directory inside the workspace
+  return await findDefaultListingFile(listingFile);
 };
 
 /**
  * Filters out the listing files and returns the array
- * @param {ModuleData[]} moduleDataList module data list 
+ * @param {ModuleData[]} moduleDataList module data list
  * @param {DescriptionData[]} descriptionData description data
  * @returns {ListingFileFilter[]} listing file filter array
  */
@@ -113,8 +117,8 @@ export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingF
   return moduleDataList
     .filter((moduleData) => moduleData.ListingFile)
     .map((moduleData) => {
-      return { 
-        fileName: getFileAndProcedureName(moduleData.ModuleName).fileName, 
+      return {
+        fileName: getFileAndProcedureName(moduleData.ModuleName).fileName,
         listingFile: moduleData.ListingFile
       } as ListingFileFilter;
     });
@@ -122,23 +126,25 @@ export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingF
 
 /**
  * Returns boolean value for hasListings
- * @param {ProfilerRawData} rawData raw data list 
+ * @param {ProfilerRawData} rawData raw data list
  * @returns {boolean} value for hasListings
  */
 export const getHasListingFiles = (rawData: ProfilerRawData): boolean => {
   return rawData?.ModuleData?.some(module => module.ListingFile !== "");
-}
+};
 
 /**
- * Returns the boolean value for the hasLink attribute
- * @param hasListing has listing file associated
- * @param moduleDataLength module data length
+ * Returns the boolean value for the hasLink attribute.
  * @param moduleName module name
  * @param profilerTitle profiler title
+ * @param hasListing has listing file associated
+ * @param hasXRef has xref file associated
  * @returns {boolean} value for hasLink attribute
  */
-export const getHasLink = async (moduleDataLength: number, moduleName: string, profilerTitle: string, hasListing: boolean): Promise<boolean> => {
-  return moduleDataLength < Constants.fileSearchLimit 
-    ? (await checkModuleFileExists(moduleName, profilerTitle) ? true : hasListing)
-    : (getWorkspaceConfig().length > 0 ? true : false);
+export const getHasLink = async (moduleName: string, profilerTitle: string, hasListing: boolean, hasXRef: boolean): Promise<boolean> => {
+  if (hasListing) {
+    return true;
+  }
+
+  return hasXRef ? await checkModuleFileExists(moduleName, profilerTitle) : false;
 };

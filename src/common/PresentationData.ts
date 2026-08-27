@@ -28,6 +28,7 @@ export interface ModuleDetails {
   pcntOfSession?: number,
   listingFile: string,
   hasLink: boolean,
+  xrefFile?: string,
 }
 
 export interface CallTree {

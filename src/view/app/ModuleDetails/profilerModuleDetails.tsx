@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   ModuleDetails,
   CalledModules,
@@ -10,7 +10,9 @@ import DataGrid from "react-data-grid";
 import type { Column, FormatterProps, SortColumn } from "react-data-grid";
 import columnDefinition from "./column.json";
 import "./profilerModuleDetails.css";
-import ModuleDetailsTable from "./components/ModuleDetailsTable";
+import ModuleDetailsTable, {
+  getModuleOccurrenceIndex,
+} from "./components/ModuleDetailsTable";
 import PercentageFill from "../Components/PercentageBar/PercentageFill";
 import { getVSCodeAPI } from "../utils/vscode";
 import { Box, Typography } from "@mui/material";
@@ -128,15 +130,17 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   moduleName,
   selectedModuleId,
 }) => {
-  const [selectedModuleCode, setSelectedModuleCode] = useState<string | null>(
-    null
-  );
-
-  const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
+    const [moduleRows, setModuleRows] = useState<ModuleDetails[]>(
     presentationData.moduleDetails
   );
 
-  const [lineNumber, setLineNumber] = useState<number>();
+  const [codeView, setCodeView] = useState<{
+    content: string | null;
+    lineNumber: number | undefined;
+  }>({ content: null, lineNumber: undefined });
+
+  const selectedModuleCode = codeView.content;
+  const lineNumber = codeView.lineNumber;
 
   const [selectedModuleRow, setSelectedModuleRow] =
     useState<ModuleDetails | null>(null);
@@ -174,6 +178,19 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
 
   const vscode = getVSCodeAPI();
 
+  /** Click-timing state for line-summary double click detection. */
+  const lastLineClickRef = React.useRef<{ row: LineSummary; time: number } | null>(null);
+  const lastOpenedLineRef = React.useRef<{ row: LineSummary; time: number } | null>(null);
+
+  /**
+   * Token guard for readFile/fileContent requests so a slower response for a
+   * previously clicked module can never overwrite the currently selected
+   * module's content/position.
+   */
+  const fileContentTokenRef = React.useRef(0);
+
+  const pendingModuleKeyRef = React.useRef<string | null>(null);
+
   const formattedModuleColumns: ModuleColumn[] = addConditionalFormatting(
     columnDefinition.moduleColumns
   );
@@ -188,6 +205,27 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   );
 
   const settingsContext = useFileTypeSettingsContext();
+
+  const interactiveLineColumns: LineColumn[] = formattedLineColumns.map(
+    (col) =>
+      col.key === "lineNumber"
+        ? {
+            ...col,
+            formatter: ({ row }: FormatterProps<LineSummary>) => (
+              <Box
+                className={
+                  settingsContext.openFileType === OpenFileTypeEnum.LISTING &&
+                  row.hasLink
+                    ? "link-cell"
+                    : ""
+                }
+              >
+                {row.lineNumber}
+              </Box>
+            ),
+          }
+        : col
+  );
 
   const sumTotalTime = presentationData.moduleDetails
     .reduce((acc, module) => acc + module.totalTime, 0)
@@ -306,22 +344,47 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   };
 
   const updateEditorContent = (row: ModuleDetails) => {
-    const openFileType =
-      row.listingFile && presentationData.hasListings
-        ? OpenFileTypeEnum.LISTING
-        : OpenFileTypeEnum.XREF;
-
     if (!row || !row.hasLink) {
-      setSelectedModuleCode(null);
+      fileContentTokenRef.current += 1;
+      pendingModuleKeyRef.current = null;
+      setCodeView({ content: null, lineNumber: undefined });
       return;
     }
+    const openFileType =
+      settingsContext.openFileType === OpenFileTypeEnum.XREF || !row.listingFile
+        ? OpenFileTypeEnum.XREF
+        : OpenFileTypeEnum.LISTING;
+    const requestKey = `${row.moduleName}|${openFileType}`;
+    if (pendingModuleKeyRef.current === requestKey) {
+      return;
+    }
+    pendingModuleKeyRef.current = requestKey;
+    const token = (fileContentTokenRef.current += 1);
 
     vscode.postMessage({
       type: "readFile",
       filePath: row.moduleName,
       listingFile: row.listingFile,
+      xrefFile: row.xrefFile,
+      lineNumber: row.startLineNum,
+      occurrenceIndex: getModuleOccurrenceIndex(
+        presentationData.moduleDetails,
+        row
+      ),
       openFileType,
+      token,
     });
+  };
+
+  const revealSelectedRowLine = (row: ModuleDetails) => {
+    if (row.startLineNum === 0) {
+      // Whole-file module: position on line 1
+      setCodeView((cv) => ({ ...cv, lineNumber: 1 }));
+      return;
+    }
+    if (settingsContext.openFileType !== OpenFileTypeEnum.XREF || !row.xrefFile) {
+      setCodeView((cv) => ({ ...cv, lineNumber: row.startLineNum }));
+    }
   };
 
   const sortedModuleRows = useMemo((): readonly ModuleDetails[] => {
@@ -335,7 +398,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       setSelectedModuleRow(firstModuleRow);
       filterTables(firstModuleRow);
       updateEditorContent(firstModuleRow);
-      setLineNumber(firstModuleRow.startLineNum);
+      revealSelectedRowLine(firstModuleRow);
     }
 
     return sortedRows;
@@ -371,7 +434,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     filterTables(selectedRow);
     if (selectedRow) {
       updateEditorContent(selectedRow);
-      setLineNumber(selectedRow.startLineNum);
+      revealSelectedRowLine(selectedRow);
     }
   }, [selectedRow]);
 
@@ -385,6 +448,23 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
   }, [presentationData.hasXREFs, presentationData.hasListings]);
 
   const openFileForLineSummary = (row): void => {
+    // Line positions are only exact against a listing file
+    if (settingsContext.openFileType !== OpenFileTypeEnum.LISTING) {
+      return;
+    }
+
+    const now = Date.now();
+    const lastOpened = lastOpenedLineRef.current;
+    if (
+      lastOpened &&
+      lastOpened.row.moduleID === row.moduleID &&
+      lastOpened.row.lineNumber === row.lineNumber &&
+      now - lastOpened.time < 600
+    ) {
+      return;
+    }
+    lastOpenedLineRef.current = { row, time: now };
+
     const foundModule = sortedModuleRows.find(
       (moduleRow) => moduleRow.moduleID === row.moduleID
     );
@@ -395,8 +475,28 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       type: settingsContext.openFileType,
       name: foundModule.moduleName,
       listingFile: foundModule?.listingFile,
+      xrefFile: foundModule?.xrefFile,
       lineNumber: row.lineNumber,
     });
+  };
+
+  const handleLineRowClick = (row: LineSummary): void => {
+    if (settingsContext.openFileType !== OpenFileTypeEnum.LISTING) {
+      return;
+    }
+    const previousClick = lastLineClickRef.current;
+    lastLineClickRef.current = { row, time: Date.now() };
+    if (
+      previousClick &&
+      previousClick.row.moduleID === row.moduleID &&
+      previousClick.row.lineNumber === row.lineNumber &&
+      Date.now() - previousClick.time < 500
+    ) {
+      lastLineClickRef.current = null;
+      openFileForLineSummary(row);
+      return;
+    }
+    setCodeView((cv) => ({ ...cv, lineNumber: row.lineNumber }));
   };
 
   React.useEffect(() => {
@@ -404,9 +504,25 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       const message = event.data;
 
       if (message.type === "fileContent") {
-        setSelectedModuleCode(message.content);
+        // Ignore responses for a previously selected module
+        if (message.token !== fileContentTokenRef.current) {
+          return;
+        }
+        pendingModuleKeyRef.current = null;
+
+        setCodeView((cv) => ({
+          content: message.content,
+          lineNumber:
+            typeof message.lineNumber === "number" && message.lineNumber > 0
+              ? message.lineNumber
+              : cv.lineNumber,
+        }));
       } else if (message.type === "fileReadError") {
-        setSelectedModuleCode(null);
+        if (message.token !== fileContentTokenRef.current) {
+          return;
+        }
+        pendingModuleKeyRef.current = null;
+        setCodeView({ content: null, lineNumber: undefined });
       }
     };
 
@@ -418,22 +534,39 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
     };
   }, []);
 
+  const mdRootRef = useRef<HTMLDivElement>(null);
+  const [mdRootHeight, setMdRootHeight] = useState<number>();
+  useEffect(() => {
+    const update = () => {
+      const el = mdRootRef.current;
+      if (el) setMdRootHeight(window.innerHeight - el.getBoundingClientRect().top);
+    };
+    update();
+    const observer = new ResizeObserver(update); // re-measure when banner/header above changes
+    observer.observe(document.body);
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   return (
-    <div>
+      <div className="md-root" ref={mdRootRef} style={mdRootHeight ? { height: mdRootHeight } : undefined}>
       <div className="details-columns">
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div className="grid-name">Module Details</div>
-          <div className="total-time">
+          <div className="total-time" style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
             <Typography color="-var(--vscode-editor-foreground)">
               Total Time: {sumTotalTime} s
             </Typography>
           </div>
+          <FileTypeSettings
+            hasXREFs={presentationData.hasXREFs}
+            hasListings={presentationData.hasListings}
+            infoMessage="This toggle controls how source code is displayed when opening a module. Double click on module name to open source file."
+          />
         </div>
-        <FileTypeSettings
-          showOpenFileType={
-            presentationData.hasXREFs && presentationData.hasListings
-          }
-        />
         {moduleRows.length > 0 ? (
           <ModuleDetailsTable
             columns={formattedModuleColumns}
@@ -441,7 +574,7 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
             onRowClick={(row) => {
               setSelectedRow(row);
               updateEditorContent(row);
-              setLineNumber(row.startLineNum);
+              revealSelectedRowLine(row);
             }}
             onRowsChange={setModuleRows}
             sortColumns={sortModuleColumns}
@@ -504,22 +637,22 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
         </div>
       </div>
 
-      <div className="line-columns" style={{ marginBottom: "50px" }}>
+      <div className="line-columns">
         <div className="grid-name">Line Summary</div>
-        <div style={{ display: "flex", flexDirection: "row", width: "100%" }}>
+        <div className="bottom-row">
           <DataGrid
-            columns={formattedLineColumns}
+            columns={interactiveLineColumns}
             rows={sortedLineRows}
             defaultColumnOptions={{
               sortable: true,
               resizable: true,
             }}
-            style={{ textAlign: "end", maxHeight: "300px", width: "40%" }}
+            style={{ textAlign: "end", height: "100%", width: "40%" }}
             onRowsChange={setSelectedLineRows}
             sortColumns={sortLineColumns}
             onSortColumnsChange={setSortLineColumns}
             onRowDoubleClick={openFileForLineSummary}
-            onRowClick={(row) => setLineNumber(row.lineNumber)}
+            onRowClick={handleLineRowClick}
           />
           <MonacoComponent
             selectedModuleCode={selectedModuleCode}

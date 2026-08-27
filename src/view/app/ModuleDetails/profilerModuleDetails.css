@@ -4,6 +4,36 @@
   margin-bottom: 20px;
 }
 
+.md-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.md-root>.line-columns {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  min-height: 340px;
+  overflow: hidden;
+}
+
+.bottom-row {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  min-height: 300px;
+}
+
+.md-code {
+  flex: 1;
+  min-width: 55%;
+  min-height: 300px;
+  position: relative;
+}
+
 .total-time {
   display: grid;
   grid-template-columns: 1fr;

@@ -23,9 +23,30 @@ export interface ModuleDetailsTableProps
   extends DataGridProps<ModuleDetails>,
     Omit<FilterHeaderProps, "onFilterChange"> {}
 
+/** Index of a module among same-named modules (overloads),
+  * ordered by profiler start line - picks the matching xref definition record. */
+export const getModuleOccurrenceIndex = (
+  moduleDetails: readonly ModuleDetails[] | undefined,
+  row: ModuleDetails
+): number => {
+  if (!moduleDetails || !row.moduleName || !row.startLineNum || row.startLineNum < 1) {
+    return 0;
+  }
+  const namesakes = moduleDetails.filter(
+    (m) => m.moduleName === row.moduleName && m.startLineNum >= 1
+  );
+  if (namesakes.length <= 1) {
+    return 0;
+  }
+  namesakes.sort((a, b) => a.startLineNum - b.startLineNum);
+  const index = namesakes.findIndex((m) => m.startLineNum === row.startLineNum);
+  return index > 0 ? index : 0;
+};
+
 const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
   searchValue,
   setSearchValue,
+  onRowClick: onRowClickProp,
   ...otherProps
 }) => {
   const [rows, setRows] = useState(otherProps.rows);
@@ -165,17 +186,53 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
     return addFilterRendererToColumns(otherProps.columns);
   }, [otherProps.columns, searchValue]);
 
+  const lastRowClickRef = React.useRef<{ row: ModuleDetails; time: number } | null>(null);
+  const lastOpenedRowRef = React.useRef<{ row: ModuleDetails; time: number } | null>(null);
+
   const openFileForModuleDetails = (row: ModuleDetails): void => {
     if (!row.hasLink) {
       return;
     }
 
+    const now = Date.now();
+    const lastOpened = lastOpenedRowRef.current;
+    if (
+      lastOpened &&
+      lastOpened.row.moduleID === row.moduleID &&
+      now - lastOpened.time < 600
+    ) {
+      return;
+    }
+    lastOpenedRowRef.current = { row, time: now };
+
     vscode.postMessage({
       type: settingsContext.openFileType,
       name: row.moduleName,
       listingFile: row?.listingFile,
+      xrefFile: row?.xrefFile,
       lineNumber: row.startLineNum,
+      occurrenceIndex: getModuleOccurrenceIndex(rows, row),
     });
+  };
+
+  /** Double click via click timing - native dblclick is unreliable after grid re-renders. */
+  const handleRowClick = (row: ModuleDetails): void => {
+    const previousClick = lastRowClickRef.current;
+    lastRowClickRef.current = { row, time: Date.now() };
+
+    if (
+      previousClick &&
+      previousClick.row.moduleID === row.moduleID &&
+      Date.now() - previousClick.time < 500
+    ) {
+      lastRowClickRef.current = null;
+      openFileForModuleDetails(row);
+      return;
+    }
+
+    if (onRowClickProp) {
+      (onRowClickProp as (row: ModuleDetails) => void)(row);
+    }
   };
 
   return (
@@ -189,6 +246,7 @@ const ModuleDetailsTable: React.FC<ModuleDetailsTableProps> = ({
         onRowDoubleClick={openFileForModuleDetails}
         rowKeyGetter={(row) => row.moduleID}
         {...otherProps}
+        onRowClick={handleRowClick}
         columns={filteredColumns}
         rows={rows}
       />

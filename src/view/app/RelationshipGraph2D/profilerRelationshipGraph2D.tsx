@@ -670,6 +670,7 @@ function ProfilerRelationshipGraph2D({
         width: "100%",
         height: `calc(100vh - ${TOP_SECTION_HEIGHT}px)` /* this is needed to remove vertical scrollbar */,
         overflow: "hidden" /* this is needed to remove horizontal scrollbar */,
+        position: "relative",
       }}
     >
       <GraphStatsPanel

@@ -2,6 +2,7 @@ import { existsSync } from "fs";
 import * as vscode from "vscode";
 import { Constants } from "../../../common/Constants";
 import { IConfig } from "../../../view/app/model";
+import { DescriptionData } from "../raw/descriptionData";
 
 export interface FileAndProcedure {
   fileName: string;
@@ -105,6 +106,91 @@ export const convertToFilePath = (fileName: string, path: string): string => {
 };
 
 /**
+ * Converts a file name to posix style (forward slashes)
+ * @param fileName file name
+ * @returns posix style file name
+ */
+const toPosixFileName = (fileName: string): string => fileName.replace(/\\/g, "/");
+
+/**
+ * Checks whether the given path is absolute (drive letter or leading slash)
+ * @param value path value
+ * @returns true if the path is absolute
+ */
+const isAbsolutePath = (value: string): boolean =>
+  (value.length >= 2 && value[1] === ":") || value.startsWith("/");
+
+/**
+ * Searches for a file inside the propath entries.
+ * @param proPath combined propath array
+ * @param fileName file name to resolve (e.g. "app/file.p")
+ * @returns resolved uri or empty uri when not found
+ */
+export const findFileInProPath = async (
+  proPath: string[],
+  fileName: string
+): Promise<vscode.Uri> => {
+  const posixFileName = toPosixFileName(fileName);
+
+  // Fully qualified file name - no search needed
+  if (existsSync(fileName)) {
+    return vscode.Uri.file(fileName);
+  }
+
+  for (const proPathEntry of proPath ?? []) {
+    if (!proPathEntry) {
+      continue;
+    }
+
+    const normalizedEntry = toPosixFileName(trimSlashesLocal(proPathEntry));
+    if (!normalizedEntry) {
+      continue;
+    }
+
+    // Absolute propath entries point outside the workspace - glob patterns
+    // cannot reach them, so check the file system directly
+    if (isAbsolutePath(normalizedEntry)) {
+      const candidate = `${normalizedEntry}/${posixFileName}`;
+      if (existsSync(candidate)) {
+        return vscode.Uri.file(candidate);
+      }
+      continue;
+    }
+
+    // Exact location - "<propath-entry>/<fileName>".
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      const candidate = `${toPosixFileName(folder.uri.fsPath)}/${normalizedEntry}/${posixFileName}`;
+      if (existsSync(candidate)) {
+        return vscode.Uri.file(candidate);
+      }
+    }
+  }
+
+  return vscode.Uri.file("");
+};
+
+const trimSlashesLocal = (value: string): string => value.replace(/^\/+|\/+$/g, "");
+
+/**
+ * Searches for a listing file under the default listing directories
+ * @param listingFileName listing file name from profiler data
+ * @returns absolute path or empty string when not found
+ */
+export const findDefaultListingFile = async (listingFileName: string): Promise<string> => {
+  if (!listingFileName) {
+    return "";
+  }
+
+  const posixName = toPosixFileName(listingFileName);
+  const baseName = posixName.substring(posixName.lastIndexOf("/") + 1);
+  const found = await vscode.workspace.findFiles(getListingFilePath(baseName), undefined, 1);
+
+  const result = found.length > 0 ? found[0].fsPath : "";
+
+  return result;
+};
+
+/**
  * Returns true or false if file exists
  * @param fileName File name to search
  * @param profilerTitle Profiler file name
@@ -125,22 +211,10 @@ const fileExists = async (
     return false;
   }
 
-  if (existsSync(fileName)) {
-    foundFileCache.set(key, fileName);
+  const found = await findFileInProPath(getProPath(), fileName);
+  if (found.fsPath) {
+    foundFileCache.set(key, found);
     return true;
-  }
-
-  const proPath = getProPath();
-
-  for (const path of proPath) {
-    const files = await vscode.workspace.findFiles(
-      convertToFilePath(fileName, path),
-      "{**/node_modules/**,**/.builder/**}"
-    );
-    if (files.length > 0) {
-      foundFileCache.set(key, files[0]);
-      return true;
-    }
   }
 
   notFoundFileCache.set(key, fileName);
@@ -160,6 +234,45 @@ export const getProPath = (): string[] => {
   workspaceConnections.forEach((connection) => {
     proPath.push(connection.path);
   });
+  return proPath;
+};
+
+/**
+ * Splits the profiler's Propath string into individual entries
+ * @param propath Propath string from DescriptionInformation
+ * @returns array of propath entries
+ */
+export const getProPathFromDescription = (propath: string): string[] => {
+  if (!propath) {
+    return [];
+  }
+
+  return propath
+    .split(/[;,]/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+};
+
+/**
+ * Returns the combined propath array from the workspace config and the profiler's description data
+ * @param descriptionData profiler description data
+ * @returns combined propath array
+ */
+export const getCombinedProPath = (
+  descriptionData?: DescriptionData
+): string[] => {
+  const proPath = getProPath();
+
+  const descriptionProPath = getProPathFromDescription(
+    descriptionData?.Information?.Propath ?? ""
+  );
+
+  descriptionProPath.forEach((entry) => {
+    if (!proPath.includes(entry)) {
+      proPath.push(entry);
+    }
+  });
+
   return proPath;
 };
 
