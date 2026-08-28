@@ -61,9 +61,25 @@ export const getFileAndProcedureName = (
   return fileAndProcedure;
 };
 
+const getListingFolder = () => Constants.defaultListingPath.replace(/^\/+|\/+$/g, "");
+
 export const getListingFilePath = (listingFileName: string) => {
-  const listingPath = "listing";
-  return `**/${listingPath}/${listingFileName}`;
+  return `**/${getListingFolder()}/${listingFileName}`;
+};
+
+let listingIndexPromise: Promise<Map<string, string>> | undefined;
+
+const buildListingIndex = async (): Promise<Map<string, string>> => {
+  const index = new Map<string, string>();
+  const files = await vscode.workspace.findFiles(`**/${getListingFolder()}/**`, undefined, 50000);
+  for (const file of files) {
+    const posixPath = toPosixFileName(file.fsPath);
+    const baseName = posixPath.substring(posixPath.lastIndexOf("/") + 1);
+    if (baseName && !index.has(baseName)) {
+      index.set(baseName, file.fsPath);
+    }
+  }
+  return index;
 };
 
 /**
@@ -172,7 +188,7 @@ export const findFileInProPath = async (
 const trimSlashesLocal = (value: string): string => value.replace(/^\/+|\/+$/g, "");
 
 /**
- * Searches for a listing file under the default listing directories
+ * Searches for a listing file under the default listing directory
  * @param listingFileName listing file name from profiler data
  * @returns absolute path or empty string when not found
  */
@@ -183,11 +199,11 @@ export const findDefaultListingFile = async (listingFileName: string): Promise<s
 
   const posixName = toPosixFileName(listingFileName);
   const baseName = posixName.substring(posixName.lastIndexOf("/") + 1);
-  const found = await vscode.workspace.findFiles(getListingFilePath(baseName), undefined, 1);
 
-  const result = found.length > 0 ? found[0].fsPath : "";
+  listingIndexPromise ??= buildListingIndex();
+  const index = await listingIndexPromise;
 
-  return result;
+  return index.get(baseName) ?? "";
 };
 
 /**

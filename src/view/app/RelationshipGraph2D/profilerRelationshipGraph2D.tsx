@@ -14,8 +14,6 @@ import { useFileTypeSettingsContext } from "../Components/FileTypeSettingsContex
 import { getVSCodeAPI } from "../utils/vscode";
 import { OpenFileTypeEnum } from "../../../common/openFile";
 
-const TOP_SECTION_HEIGHT = 80;
-
 interface NodeType {
   id: string;
   x?: number;
@@ -483,6 +481,29 @@ function ProfilerRelationshipGraph2D({
   const [pinnedNode, setPinnedNode] = useState<NodeType | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [graphHeight, setGraphHeight] = useState<number>(window.innerHeight);
+
+  React.useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) {
+      return undefined;
+    }
+
+    const update = () => {
+      setGraphHeight(window.innerHeight - el.getBoundingClientRect().top);
+    };
+    update();
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    observer?.observe(document.body);
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   const totalSessionTime = useMemo(() => {
     return presentationData.moduleDetails.reduce(
       (sum, moduleDetail) => sum + (moduleDetail.totalTime || 0),
@@ -665,11 +686,12 @@ function ProfilerRelationshipGraph2D({
 
   return (
     <Box
+      ref={wrapperRef}
       className="profiler-relationship-graph-wrapper"
       sx={{
         width: "100%",
-        height: `calc(100vh - ${TOP_SECTION_HEIGHT}px)` /* this is needed to remove vertical scrollbar */,
-        overflow: "hidden" /* this is needed to remove horizontal scrollbar */,
+        height: graphHeight,
+        overflow: "hidden",
         position: "relative",
       }}
     >
