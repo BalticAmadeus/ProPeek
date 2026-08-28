@@ -6,18 +6,13 @@ import { ModuleData } from "../raw/moduleData";
 import { checkModuleFileExists, findDefaultListingFile, getFileAndProcedureName } from "./common";
 import { getXRefFile } from "../../helper/xRefHelper";
 
-interface ListingFileFilter {
-  fileName: string,
-  listingFile: string,
-}
-
 /**
  * Transforms raw profiler data into presentable Module Details list
  */
 export async function calculateModuleDetails(rawData: ProfilerRawData, totalSessionTime: number, profilerTitle: string, hasListings: boolean, hasXREFs: boolean): Promise<ModuleDetails[]> {
 
   const moduleDetailsList = [getSessionModuleDetails()] as ModuleDetails[];
-  const listingFileFilterList = getListingFileFilterList(rawData.ModuleData);
+  const listingFileFilterMap = getListingFileFilterList(rawData.ModuleData);
 
   const timesCalledByModuleId = new Map<number, number>();
   for (const node of rawData.CallGraphData ?? []) {
@@ -30,7 +25,7 @@ export async function calculateModuleDetails(rawData: ProfilerRawData, totalSess
   }
 
   for (const module of rawData.ModuleData) {
-    const listingFile = hasListings ? await getListingFile(module, rawData.DescriptionData, listingFileFilterList) : "";
+    const listingFile = hasListings ? await getListingFile(module, rawData.DescriptionData, listingFileFilterMap) : "";
     const xrefFile = hasXREFs ? await getXRefFile(module, rawData.DescriptionData, profilerTitle) : "";
 
     const moduleDetails: ModuleDetails = {
@@ -82,17 +77,17 @@ const getSessionModuleDetails = (): ModuleDetails => {
  * which has the listing file assigned to it by fileName.
  * @param {ModuleData} moduleData module data
  * @param {DescriptionData} descriptionData description data
- * @param {ListingFileFilter[]} listingFileFilterList listing file filter array
+ * @param {Map<string, string>} listingFileFilterMap file name to listing file map
  * @returns {string} listing file name
  */
-export const getListingFile = async (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterList: ListingFileFilter[]): Promise<string> => {
+export const getListingFile = async (moduleData: ModuleData, descriptionData: DescriptionData, listingFileFilterMap: Map<string, string>): Promise<string> => {
   const listingDirectoryRaw = descriptionData.Information?.Directory ?? "";
   const listingDirectory = listingDirectoryRaw ? (listingDirectoryRaw.endsWith('/') ? listingDirectoryRaw : listingDirectoryRaw + '/') : "";
 
   let listingFile = moduleData.ListingFile;
   if (!listingFile) {
     const { fileName } = getFileAndProcedureName(moduleData.ModuleName);
-    listingFile = listingFileFilterList.find((item) => item.fileName === fileName)?.listingFile ?? "";
+    listingFile = listingFileFilterMap.get(fileName) ?? "";
   }
 
   if (!listingFile) {
@@ -108,20 +103,23 @@ export const getListingFile = async (moduleData: ModuleData, descriptionData: De
 };
 
 /**
- * Filters out the listing files and returns the array
+ * Builds a map of file name to listing file, so modules can inherit the listing
+ * file assigned to another module of the same compiled file
  * @param {ModuleData[]} moduleDataList module data list
- * @param {DescriptionData[]} descriptionData description data
- * @returns {ListingFileFilter[]} listing file filter array
+ * @returns {Map<string, string>} file name to listing file map
  */
-export const getListingFileFilterList = (moduleDataList: ModuleData[]): ListingFileFilter[] => {
-  return moduleDataList
-    .filter((moduleData) => moduleData.ListingFile)
-    .map((moduleData) => {
-      return {
-        fileName: getFileAndProcedureName(moduleData.ModuleName).fileName,
-        listingFile: moduleData.ListingFile
-      } as ListingFileFilter;
-    });
+export const getListingFileFilterList = (moduleDataList: ModuleData[]): Map<string, string> => {
+  const listingFileFilterMap = new Map<string, string>();
+  for (const moduleData of moduleDataList) {
+    if (!moduleData.ListingFile) {
+      continue;
+    }
+    const { fileName } = getFileAndProcedureName(moduleData.ModuleName);
+    if (!listingFileFilterMap.has(fileName)) {
+      listingFileFilterMap.set(fileName, moduleData.ListingFile);
+    }
+  }
+  return listingFileFilterMap;
 };
 
 /**
