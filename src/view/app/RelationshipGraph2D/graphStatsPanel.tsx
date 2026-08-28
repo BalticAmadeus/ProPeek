@@ -66,8 +66,8 @@ export default function GraphStatsPanel({
   return (
     <Box
       sx={{
-        position: "fixed",
-        top: 80,
+        position: "absolute",
+        top: 8,
         left: 16,
         zIndex: 1200,
         display: "flex",

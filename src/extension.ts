@@ -69,30 +69,34 @@ export function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  async function showWebinarPromoPopup(): Promise<void> {
-    if (!context.globalState.get(Constants.webinarPromoShownKey)) {
-      const result = await vscode.window.showInformationMessage(
-        "FREE WEBINAR | ONLINE — Discover how ProPeek helps you pinpoint OpenEdge performance bottlenecks in a live session on 10 September 2026, 14:00–15:00 EEST; register now to reserve your spot and receive the recording even if you can't attend live.",
-        "Register Now",
-        "Dismiss"
-      );
+  const BANNER_LAST_VALID_DAY = new Date(2026, 8, 10).getTime();
 
-      if (result === "Register Now") {
-        vscode.env.openExternal(vscode.Uri.parse(Constants.webinarInfoURL));
-      }
-
-      context.globalState.update(Constants.webinarPromoShownKey, true);
+  async function showWebinarPromoBanner(
+    profilerViewer: ProfilerViewer
+  ): Promise<void> {
+    if (
+      Date.now() < BANNER_LAST_VALID_DAY &&
+      !context.globalState.get(Constants.webinarBannerDismissedKey)
+    ) {
+      profilerViewer.showBannerMessage({
+        dismissKey: Constants.webinarBannerDismissedKey,
+        title: "LAST CHANCE to register for FREE Webinar",
+        message:
+          "Discover how ProPeek helps OpenEdge developers visualize profiler results, compare performance changes, and jump directly to problematic code. Register today and join 10 September 2026 | 14:00 EEST",
+        buttonText: "Register Now",
+        actionUrl: Constants.webinarInfoURL,
+      });
     }
-  };
+  }
 
   let disposable = vscode.commands.registerCommand(
     "vsc-profiler.profiler",
     async (uri: vscode.Uri) => {
       const filePath = uri.fsPath;
       const fileName = vscode.workspace.asRelativePath(filePath);
-      new ProfilerViewer(context, fileName, filePath);
+      const profilerViewer = new ProfilerViewer(context, fileName, filePath);
 
-      showWebinarPromoPopup();
+      showWebinarPromoBanner(profilerViewer);
     }
   );
 

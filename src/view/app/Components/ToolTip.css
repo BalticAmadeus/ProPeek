@@ -1,0 +1,12 @@
+.tooltiptext {
+  width: 220px;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  text-align: center;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid var(--vscode-editor-foreground);
+  font-size: 1rem;
+  z-index: 100;
+  pointer-events: none;
+}

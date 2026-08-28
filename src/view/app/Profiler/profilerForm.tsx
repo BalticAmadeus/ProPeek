@@ -14,6 +14,7 @@ import { getVSCodeAPI } from "../utils/vscode";
 import FileTypeSettingsContextProvider from "../Components/FileTypeSettingsContext";
 import ProToggleButton from "../Components/Buttons/ProToggleButton";
 import ProfilerRelationshipGraph2D from "../RelationshipGraph2D/profilerRelationshipGraph2D";
+import BannerMessage, { BannerMessageProps } from "../Components/BannerMessage";
 
 const defaultPresentationData: PresentationData = {
   moduleDetails: [],
@@ -39,13 +40,14 @@ const ProfilerForm: React.FC = () => {
     defaultPresentationData,
   );
   const [showStartTime, setShowStartTime] = useState<boolean>(false);
-  const [comparedData, setComparedData] = useState<ComparedData>(null);
+  const [comparedData, setComparedData] = useState<ComparedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCompare, setIsLoadingCompare] = useState<boolean>(false);
   const [moduleName, setModuleName] = useState<string>("");
-  const [selectedModuleId, setSelectedModuleId] = useState<number>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [fileName2, setFileName2] = useState<string>("");
+  const [bannerMessage, setBanner] = useState<BannerMessageProps | null>(null);
   const vscode = getVSCodeAPI();
 
   React.useLayoutEffect(() => {
@@ -63,8 +65,26 @@ const ProfilerForm: React.FC = () => {
       if (event.data.type === "setLoading") {
         setIsLoadingCompare(event.data.isLoading);
       }
+      if (event.data.type === "showBannerMessage") {
+        setBanner({
+          title: event.data.title,
+          message: event.data.message,
+          buttonText: event.data.buttonText,
+          actionUrl: event.data.actionUrl,
+          dismissKey: event.data.dismissKey,
+          onDismiss: handleBannerDismiss,
+        });
+      }
     });
   });
+
+  const handleBannerDismiss = (dismissKey: string) => {
+    setBanner(null);
+    vscode.postMessage({
+      type: "DISMISS_BANNER",
+      dismissKey,
+    });
+  };
 
   React.useEffect(() => {
     if (presentationData !== defaultPresentationData) {
@@ -122,11 +142,13 @@ const ProfilerForm: React.FC = () => {
   const Compare: React.FC = () => {
     return (
       <div>
-        <CompareModuleDetails
-          comparedData={comparedData}
-          fileName={fileName}
-          fileName2={fileName2}
-        />
+        {comparedData && (
+          <CompareModuleDetails
+            comparedData={comparedData}
+            fileName={fileName}
+            fileName2={fileName2}
+          />
+        )}
       </div>
     );
   };
@@ -148,7 +170,7 @@ const ProfilerForm: React.FC = () => {
     event: React.MouseEvent<HTMLElement>,
     tab: ProfilerTab | null,
   ) => {
-    if (!tab) return;
+    if (!tab) {return;}
     else if (tab === ProfilerTab.Compare && !comparedData) {
       const userWantsToCompare: any = await vscode.postMessage({
         type: "requestCompareFiles",
@@ -201,7 +223,15 @@ const ProfilerForm: React.FC = () => {
   return (
     <React.Fragment>
       {(isLoading || isLoadingCompare) && <LoadingOverlay />}
-      <div>
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {bannerMessage && <BannerMessage {...bannerMessage} />}
         <div
           style={{
             position: "sticky",
@@ -211,6 +241,7 @@ const ProfilerForm: React.FC = () => {
             width: "100%",
             backgroundColor: "var(--vscode-editor-background)",
             boxShadow: "0 1px 0 var(--vscode-editorWidget-border)",
+            flexShrink: 0,
           }}
         >
           <ToggleButtonGroup
@@ -237,7 +268,17 @@ const ProfilerForm: React.FC = () => {
             </ProToggleButton>
           </ToggleButtonGroup>
         </div>
-        <div style={{ paddingTop: 10 }}>{content}</div>
+        <div
+          style={{
+            paddingTop: 10,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          {content}
+        </div>
       </div>
     </React.Fragment>
   );

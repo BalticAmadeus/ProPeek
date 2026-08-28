@@ -3,13 +3,30 @@ import * as React from "react";
 import OpenFileTypeSetting from "./OpenFileTypeSetting"; 
 
 interface FileTypeSettingsProps {
-  showOpenFileType?: boolean;
+  hasXREFs: boolean;
+  hasListings: boolean;
+  infoMessage: string;
 }
 
 const FileTypeSettings: React.FC<FileTypeSettingsProps> = ({
-  showOpenFileType = false,
+  hasXREFs,
+  hasListings,
+  infoMessage,
 }) => {
-  return <Box>{showOpenFileType ? <OpenFileTypeSetting /> : <></>}</Box>;
+  const showOpenFileType = hasXREFs || hasListings;
+  return (
+    <Box>
+      {showOpenFileType ? (
+        <OpenFileTypeSetting
+          hasXREFs={hasXREFs}
+          hasListings={hasListings}
+          infoMessage={infoMessage}
+        />
+      ) : (
+        <></>
+      )}
+    </Box>
+  );
 };
 
 export default FileTypeSettings;

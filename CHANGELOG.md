@@ -1,3 +1,10 @@
+## 1.5.1 (2026-08-28)
+
+### Changed
+
+- Several fixes for code display using xref and listing files
+- Minor changes to UI: changed radio buttons, added info icons, improved layout for different screen sizes
+
 ## 1.5.0 (2026-06-12)
 
 ### Added

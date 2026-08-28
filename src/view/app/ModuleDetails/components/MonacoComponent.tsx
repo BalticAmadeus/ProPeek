@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { getVSCodeAPI } from "../../utils/vscode";
 import { conf, language } from "./abl.config";
+
+const DEFAULT_EDITOR_TEXT = [
+  "// Select a module to view its code here.",
+  "//",
+  "// To enable code viewer:",
+  "// - Listing option: generate listing files when creating the profiler.",
+  "// - Source option: open the profiler from your project directory",
+  "//   (containing openedge-project.json) and generate xref files during compilation.",
+].join("\n");
 
 const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   const [editorInstance, setEditorInstance] =
@@ -102,28 +111,44 @@ const MonacoComponent = ({ selectedModuleCode, lineNumber }) => {
   }, [theme, syntaxHighlightRules]);
 
   useEffect(() => {
-    if (editorInstance && lineNumber) {
+    if (!editorInstance || !lineNumber) {
+      return undefined;
+    }
+    const handle = window.setTimeout(() => {
       editorInstance.revealLineInCenterIfOutsideViewport(lineNumber);
       editorInstance.setPosition({ lineNumber, column: 1 });
-    }
+    }, 0);
+    return () => window.clearTimeout(handle);
   }, [lineNumber, editorInstance, selectedModuleCode]);
 
+  const codeRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState<number>();
+  useEffect(() => {
+    const el = codeRef.current;
+    if (!el) {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => setEditorHeight(el.clientHeight));
+    observer.observe(el);
+    setEditorHeight(el.clientHeight);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <MonacoEditor
-      height="300px"
-      width="65%"
-      language="abl"
-      theme="myCustomTheme"
-      value={
-        selectedModuleCode ||
-        `//Could not find code files or listing files. \n//Check if you created openedge-project.json file in project directory.`
-      }
-      options={{
-        readOnly: true,
-        scrollBeyondLastLine: false,
-      }}
-      onMount={(editor) => setEditorInstance(editor)}
-    />
+    <div className="md-code" ref={codeRef}>
+      <MonacoEditor
+        height={editorHeight ?? "100%"}
+        language="abl"
+        theme="myCustomTheme"
+        value={selectedModuleCode || DEFAULT_EDITOR_TEXT}
+        options={{
+          readOnly: true,
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+        }}
+        onMount={(editor) => setEditorInstance(editor)}
+      />
+    </div>
   );
 };
 

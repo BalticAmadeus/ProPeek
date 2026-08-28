@@ -3,96 +3,96 @@
         {
             "key": "moduleName",
             "name": "Module Name",
-            "width": "auto"
+            "width": "30%"
         },
         {
             "key": "pcntOfSession",
             "name": "% Of Session",
-            "width": "auto"
+            "width": "10%"
         },
         {
             "key": "timesCalled",
             "name": "Times Called",
-            "width": "auto"
+            "width": "10%"
         },
         {
             "key": "timesCalledChange",
             "name": "Times Called Diff",
-            "width": "auto"
+            "width": "10%"
         },
         {
             "key": "totalTime",
             "name": "Total Time",
-            "width": "auto"
+            "width": "10%"
         },
         {
             "key": "totalTimeChange",
             "name": "Total Time Diff",
-            "width": "auto"
+            "width": "10%"
         },
         {
             "key": "avgTimePerCall",
             "name": "Avg Time Per Call",
-            "width": "auto"
+            "width": "10%"
         },
         {
             "key": "avgTimePerCallChange",
             "name": "Avg Time Per Call Diff",
-            "width": "auto"
+            "width": "10%"
         }
     ],
     "CallingColumns": [
         {
             "key": "callerModuleName",
             "name": "Calling Module Name",
-            "width": "auto"
+            "width": "40%"
         },
         {
             "key": "timesCalled",
             "name": "Times Calling",
-            "width": "auto"
+            "width": "20%"
         },
         {
             "key": "timesCalledChange",
             "name": "Times Calling Diff",
-            "width": "auto"
+            "width": "20%"
         },
         {
             "key": "callerPcntOfSession",
             "name": "% Of Session",
-            "width": "auto"
+            "width": "20%"
         }
     ],
     "CalledColumns": [
         {
             "key": "calleeModuleName",
             "name": "Called Module Name",
-            "width": "auto"
+            "width": "40%"
         },
         {
             "key": "timesCalled",
             "name": "Times Called",
-            "width": "auto"
+            "width": "12%"
         },
         {
             "key": "timesCalledChange",
             "name": "Times Called Diff",
-            "width": "auto"
+            "width": "12%"
         },
         {
             "key": "calleeTotalTimesCalled",
             "name": "Total Times Called",
-            "width": "auto"
+            "width": "12%"
         },
         {
             "key": "calleeTotalTimesCalledChange",
             "name": "Total Times Called Diff",
-            "width": "auto"
+            "width": "12%"
         },
         {
             "key": "calleePcntOfSession",
             "name": "% Of Session",
-            "width": "auto"
+            "width": "12%"
         }
     ],
     "LineColumns": [
