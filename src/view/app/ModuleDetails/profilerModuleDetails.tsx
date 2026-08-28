@@ -239,7 +239,6 @@ const ProfilerModuleDetails: React.FC<ProfilerModuleDetailsProps> = ({
       if (overflow) {
         return {
           ...col,
-          minWidth: 250,
           formatter: ({ row }: FormatterProps<ModuleDetails>) => {
             const [isOverflow, setIsOverflow] = React.useState(false);
             const [isHovered, setIsHovered] = React.useState(false);
